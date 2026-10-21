@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "@core/*": ["./src/core/*"]
+    }
+  },
+  "include": [
+    "electron.vite.config.*",
+    "vitest.config.*",
+    "src/main/**/*",
+    "src/preload/**/*",
+    "src/core/**/*",
+    "tests/**/*"
+  ]
+}

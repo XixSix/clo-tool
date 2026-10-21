@@ -1,0 +1,21 @@
+appId: vn.thanhdong.clo-evaluator
+productName: CLO_PLO_Evaluator
+directories:
+  buildResources: resources
+  output: dist
+files:
+  - out/**/*
+  - resources/templates/**/*
+win:
+  target:
+    - target: portable
+      arch:
+        - x64
+    - target: nsis
+      arch:
+        - x64
+  artifactName: ${productName}-${version}-${target}.${ext}
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: always
