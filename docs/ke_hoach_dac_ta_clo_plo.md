@@ -13,7 +13,7 @@
 3. `Mẫu_CLO_ĐIỂM_DANH_GHI_ĐIỂM.xlsx`, mẫu Excel học kỳ 2026-2027 (viết tắt: **Mẫu Excel 2026**)
 4. `Mẫu_Danh_sách_điểm_danh___ghi_điểm_CLOxls.xls` (viết tắt: **Mẫu xls**)
 
-**Quy ước:** `[v1]` làm ngay, `[v1.1]` làm sau khi v1 chạy ổn, `[v2]` để sau. `[CẦN CHỐT #n]` là chỗ các văn bản chưa nói rõ hoặc nói mâu thuẫn nhau, gom ở mục VII.
+**Quy ước:** `[v1]` làm ngay, `[v1.1]` làm sau khi v1 chạy ổn, `[v2]` để sau. `[Quyết định #n]` trỏ tới danh sách các quyết định nghiệp vụ đã chốt ở mục VII (những chỗ văn bản chưa nói rõ).
 
 ---
 
@@ -29,7 +29,7 @@
 
 - **Offline 100%:** dữ liệu điểm chỉ nằm trên máy giảng viên. Không server, không database, không tài khoản.
 - **Đơn giản tối đa:** giảng viên chọn **2 file Excel** (Config học phần + Điểm thô của lớp) rồi bấm "Xử lý". File Config làm một lần cho mỗi học phần, dùng lại các học kỳ sau.
-- **Không hard-code quy tắc nghiệp vụ.** Cách làm tròn, ngưỡng đạt, cách tính điểm học phần đều nằm trong sheet `QUY_TAC` của Config. Lý do: QĐ450 ghi rõ có thể điều chỉnh, và các tài liệu hiện có chưa thống nhất với nhau (mục VII).
+- **Không hard-code quy tắc nghiệp vụ.** Cách làm tròn, ngưỡng đạt, cách tính điểm học phần đều nằm trong sheet `QUY_TAC` của Config. Lý do: QĐ450 ghi rõ có thể điều chỉnh, và một số chỗ văn bản chưa nói rõ nên phải chọn quy ước (mục VII).
 - **Linh hoạt:** số CLO, số bài kiểm tra, số câu hỏi, trọng số đều đọc từ Config.
 
 ### 3. Phạm vi theo phiên bản
@@ -62,7 +62,10 @@ _Vì sao nhập điểm trực tiếp trong app để v2:_ giảng viên đã c�
 
 - **[Căn cứ: QĐ450 Điều 1.8, Điều 6.3]** Điểm học phần, CLO, PI, PLO đều thang 10, làm tròn **1 chữ số thập phân**, làm tròn **lên** khi đúng nửa (half-up).
 - **Dùng `decimal.js` với chế độ `ROUND_HALF_UP`, không tính bằng số thực của JavaScript.** Số thực nhị phân làm một số giá trị đúng nửa bị làm tròn sai (ví dụ `(1.005).toFixed(2)` ra `1.00`). Bằng chứng ngay trong QĐ450 (tr.32): SV Nguyễn Văn Hùng được 2,5/4 điểm, tức 6,25, và QĐ ghi **6,3**; cách làm tròn kiểu "chẵn" sẽ cho 6,2.
-- **Làm tròn ở đâu: [CẦN CHỐT #4].** QĐ450 hiển thị giá trị đã làm tròn 1 chữ số ở từng bước, còn Mẫu Excel 2026 làm tròn 2 chữ số ở từng bước. Mặc định tạm: **giữ nguyên độ chính xác ở bước trung gian, chỉ làm tròn khi hiển thị/xuất** (`rounding_mode = final_only`). Có tham số `chain` để làm tròn từng cấp. Cả hai chế độ đều phải qua bộ test ở mục VI.
+- **Làm tròn từng bước [Quyết định #4].** Kết quả của mỗi cấp tính toán được làm tròn 1 chữ số thập phân và **số đã làm tròn được dùng cho cấp tiếp theo**, đúng như cách các ví dụ trong QĐ450 trình bày (ví dụ (8,8 + 6,7)/2 = 7,75 → 7,8 ở tr.32). Các cấp: điểm từng ô (đầu điểm, CLO) → điểm CLO học phần → điểm từng nhóm (CC/GK/CK) → TBC CLO → điểm học phần. PI/PLO tính từ các CLO đã làm tròn.
+- Tham số `rounding_mode = chain` (mặc định). Chế độ `final_only` (giữ số gốc, chỉ làm tròn khi xuất) để dự phòng nếu sau này trường yêu cầu khác.
+- Mẫu Excel 2026 làm tròn 2 chữ số ở từng bước, nên kết quả có thể lệch 0,1 so với mẫu đó ở một số SV. Đối chiếu bằng dữ liệu thật ở Tuần 0.
+- Các chỉ số p, d, α hiển thị 2 chữ số thập phân (như ví dụ QĐ450: 0,62; 0,25; 0,65), tính và phân loại trên số gốc.
 
 ### 2. Luồng xử lý dữ liệu
 
@@ -83,13 +86,13 @@ _Vì sao nhập điểm trực tiếp trong app để v2:_ giảng viên đã c�
 
 #### A. Điểm CLO thành phần (thang 10) cho từng ô (j, k)
 
-$$s_{j,k} = \frac{\sum d_i}{\sum t_i}\times 10$$
+$$s_{j,k} = \frac{1}{n}\sum_{i=1}^{n}\frac{d_i}{t_i}\times 10$$
 
 - $d_i$: điểm SV đạt ở cột điểm $i$ thuộc đầu điểm $j$ và gắn với CLO $k$.
 - $t_i$: điểm tối đa của cột đó.
-- Căn cứ: Lưu ý QLCL ("10 × tổng điểm làm được của CLO chia cho điểm tối đa của CLO").
-
-**[CẦN CHỐT #3]** QĐ450 Điều 9.3 viết khác một chút: $\frac{1}{n}\sum \frac{d_i}{t_i}\times 10$ (trung bình của các tỷ lệ). Hai công thức cho cùng kết quả khi mọi câu có cùng điểm tối đa (như đề 40 câu × 0,25 trong Phụ lục 4, nên ví dụ Hùng không phân biệt được), nhưng khác nhau khi điểm tối đa các câu không đều. Mặc định: $\sum d/\sum t$ (`clo_bo_phan = ratio_of_sums`), có tham số `mean_of_ratios`.
+- $n$: số cột điểm thuộc ô (j, k).
+- Căn cứ: QĐ450 Điều 9.3 (trung bình của các tỷ lệ) **[Quyết định #3]**. Mỗi cột điểm trong `CAU_HOI` được tính là một "câu" (câu 3 tách thành 3a, 3b thì là hai câu); cột thang 10 như CC, thái độ có $n = 1$.
+- Lưu ý QLCL diễn đạt theo tổng điểm ($10\times\sum d/\sum t$). Hai cách trùng nhau khi mọi câu có cùng điểm tối đa (như đề 40 câu × 0,25 trong Phụ lục 4) và chỉ khác khi điểm tối đa các câu không đều. Tham số `clo_bo_phan = mean_of_ratios` (mặc định); có thể đổi sang `ratio_of_sums`.
 
 _Trường hợp một cột đo nhiều CLO:_
 
@@ -113,17 +116,17 @@ $v_k$ là cột `Trọng số CLO` trong `CLO_LIST` (bỏ trống = 1, tức tru
 
 #### D. Điểm học phần (điểm học vụ)
 
-**[CẦN CHỐT #1, quan trọng nhất]** Các tài liệu cho hai cách tính khác nhau, và cùng một SV cho kết quả khác nhau:
+**[Quyết định #1]** Điểm học phần tính theo QĐ450 Điều 9.3:
 
-| Cách                                                            | Công thức                                                                                                           |   Hùng (Phụ lục 4)   |
-| :-------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------ | :------------------: |
-| `QD450` (Điều 9.3 và ví dụ trong QĐ)                            | $C_{hp} = 0{,}2\,C_{cc} + 0{,}3\,C_{gk} + 0{,}5\,C_{ck}$, với $C_x$ = **trung bình cộng điểm các CLO** của nhóm $x$ | **6,7** (QĐ ghi 6,7) |
-| `RAW_POINTS` (phương thức cũ, Mẫu xls ghi "để xét điểm học vụ") | $C_{hp} = \sum_g W_g \times \frac{\sum d}{\sum t}\times 10$ trên **điểm thô** của nhóm $g$                          |       **6,9**        |
+$$C_{hp} = 0{,}2\,C_{cc} + 0{,}3\,C_{gk} + 0{,}5\,C_{ck}$$
 
-Chênh 0,2 điểm vì $C_{ck}$ theo CLO là 5,9 (các CLO có trọng điểm khác nhau nhưng được lấy trung bình cộng), còn điểm thi thô của Hùng là 6,25/10. Mẫu Excel 2026 cho kết quả gần với `RAW_POINTS` nếu trọng số ô tỷ lệ với điểm tối đa (20% : 15% : 15% ứng với 4 : 3 : 3).
-
-- Mặc định tạm: `hp_method = QD450` (theo văn bản). App **hiển thị cả hai giá trị** và cảnh báo nếu lệch ≥ 0,1, cho đến khi P.QLCL/P.QLĐT chốt.
+- $C_{cc}$, $C_{gk}$, $C_{ck}$ là điểm của từng nhóm, mỗi điểm = **trung bình cộng điểm các CLO** thuộc nhóm đó (mỗi CLO đã quy về thang 10 theo công thức A).
+- Ví dụ SV Hùng (QĐ450 tr.32): $C_{cc} = 8{,}8$; $C_{gk} = 6{,}7$ (TB 6 CLO của hai bài kiểm tra); $C_{ck} = 5{,}9$ (TB 6 CLO của đề thi cuối kỳ) → $C_{hp} = 0{,}2\times 8{,}8 + 0{,}3\times 6{,}7 + 0{,}5\times 5{,}9 = \mathbf{6{,}7}$, đúng như QĐ ghi ("Điểm tổng kết học vụ").
+- **Đừng nhầm hai đại lượng cùng xuất hiện ở tr.32–33:** "Tổng kết học vụ" (**6,7**, tính như trên, là điểm học phần) và "Tổng kết CLO" (**6,6**, là TBC của 7 CLO sau khi tính lẻ từng CLO theo công thức B, là số điền vào Phụ lục 3). Chúng gần nhau nhưng là hai đại lượng riêng.
+- Số 7,8 (TB của 8,8 và 6,7) có in trong bảng ở tr.32 nhưng không dùng ở bước nào sau đó; app không cần tính.
 - Học phần thực hành, thực tế chuyên môn, đồ án, thực tập tốt nghiệp, khóa luận (QĐ450 Điều 9.3): $C_{hp} = \sum_k \text{CLO}_k \times \text{trọng số CLO}_k$. Chọn bằng `Loai_HP = thuc_hanh` trong Config; dùng cột `Trọng số CLO` (tổng phải bằng 100%).
+
+_Phương án dự phòng:_ nếu P.QLCL cho biết trường vẫn nhập điểm học vụ bằng cách **cộng điểm thô** theo trọng số 20/30/50 (không qua trung bình CLO), đổi `hp_method` thành `RAW_POINTS`. Với dữ liệu của Hùng, cách này cho khoảng 6,9 (số tự tính, không có trong QĐ450). Mặc định là `QD450`.
 
 #### E. PI và PLO thành phần của một học phần
 
@@ -133,13 +136,13 @@ Chênh 0,2 điểm vì $C_{ck}$ theo CLO là 5,9 (các CLO có trọng điểm k
 
 #### F. Điều kiện Đạt và cảnh báo
 
-| Đối tượng          |                  Ngưỡng                  | Căn cứ                                                    |
-| :----------------- | :--------------------------------------: | :-------------------------------------------------------- |
-| PLO thành phần đạt |                  ≥ 4,0                   | QĐ450 Điều 10                                             |
-| CĐR CTĐT đạt       |                  ≥ 5,0                   | QĐ450 Điều 10 (`[v2]`)                                    |
-| SV bị cảnh báo     | PLO thành phần < 4,0 hoặc CĐR CTĐT < 5,0 | QĐ450 Điều 12                                             |
-| **CLO đạt**        |      **chưa có trong văn bản nào**       | **[CẦN CHỐT #2]** (mặc định tạm 4,0, đặt trong `QUY_TAC`) |
-| Học phần đạt       |               mặc định 4,0               | cần đối chiếu Quy chế đào tạo của Trường                  |
+| Đối tượng          |                  Ngưỡng                  | Căn cứ                                                                                                  |
+| :----------------- | :--------------------------------------: | :------------------------------------------------------------------------------------------------------ |
+| PLO thành phần đạt |                  ≥ 4,0                   | QĐ450 Điều 10                                                                                           |
+| CĐR CTĐT đạt       |                  ≥ 5,0                   | QĐ450 Điều 10 (`[v2]`)                                                                                  |
+| SV bị cảnh báo     | PLO thành phần < 4,0 hoặc CĐR CTĐT < 5,0 | QĐ450 Điều 12                                                                                           |
+| **CLO đạt**        |                **≥ 4,0**                 | **[Quyết định #2]** (văn bản không nêu; chọn bằng ngưỡng PLO thành phần; đặt trong `QUY_TAC`, đổi được) |
+| Học phần đạt       |               mặc định 4,0               | cần đối chiếu Quy chế đào tạo của Trường                                                                |
 
 ### 4. Chỉ số chất lượng đề thi (Psychometrics)
 
@@ -208,11 +211,11 @@ Làm một lần cho mỗi học phần. Gồm 7 sheet:
 
 Sinh viên vắng thi, bỏ trống câu, hay được 0 điểm là ba trường hợp khác nhau, ảnh hưởng đến cả điểm lẫn p, d, α:
 
-| Ô nhập       | Ý nghĩa       | Xử lý                                                                                                                                                  |
-| :----------- | :------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Số (kể cả 0) | Điểm thật     | Tính bình thường. Chấp nhận cả `2,5` và `2.5`                                                                                                          |
-| Trống        | **Chưa nhập** | SV bị đánh dấu "thiếu dữ liệu", các chỉ số phụ thuộc ô đó để trống (giống Mẫu Excel 2026), cảnh báo trên preview                                       |
-| `VT`         | Vắng thi      | Điểm = 0 trong CLO/HP; **loại khỏi p, d, α** (không phản ánh chất lượng đề). Có tính vào mẫu số % đạt hay không: **[CẦN CHỐT #5]**, mặc định tạm: tính |
+| Ô nhập       | Ý nghĩa       | Xử lý                                                                                                                                                                         |
+| :----------- | :------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Số (kể cả 0) | Điểm thật     | Tính bình thường. Chấp nhận cả `2,5` và `2.5`                                                                                                                                 |
+| Trống        | **Chưa nhập** | SV bị đánh dấu "thiếu dữ liệu", các chỉ số phụ thuộc ô đó để trống (giống Mẫu Excel 2026), cảnh báo trên preview                                                              |
+| `VT`         | Vắng thi      | Điểm = 0 trong CLO/HP; **loại khỏi p, d, α** (không phản ánh chất lượng đề). **Tính vào mẫu số % đạt (cả lớp)** **[Quyết định #5]**; cuối bảng thống kê ghi rõ số SV vắng thi |
 
 ---
 
@@ -230,7 +233,7 @@ Sinh viên vắng thi, bỏ trống câu, hay được 0 điểm là ba trườn
 
 **Ghi chú:**
 
-- Phụ lục 3 không có cột điểm chữ. Cột "Bằng chữ" của TBC CLO được hiểu là **đọc số thành chữ** (6,6 → "Sáu phẩy sáu"), cần tự viết hàm đọc số tiếng Việt. **[CẦN CHỐT #6]**. Điểm chữ A/B/C để tùy chọn, mặc định tắt.
+- Phụ lục 3 không có cột điểm chữ. Cột "Bằng chữ" của TBC CLO được hiểu là **đọc số thành chữ** (6,7 → "Sáu phẩy bảy"; 10 → "Mười"; 0,5 → "Không phẩy năm"), cần tự viết hàm đọc số tiếng Việt **[Quyết định #6]**. Điểm chữ A/B/C để tùy chọn, mặc định tắt.
 - Địa danh/ngày ở chân bảng (Mẫu xls ghi "Hải Phòng") để cấu hình được.
 - Biểu đồ trong file Excel là **ảnh PNG** do app vẽ bằng Chart.js rồi chèn vào bằng ExcelJS (ExcelJS không tạo được biểu đồ Excel gốc). Dữ liệu nguồn của biểu đồ vẫn nằm ở bảng bên cạnh.
 
@@ -253,17 +256,17 @@ Phân biệt **Lỗi** (không cho tính tiếp) và **Cảnh báo** (vẫn tín
 
 ### 1. Kiểm tra file Config (tính hợp lệ của kế hoạch đánh giá)
 
-|   Loại   | Quy tắc                                                                                        | Căn cứ                                                             |
-| :------: | :--------------------------------------------------------------------------------------------- | :----------------------------------------------------------------- |
-|   Lỗi    | Tổng trọng số `KE_HOACH_DANH_GIA` ≠ 100%                                                       | QĐ450 Điều 9.3                                                     |
-|   Lỗi    | Mã CLO ở bất kỳ sheet nào không có trong `CLO_LIST`                                            |                                                                    |
-|   Lỗi    | Cặp (đầu điểm, CLO) có trong `CAU_HOI` nhưng không có trong `KE_HOACH_DANH_GIA` (và ngược lại) |                                                                    |
-|   Lỗi    | CLO không được đầu điểm nào đo                                                                 | Lưu ý QLCL: mỗi CLO đo ít nhất 1 lần                               |
-|   Lỗi    | Tổng điểm tối đa của một đề thi không bằng thang khai báo (thường 10)                          |                                                                    |
-| Cảnh báo | CLO chỉ được đo bằng chuyên cần/thái độ                                                        | Lưu ý QLCL mục 4: chưa phù hợp với CLO tự chủ, tự học, trách nhiệm |
-| Cảnh báo | CLO chưa gắn PI/PLO nào trong `MA_TRAN_PLO`                                                    | Lưu ý QLCL; Phụ lục 01 cho phép CLO không tham gia đánh giá PLO    |
-| Cảnh báo | Điểm tối đa của câu không là bội của 0,25                                                      | QĐ450 Điều 3.1: thang điểm chia nhỏ đến 0,25                       |
-| Cảnh báo | Tổng điểm các câu đo CLO tham gia đánh giá PLO ≤ 50% điểm bài thi                              | QĐ450 Điều 3.4                                                     |
+|         Loại          | Quy tắc                                                                                        | Căn cứ                                                                                                                                                                         |
+| :-------------------: | :--------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|          Lỗi          | Tổng trọng số `KE_HOACH_DANH_GIA` ≠ 100%                                                       | QĐ450 Điều 9.3                                                                                                                                                                 |
+|          Lỗi          | Mã CLO ở bất kỳ sheet nào không có trong `CLO_LIST`                                            |                                                                                                                                                                                |
+|          Lỗi          | Cặp (đầu điểm, CLO) có trong `CAU_HOI` nhưng không có trong `KE_HOACH_DANH_GIA` (và ngược lại) |                                                                                                                                                                                |
+|          Lỗi          | CLO không được đầu điểm nào đo                                                                 | Lưu ý QLCL: mỗi CLO đo ít nhất 1 lần                                                                                                                                           |
+|          Lỗi          | Tổng điểm tối đa của một đề thi không bằng thang khai báo (thường 10)                          |                                                                                                                                                                                |
+| Cảnh báo (không chặn) | CLO chỉ được đo bằng các đầu điểm thuộc nhóm `CC` (chuyên cần/thái độ)                         | Lưu ý QLCL mục 4: chưa phù hợp với CLO tự chủ, tự học, trách nhiệm. **[Quyết định #7]**: không chặn vì ví dụ Hùng của QĐ450 (CLO3.1) cũng ở trường hợp này; ghi vào `CANH_BAO` |
+|       Cảnh báo        | CLO chưa gắn PI/PLO nào trong `MA_TRAN_PLO`                                                    | Lưu ý QLCL; Phụ lục 01 cho phép CLO không tham gia đánh giá PLO                                                                                                                |
+|       Cảnh báo        | Điểm tối đa của câu không là bội của 0,25                                                      | QĐ450 Điều 3.1: thang điểm chia nhỏ đến 0,25                                                                                                                                   |
+|       Cảnh báo        | Tổng điểm các câu đo CLO tham gia đánh giá PLO ≤ 50% điểm bài thi                              | QĐ450 Điều 3.4                                                                                                                                                                 |
 
 ### 2. Kiểm tra file điểm thô
 
@@ -281,7 +284,7 @@ Phân biệt **Lỗi** (không cho tính tiếp) và **Cảnh báo** (vẫn tín
 
 ## VI. BỘ TEST CHUẨN (GOLDEN TESTS) LẤY TỪ QĐ450
 
-Mọi số dưới đây đã được tính lại độc lập và **khớp với văn bản**. Engine chỉ được coi là đúng khi chạy ra các số này.
+Mọi số dưới đây đã được tính lại độc lập và **khớp với văn bản** ở chế độ `rounding_mode = chain`. Engine chỉ được coi là đúng khi chạy ra các số này.
 
 |  #  | Nguồn                         | Đầu vào                                                    | Kết quả phải ra                                                                                                                                       |
 | :-: | :---------------------------- | :--------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -292,27 +295,30 @@ Mọi số dưới đây đã được tính lại độc lập và **khớp v�
 | T5  | tr.32–33, SV Hùng (quá trình) | CC 10, tự học 7,5, KT1 và KT2 như bảng                     | CLO thành phần quá trình: 8,8 / 7,5 / 6,3 / 7,3 / 6,7 / 5,0 / 7,5                                                                                     |
 | T6  | tr.32, SV Hùng (cuối kỳ)      | Điểm đạt và điểm tối đa từng CLO                           | 7,1 / 6,0 / 7,3 / 5,0 / 7,5 / 2,5 (TB 5,9)                                                                                                            |
 | T7  | tr.32–33                      | Trọng số GK 0,3, CK 0,5                                    | CLO1.1…CLO3.1 = 7,3 / 6,1 / 7,3 / 5,6 / 6,6 / 4,4 / 8,8; **TBC CLO = 6,6**                                                                            |
-| T8  | tr.32–33                      |                                                            | **Điểm HP = 6,7** theo `QD450`; theo `RAW_POINTS` = 6,9 (xem [CẦN CHỐT #1])                                                                           |
+| T8  | tr.32–33                      | $C_{cc}=8{,}8$; $C_{gk}=6{,}7$; $C_{ck}=5{,}9$             | **Điểm HP = 6,7** (`QD450`)                                                                                                                           |
 | T9  | tr.33                         |                                                            | PLO3 = 6,6; PLO5 = 6,6; PLO6 = 4,4; PLO9 = 8,8                                                                                                        |
 | T10 | Làm tròn                      | 6,25; 8,75                                                 | 6,3; 8,8 (`decimal.js` HALF_UP)                                                                                                                       |
-| T11 | Mẫu xls, bảng quá trình       | KT1 câu 2: 2/5 (CLO2); KT2 câu 1: 3/4 (CLO2)               | CLO2 = (4,0 + 7,5)/2 = 5,75                                                                                                                           |
+| T11 | Mẫu xls, bảng quá trình       | KT1 câu 2: 2/5 (CLO2); KT2 câu 1: 3/4 (CLO2)               | CLO2 = (4,0 + 7,5)/2 = 5,75 trước khi làm tròn → **5,8** theo chế độ `chain` (file xls hiển thị 2 chữ số)                                             |
+| T12 | tr.32, TB quá trình của Hùng  | (8,8 + 6,7)/2                                              | 7,75 → **7,8** (dùng số đã làm tròn)                                                                                                                  |
 
-**Lưu ý khi dùng Mẫu xls làm test:** sheet "Cách tính CLO" ghi CLO3 của SV Nguyễn Văn A là **8,3**, nhưng theo chính trọng số 0,4/0,6 của ví dụ đó thì phải là 0,4 × 6,667 + 0,6 × 10 = **8,7** (8,3 là kết quả của trọng số 0,5/0,5). Ví dụ có vẻ nhầm lẫn; không dùng làm test và nên báo P.QLCL.
+**Lưu ý khi dùng Mẫu xls làm test:** sheet "Cách tính CLO" ghi CLO3 của SV Nguyễn Văn A là **8,3**, nhưng theo chính trọng số 0,4/0,6 của ví dụ đó thì phải là 0,4 × 6,667 + 0,6 × 10 = **8,7** (8,3 là kết quả của trọng số 0,5/0,5). Coi đây là ví dụ nhầm; không dùng làm test **[Quyết định #8]**.
 
 ---
 
-## VII. CÁC ĐIỂM CẦN CHỐT VỚI P.QLCL (TRƯỚC KHI VIẾT ENGINE)
+## VII. CÁC QUYẾT ĐỊNH NGHIỆP VỤ ĐÃ CHỐT
 
-|  #  | Câu hỏi                                                                                                                 | Vì sao quan trọng                                                                                          | Mặc định tạm             |
-| :-: | :---------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------- | :----------------------- |
-|  1  | Điểm học phần tính theo **TBC các CLO** (QĐ450 Điều 9.3) hay theo **điểm thô** (phương thức cũ)?                        | Cùng một SV ra 6,7 hoặc 6,9; điểm học vụ ảnh hưởng trực tiếp đến sinh viên                                 | `QD450`, hiển thị cả hai |
-|  2  | **Ngưỡng "Đạt" của một CLO** là bao nhiêu?                                                                              | Quyết định toàn bộ bảng tỷ lệ % SV đạt CLO; QĐ450 chỉ có ngưỡng 4,0 cho PLO thành phần và 5,0 cho CĐR CTĐT | 4,0                      |
-|  3  | CLO bộ phận: $\sum d/\sum t$ hay trung bình các tỷ lệ $d_i/t_i$?                                                        | Hai cách khác nhau khi điểm tối đa các câu không đều                                                       | $\sum d/\sum t$          |
-|  4  | Làm tròn **từng bước** (như ví dụ QĐ450, 1 chữ số) hay chỉ ở bước cuối? Mẫu Excel 2026 đang làm tròn 2 chữ số từng bước | Có thể lệch 0,1 so với bảng điểm tính tay hoặc bảng của các GV khác                                        | Chỉ làm tròn khi xuất    |
-|  5  | SV vắng thi có tính vào mẫu số của tỷ lệ % đạt không?                                                                   | Làm đổi tỷ lệ đạt từng CLO                                                                                 | Tính (điểm 0)            |
-|  6  | "Bằng chữ" ở Phụ lục 3 là đọc số thành chữ hay điểm chữ A/B/C?                                                          | Quyết định định dạng bảng xuất                                                                             | Đọc số thành chữ         |
-|  7  | CLO chỉ đo bằng chuyên cần: chặn hay chỉ cảnh báo?                                                                      | Lưu ý QLCL nói "chưa phù hợp" nhưng không nói cấm                                                          | Cảnh báo                 |
-|  8  | Ví dụ CLO3 = 8,3 trong Mẫu xls có phải nhầm không?                                                                      | Tránh lấy ví dụ sai làm chuẩn                                                                              | Coi là nhầm              |
+Những chỗ văn bản chưa nói rõ đã được chọn như sau. Tất cả đều là tham số trong `QUY_TAC` nên đổi sau không phải sửa code.
+
+|  #  | Vấn đề                               | Quyết định                                                                                                                           | Ghi chú                                                                                          |
+| :-: | :----------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------- |
+|  1  | Cách tính điểm học phần              | Theo QĐ450 Điều 9.3: $0{,}2\,C_{cc} + 0{,}3\,C_{gk} + 0{,}5\,C_{ck}$, mỗi $C$ là trung bình cộng các CLO của nhóm (ví dụ Hùng = 6,7) | `hp_method = QD450`. Nên hỏi P.QLCL xem hệ thống nhập điểm của trường có tính đúng như vậy không |
+|  2  | Ngưỡng "Đạt" của một CLO             | ≥ 4,0                                                                                                                                | Văn bản không nêu; chọn bằng ngưỡng PLO thành phần (Điều 10)                                     |
+|  3  | Gộp nhiều câu thành điểm CLO bộ phận | Trung bình các tỷ lệ $d_i/t_i$ (QĐ450 Điều 9.3)                                                                                      | `clo_bo_phan = mean_of_ratios`                                                                   |
+|  4  | Làm tròn                             | Từng bước, 1 chữ số, dùng số đã làm tròn cho bước sau                                                                                | `rounding_mode = chain`; khớp ví dụ Hùng và số 7,8                                               |
+|  5  | SV vắng thi trong tỷ lệ % đạt        | Tính vào mẫu số (cả lớp), điểm 0; loại khỏi p, d, α                                                                                  | Tạm; ghi số SV vắng thi ở cuối bảng                                                              |
+|  6  | "Bằng chữ" ở Phụ lục 3               | Đọc số thành chữ (6,7 → "Sáu phẩy bảy")                                                                                              |                                                                                                  |
+|  7  | CLO chỉ đo bằng chuyên cần           | Chỉ cảnh báo, không chặn                                                                                                             | Nên hỏi P.QLCL xem Quyết định 39/2026 có yêu cầu hình thức đánh giá khác không                   |
+|  8  | Ví dụ CLO3 = 8,3 trong Mẫu xls       | Coi là ví dụ nhầm                                                                                                                    | Không dùng làm test                                                                              |
 
 ---
 
@@ -327,7 +333,7 @@ Mọi số dưới đây đã được tính lại độc lập và **khớp v�
 
 **Tuần 0: Chốt quy tắc và dữ liệu (chưa viết code ứng dụng)**
 
-- [ ] Gửi mục VII cho P.QLCL, ghi lại câu trả lời vào `QUY_TAC`.
+- [ ] Gửi P.QLCL các điểm "nên hỏi" ở mục VII (#1, #7), nếu có thay đổi thì cập nhật `QUY_TAC`.
 - [ ] Làm `Template_Config.xlsx` thật bằng Excel và điền thử một học phần có sẵn (ví dụ học phần trong Mẫu Excel 2026).
 - [ ] Xin 1–2 file điểm thật của học kỳ trước (đã ẩn danh) để thử, tránh chỉ thử bằng dữ liệu ví dụ.
 - [ ] Dựng khung dự án (Electron + TypeScript + React) và chạy được cửa sổ "Hello World".
@@ -335,8 +341,8 @@ Mọi số dưới đây đã được tính lại độc lập và **khớp v�
 **Tuần 1: Core Engine (chạy bằng test, chưa cần giao diện)**
 
 - [ ] `models`, `rules` (đọc `QUY_TAC`, làm tròn `decimal.js`), `excelParser`, `validator`.
-- [ ] `cloCalculator`: gom điểm theo ô (đầu điểm, CLO), CLO học phần, TBC CLO, điểm học phần (cả `QD450` lẫn `RAW_POINTS`), PI/PLO.
-- [ ] **Bộ test T5–T11 chạy xanh** trước khi sang bước sau.
+- [ ] `cloCalculator`: gom điểm theo ô (đầu điểm, CLO), CLO học phần, TBC CLO, điểm học phần (`QD450`, kèm tùy chọn `RAW_POINTS`), PI/PLO.
+- [ ] **Bộ test T5–T12 chạy xanh** trước khi sang bước sau.
 
 **Tuần 2: Thống kê và xuất file**
 
@@ -371,7 +377,7 @@ Mọi số dưới đây đã được tính lại độc lập và **khớp v�
 | Đọc/ghi Excel             | **ExcelJS**                                        | Đọc Config và điểm thô; ghi file kết quả đúng mẫu (định dạng, tô màu, ô gộp, chèn ảnh) |
 | Làm tròn, tính toán số    | **decimal.js**                                     | Làm tròn half-up chính xác theo QĐ450                                                  |
 | Kiểm tra cấu trúc dữ liệu | **zod**                                            | Kiểm tra Config đọc vào đúng cấu trúc trước khi tính                                   |
-| Kiểm thử                  | **Vitest**                                         | Chạy bộ test chuẩn T1–T11                                                              |
+| Kiểm thử                  | **Vitest**                                         | Chạy bộ test chuẩn T1–T12                                                              |
 | Đóng gói                  | **electron-builder**                               | Tạo file cài đặt/`.exe` cho Windows                                                    |
 | Xuất PDF `[v1.1]`         | `printToPDF` có sẵn của Electron                   | In trang báo cáo HTML ra PDF                                                           |
 | Lưu cài đặt nhỏ           | File JSON trong thư mục dữ liệu người dùng của app | Nhớ thư mục/file lần trước, không cần database                                         |
@@ -399,7 +405,7 @@ clo-plo-app/
 │   └── renderer/              # Giao diện React (views/, components/)
 ├── resources/                 # Template_Config.xlsx, mẫu Phụ lục 3, icon
 ├── tests/
-│   ├── goldenQd450.test.ts    # T1–T11 ở mục VI
+│   ├── goldenQd450.test.ts    # T1–T12 ở mục VI
 │   └── fixtures/              # Dữ liệu ví dụ trong QĐ450
 └── package.json
 ```
@@ -410,16 +416,16 @@ Cần xác nhận hệ điều hành của giảng viên (chỉ Windows hay có 
 
 ## IX. QUẢN LÝ RỦI RO
 
-| STT | Rủi ro                                          | Nguyên nhân                                                                         | Biện pháp                                                                           |
-| :-: | :---------------------------------------------- | :---------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------- |
-|  1  | Lỗi định dạng Excel                             | GV xóa cột, thêm hàng trống, gộp ô, đổi tên cột                                     | Dò tiêu đề theo tên; app tự sinh template; báo lỗi theo ô kèm gợi ý                 |
-|  2  | Sai lệch làm tròn 0,1 điểm                      | Số thực nhị phân của JavaScript; các nguồn làm tròn khác nhau                       | `decimal.js` HALF_UP; tham số `rounding_mode`; test T10                             |
-|  3  | Sai kiểu dữ liệu khi dán từ Google Sheets/Excel | Số thập phân dùng dấu phẩy ("2,5"); Mã SV bị đọc thành số (mất số 0); ngày dạng chữ | Chấp nhận cả dấu phẩy và dấu chấm; đọc Mã SV dạng văn bản; kiểm tra ở bước validate |
-|  4  | Quy tắc không thống nhất giữa các tài liệu      | QĐ450, Lưu ý QLCL, Mẫu Excel 2026 khác nhau ở điểm HP, làm tròn, ngưỡng đạt         | Mục VII chốt trước khi code; mọi tham số đặt trong `QUY_TAC`                        |
-|  5  | Quy định thay đổi                               | QĐ450 có thể điều chỉnh; Lưu ý QLCL mới dẫn Quyết định 39/2026                      | Không hard-code ngưỡng/công thức; ghi phiên bản `QUY_TAC` vào mỗi báo cáo           |
-|  6  | Cỡ mẫu nhỏ làm d, α thiếu tin cậy               | Lớp ít SV, hoặc chia nhiều mã đề                                                    | Cảnh báo $N<30$ trong báo cáo                                                       |
-|  7  | Windows Defender cảnh báo nhầm file cài đặt     | File đóng gói mới, chưa ký số                                                       | Ký số (nếu có điều kiện) hoặc hướng dẫn "Run anyway" / thêm ngoại lệ lần đầu        |
-|  8  | File cài nặng, tốn RAM                          | Đặc điểm của Electron (bản đóng gói thường vài trăm MB)                             | Chấp nhận được cho máy giảng viên; không nhúng thêm runtime khác                    |
+| STT | Rủi ro                                          | Nguyên nhân                                                                         | Biện pháp                                                                                  |
+| :-: | :---------------------------------------------- | :---------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------- |
+|  1  | Lỗi định dạng Excel                             | GV xóa cột, thêm hàng trống, gộp ô, đổi tên cột                                     | Dò tiêu đề theo tên; app tự sinh template; báo lỗi theo ô kèm gợi ý                        |
+|  2  | Sai lệch làm tròn 0,1 điểm                      | Số thực nhị phân của JavaScript; các nguồn làm tròn khác nhau                       | `decimal.js` HALF_UP; tham số `rounding_mode`; test T10, T12                               |
+|  3  | Sai kiểu dữ liệu khi dán từ Google Sheets/Excel | Số thập phân dùng dấu phẩy ("2,5"); Mã SV bị đọc thành số (mất số 0); ngày dạng chữ | Chấp nhận cả dấu phẩy và dấu chấm; đọc Mã SV dạng văn bản; kiểm tra ở bước validate        |
+|  4  | Quy tắc không thống nhất giữa các tài liệu      | Mẫu Excel 2026 làm tròn 2 chữ số, ngưỡng đạt CLO không có văn bản                   | Các quyết định ở mục VII; mọi tham số đặt trong `QUY_TAC`; đối chiếu dữ liệu thật ở Tuần 0 |
+|  5  | Quy định thay đổi                               | QĐ450 có thể điều chỉnh; Lưu ý QLCL mới dẫn Quyết định 39/2026                      | Không hard-code ngưỡng/công thức; ghi phiên bản `QUY_TAC` vào mỗi báo cáo                  |
+|  6  | Cỡ mẫu nhỏ làm d, α thiếu tin cậy               | Lớp ít SV, hoặc chia nhiều mã đề                                                    | Cảnh báo $N<30$ trong báo cáo                                                              |
+|  7  | Windows Defender cảnh báo nhầm file cài đặt     | File đóng gói mới, chưa ký số                                                       | Ký số (nếu có điều kiện) hoặc hướng dẫn "Run anyway" / thêm ngoại lệ lần đầu               |
+|  8  | File cài nặng, tốn RAM                          | Đặc điểm của Electron (bản đóng gói thường vài trăm MB)                             | Chấp nhận được cho máy giảng viên; không nhúng thêm runtime khác                           |
 
 ---
 

@@ -53,24 +53,24 @@ export default function App(): React.ReactElement {
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
-              <div className="mb-1 text-xs font-semibold tracking-wider text-slate-500 uppercase">
+              <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">
                 IPC Main &harr; Renderer
               </div>
               <div className="text-sm font-medium text-emerald-600">{pingResult}</div>
             </div>
 
             <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
-              <div className="mb-1 text-xs font-semibold tracking-wider text-slate-500 uppercase">
+              <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Core Engine Phân Tầng
               </div>
               <div className="text-sm font-medium text-slate-700">
-                <code className="rounded bg-slate-200 px-1 py-0.5 text-xs">src/core/</code> (Độc
-                lập 100%)
+                <code className="rounded bg-slate-200 px-1 py-0.5 text-xs">src/core/</code> (Độc lập
+                100%)
               </div>
             </div>
 
             <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
-              <div className="mb-1 text-xs font-semibold tracking-wider text-slate-500 uppercase">
+              <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Bộ Test Tự Động
               </div>
               <div className="text-sm font-medium text-slate-700">Vitest runner cấu hình sẵn</div>

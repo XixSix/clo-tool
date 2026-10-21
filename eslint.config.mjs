@@ -6,7 +6,7 @@ import prettierConfig from 'eslint-config-prettier'
 
 export default tseslint.config(
   {
-    ignores: ['out/**', 'dist/**', 'node_modules/**', '*.log']
+    ignores: ['out/**', 'dist/**', 'node_modules/**', 'scripts/**', '*.log']
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
