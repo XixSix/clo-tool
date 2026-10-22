@@ -90,10 +90,10 @@ Học phần **KTLT101 – Kỹ thuật lập trình**, 3 tín chỉ, 3 CLO:
 
 `final_grades_report.xlsx`:
 
-| Sheet               | Nội dung                                                                 |
-| :------------------ | :----------------------------------------------------------------------- |
-| `BANG_GHI_DIEM_CLO` | Phụ lục 3 – bản **Quá trình** (CC + GK), TBC CLO bằng số và bằng chữ      |
-| `BANG_GHI_DIEM_CK`  | Phụ lục 3 – bản **Cuối kỳ** (CK)                                          |
+| Sheet                 | Nội dung                                                                 |
+| :-------------------- | :----------------------------------------------------------------------- |
+| `BANG_DIEM_QUA_TRINH` | Phụ lục 3 – bản **Quá trình** (CC + GK), TBC CLO bằng số và bằng chữ      |
+| `BANG_DIEM_CUOI_KY`   | Phụ lục 3 – bản **Cuối kỳ** (CK)                                          |
 | `BANG_DIEM_HOC_VU`  | Điểm danh từng buổi, số buổi vắng, CC/GK/CK, điểm học phần                |
 | `CHI_TIET_CLO`      | Truy xuất từng ô (đầu điểm, CLO) → CLO → PLO                              |
 | `TONG_HOP_LO`       | % đạt CLO/PLO, TB/min/max, 2 biểu đồ PNG, ô đề xuất cải tiến              |

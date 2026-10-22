@@ -143,8 +143,8 @@ describe('Xuất Excel', () => {
       context: { hocKy: 'HK1', namHoc: '2026-2027', lop: '1A11_CNTT14', diaDanh: 'Hải Phòng' }
     })
     expect(wb.worksheets.map((ws) => ws.name)).toEqual([
-      'BANG_GHI_DIEM_CLO',
-      'BANG_GHI_DIEM_CK',
+      'BANG_DIEM_QUA_TRINH',
+      'BANG_DIEM_CUOI_KY',
       'BANG_DIEM_HOC_VU',
       'CHI_TIET_CLO',
       'TONG_HOP_LO',
@@ -157,12 +157,12 @@ describe('Xuất Excel', () => {
     const reloaded = new ExcelJS.Workbook()
     await reloaded.xlsx.load(buffer as Buffer)
 
-    const processSheet = reloaded.getWorksheet('BANG_GHI_DIEM_CLO')!
+    const processSheet = reloaded.getWorksheet('BANG_DIEM_QUA_TRINH')!
     expect(processSheet.getCell(14, 2).text).toBe('0123456789')
     expect(Number(processSheet.getCell(14, 6).value)).toBe(result.students[0].processCloScores.CLO2)
     expect(processSheet.getCell(14, 10).text.length).toBeGreaterThan(0) // TBC bằng chữ
 
-    const finalSheet = reloaded.getWorksheet('BANG_GHI_DIEM_CK')!
+    const finalSheet = reloaded.getWorksheet('BANG_DIEM_CUOI_KY')!
     expect(Number(finalSheet.getCell(14, 6).value)).toBe(result.students[0].finalCloScores.CLO2)
 
     const detail = reloaded.getWorksheet('CHI_TIET_CLO')!

@@ -225,7 +225,8 @@ Sinh viên vắng thi, bỏ trống câu, hay được 0 điểm là ba trườn
 
 | Sheet               | Nội dung                                                                                                                                                                                                                                                                                 |
 | :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `BANG_GHI_DIEM_CLO` | **Đúng mẫu Phụ lục 3:** Học kỳ/Năm học, ô chọn ☐ Quá trình / ☐ Cuối kỳ, tên và mã học phần, lớp, hình thức thi, số tín chỉ; bảng TT, Mã SV, Họ tên, Ngày sinh, CLO1…CLOn, **TBC CLO (bằng số, bằng chữ)**, Ghi chú; chỗ ký Giảng viên. Xuất được cả bản Quá trình lẫn Cuối kỳ            |
+| `BANG_DIEM_QUA_TRINH` | **Đúng mẫu Phụ lục 3 (bản Quá trình):** Học kỳ/Năm học, ô chọn ☑ Quá trình / ☐ Cuối kỳ, tên và mã học phần, lớp, hình thức thi, số tín chỉ; bảng TT, Mã SV, Họ tên, Ngày sinh, CLO1…CLOn, **TBC CLO (bằng số, bằng chữ)**, Ghi chú; chỗ ký Giảng viên. |
+| `BANG_DIEM_CUOI_KY`   | **Đúng mẫu Phụ lục 3 (bản Cuối kỳ):** Tương tự bản Quá trình nhưng với ô chọn ☐ Quá trình / ☑ Cuối kỳ, lấy điểm từ bài thi kết thúc học phần (CK). |
 | `BANG_DIEM_HOC_VU`  | Theo mẫu "Danh sách điểm danh và ghi điểm" (Mẫu xls/2026): điểm danh từng buổi, số buổi nghỉ quy đổi, điểm ý thức, điểm kiểm tra, điểm thi, Tổng (điểm học phần). Mẫu xls ghi rõ cần **hai loại bảng**: một bảng tính điểm học vụ theo cách cũ, một bảng theo CLO                        |
 | `CHI_TIET_CLO`      | Từng SV: điểm $s_{j,k}$ của mọi ô, CLO$_k$, PI, PLO. Dùng để truy xuất minh chứng (Lưu ý QLCL: phương pháp tính phải "có khả năng truy xuất")                                                                                                                                            |
 | `TONG_HOP_LO`       | Bảng Đạt / % / Không đạt / % theo từng CLO, "Tổng kết CLO", "Tổng kết học vụ" và PLO (đúng bảng ở tr.33); điểm TB, thấp nhất, cao nhất mỗi CLO; **tô nổi CLO có kết quả thấp**; 2 biểu đồ cột (% SV đạt theo CLO, theo PLO); ô trống "Phân tích và đề xuất cải tiến" cho giảng viên điền |
@@ -347,7 +348,7 @@ Những chỗ văn bản chưa nói rõ đã được chọn như sau. Tất c�
 **Tuần 2: Thống kê và xuất file**
 
 - [x] `psychometrics`: p, d, α, "α nếu bỏ câu", cảnh báo cỡ mẫu. Bộ test T1–T4 chạy xanh.
-- [x] `exporter`: `BANG_GHI_DIEM_CLO` (bản Quá trình) + `BANG_GHI_DIEM_CK` (bản Cuối kỳ) theo Phụ lục 3, `BANG_DIEM_HOC_VU`, `CHI_TIET_CLO`, `TONG_HOP_LO`, `CANH_BAO`; tô màu SV cảnh báo.
+- [x] `exporter`: `BANG_DIEM_QUA_TRINH` (bản Quá trình) + `BANG_DIEM_CUOI_KY` (bản Cuối kỳ) theo Phụ lục 3, `BANG_DIEM_HOC_VU`, `CHI_TIET_CLO`, `TONG_HOP_LO`, `CANH_BAO`; tô màu SV cảnh báo.
 - [x] Biểu đồ: vẽ PNG bằng `@napi-rs/canvas` (offline), chèn vào sheet `TONG_HOP_LO`.
 - [x] Hàm đọc số thành chữ tiếng Việt cho cột "Bằng chữ".
 

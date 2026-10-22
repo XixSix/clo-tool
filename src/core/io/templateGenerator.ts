@@ -14,8 +14,11 @@ import { writeWorkbook } from './excelUtils'
 const HEADER_FILL = 'FF1E40AF'
 const INPUT_FILL = 'FFFEF9C3'
 
-function header(ws: ExcelJS.Worksheet, columns: { header: string; width: number }[]): void {
-  ws.columns = columns.map((c) => ({ header: c.header, key: c.header, width: c.width }))
+function header(
+  ws: ExcelJS.Worksheet,
+  columns: { header: string; key?: string; width: number }[]
+): void {
+  ws.columns = columns.map((c) => ({ header: c.header, key: c.key ?? c.header, width: c.width }))
   const row = ws.getRow(1)
   row.height = 26
   row.eachCell((cell) => {
@@ -35,11 +38,11 @@ export function buildConfigWorkbook(config: CourseConfig): ExcelJS.Workbook {
   // 1. HOC_PHAN
   const wsHp = wb.addWorksheet('HOC_PHAN')
   header(wsHp, [
-    { header: 'Ma_HP', width: 16 },
-    { header: 'Ten_HP', width: 34 },
-    { header: 'So_Tin_Chi', width: 14 },
-    { header: 'Hinh_Thuc_Thi', width: 20 },
-    { header: 'Loai_HP', width: 16 }
+    { header: 'Mã HP', key: 'Ma_HP', width: 16 },
+    { header: 'Tên HP', key: 'Ten_HP', width: 34 },
+    { header: 'Số tín chỉ', key: 'So_Tin_Chi', width: 14 },
+    { header: 'Hình thức thi', key: 'Hinh_Thuc_Thi', width: 20 },
+    { header: 'Loại HP', key: 'Loai_HP', width: 16 }
   ])
   wsHp.addRow({
     Ma_HP: config.courseInfo.maHp,
@@ -52,10 +55,10 @@ export function buildConfigWorkbook(config: CourseConfig): ExcelJS.Workbook {
   // 2. CLO_LIST
   const wsClo = wb.addWorksheet('CLO_LIST')
   header(wsClo, [
-    { header: 'Ma_CLO', width: 14 },
-    { header: 'Noi_Dung', width: 52 },
-    { header: 'Bac_Nang_Luc', width: 16 },
-    { header: 'Trong_So_CLO', width: 16 }
+    { header: 'Mã CLO', key: 'Ma_CLO', width: 14 },
+    { header: 'Nội dung', key: 'Noi_Dung', width: 52 },
+    { header: 'Bậc năng lực', key: 'Bac_Nang_Luc', width: 16 },
+    { header: 'Trọng số CLO', key: 'Trong_So_CLO', width: 16 }
   ])
   config.cloList.forEach((c) =>
     wsClo.addRow({
@@ -69,13 +72,13 @@ export function buildConfigWorkbook(config: CourseConfig): ExcelJS.Workbook {
   // 3. KE_HOACH_DANH_GIA
   const wsKeHoach = wb.addWorksheet('KE_HOACH_DANH_GIA')
   header(wsKeHoach, [
-    { header: 'Nhom', width: 10 },
-    { header: 'Thanh_Phan', width: 28 },
-    { header: 'Ma_Dau_Diem', width: 16 },
-    { header: 'CLO', width: 14 },
-    { header: 'Trong_So_Phan_Tram', width: 20 },
-    { header: 'Hinh_Thuc', width: 18 },
-    { header: 'Thoi_Diem', width: 16 }
+    { header: 'Nhóm', key: 'Nhom', width: 10 },
+    { header: 'Thành phần', key: 'Thanh_Phan', width: 28 },
+    { header: 'Mã đầu điểm', key: 'Ma_Dau_Diem', width: 16 },
+    { header: 'CLO', key: 'CLO', width: 14 },
+    { header: 'Trọng số %', key: 'Trong_So_Phan_Tram', width: 20 },
+    { header: 'Hình thức', key: 'Hinh_Thuc', width: 18 },
+    { header: 'Thời điểm', key: 'Thoi_Diem', width: 16 }
   ])
   config.keHoachDanhGia.forEach((p) =>
     wsKeHoach.addRow({
@@ -92,13 +95,13 @@ export function buildConfigWorkbook(config: CourseConfig): ExcelJS.Workbook {
   // 4. CAU_HOI
   const wsCauHoi = wb.addWorksheet('CAU_HOI')
   header(wsCauHoi, [
-    { header: 'Ma_Cot_Diem', width: 16 },
-    { header: 'Ma_Dau_Diem', width: 16 },
-    { header: 'Cau', width: 14 },
-    { header: 'CLO', width: 14 },
-    { header: 'Diem_Toi_Da', width: 14 },
-    { header: 'Ma_De', width: 12 },
-    { header: 'Loai', width: 10 }
+    { header: 'Mã cột điểm', key: 'Ma_Cot_Diem', width: 16 },
+    { header: 'Mã đầu điểm', key: 'Ma_Dau_Diem', width: 16 },
+    { header: 'Câu', key: 'Cau', width: 14 },
+    { header: 'CLO', key: 'CLO', width: 14 },
+    { header: 'Điểm tối đa', key: 'Diem_Toi_Da', width: 14 },
+    { header: 'Mã đề', key: 'Ma_De', width: 12 },
+    { header: 'Loại', key: 'Loai', width: 10 }
   ])
   config.cauHoi.forEach((q) =>
     wsCauHoi.addRow({
@@ -115,18 +118,18 @@ export function buildConfigWorkbook(config: CourseConfig): ExcelJS.Workbook {
   // 5. MA_TRAN_PLO
   const wsPlo = wb.addWorksheet('MA_TRAN_PLO')
   header(wsPlo, [
-    { header: 'PLO', width: 14 },
-    { header: 'PI', width: 14 },
-    { header: 'CLO', width: 14 }
+    { header: 'PLO', key: 'PLO', width: 14 },
+    { header: 'PI', key: 'PI', width: 14 },
+    { header: 'CLO', key: 'CLO', width: 14 }
   ])
   config.maTranPlo.forEach((m) => wsPlo.addRow({ PLO: m.plo, PI: m.pi, CLO: m.clo }))
 
   // 6. DIEM_DANH
   const wsDiemDanh = wb.addWorksheet('DIEM_DANH')
   header(wsDiemDanh, [
-    { header: 'Ky_Hieu', width: 14 },
-    { header: 'He_So', width: 12 },
-    { header: 'Dien_Giai', width: 36 }
+    { header: 'Ký hiệu', key: 'Ky_Hieu', width: 14 },
+    { header: 'Hệ số', key: 'He_So', width: 12 },
+    { header: 'Diễn giải', key: 'Dien_Giai', width: 36 }
   ])
   ;(config.diemDanh ?? []).forEach((d) =>
     wsDiemDanh.addRow({ Ky_Hieu: d.kyHieu, He_So: d.heSo, Dien_Giai: d.dienGiai ?? '' })
@@ -135,9 +138,9 @@ export function buildConfigWorkbook(config: CourseConfig): ExcelJS.Workbook {
   // 7. QUY_TAC
   const wsQuyTac = wb.addWorksheet('QUY_TAC')
   header(wsQuyTac, [
-    { header: 'Ma_Quy_Tac', width: 26 },
-    { header: 'Gia_Tri', width: 18 },
-    { header: 'Mo_Ta', width: 60 }
+    { header: 'Mã quy tắc', key: 'Ma_Quy_Tac', width: 26 },
+    { header: 'Giá trị', key: 'Gia_Tri', width: 18 },
+    { header: 'Mô tả', key: 'Mo_Ta', width: 60 }
   ])
   const r = config.quyTac
   const rules: [string, string, string][] = [
@@ -183,27 +186,27 @@ export function buildConfigWorkbook(config: CourseConfig): ExcelJS.Workbook {
   const guides: [string, string, string][] = [
     [
       'HOC_PHAN',
-      'Mã HP, tên HP, số tín chỉ, hình thức thi, loại HP',
-      'Loai_HP: thuong / thuc_hanh'
+      'Mã HP, Tên HP, Số tín chỉ, Hình thức thi, Loại HP',
+      'Loại HP: thuong (bình thường) / thuc_hanh (thực hành, đồ án)'
     ],
     [
       'CLO_LIST',
-      'Danh sách CLO: mã, nội dung, bậc năng lực (dạng 3/6), trọng số (tùy chọn)',
-      'Bỏ trống trọng số = 1'
+      'Danh sách CLO: Mã CLO, Nội dung, Bậc năng lực (dạng 3/6), Trọng số CLO (tùy chọn)',
+      'Bỏ trống trọng số = 1 (hoặc điền % nếu là HP thực hành)'
     ],
     [
       'KE_HOACH_DANH_GIA',
-      'Mỗi dòng là một cặp (đầu điểm, CLO) + trọng số %',
-      'Tổng trọng số phải = 100%'
+      'Mỗi dòng là một cặp (Mã đầu điểm, CLO) + Trọng số %',
+      'Tổng Trọng số % của tất cả các dòng phải = 100%'
     ],
     [
       'CAU_HOI',
-      'Mỗi cột điểm: mã cột, đầu điểm, câu, CLO, điểm tối đa, mã đề',
-      'Một cột có thể phục vụ nhiều CLO bằng nhiều dòng'
+      'Mỗi cột điểm: Mã cột điểm, Mã đầu điểm, Câu, CLO, Điểm tối đa, Mã đề, Loại',
+      'Mã cột điểm là tên cột thực tế trong file điểm thô; một câu đo nhiều CLO thì tách nhiều dòng'
     ],
-    ['MA_TRAN_PLO', 'Ánh xạ CLO → PI → PLO', 'CLO không có PLO sẽ bị cảnh báo'],
-    ['DIEM_DANH', 'Ký hiệu điểm danh và hệ số', 'X=1, OL=1, M=0.5, V-CP=0.5, V=0'],
-    ['QUY_TAC', 'Các tham số nghiệp vụ', 'Không sửa nếu không có hướng dẫn của P.QLCL']
+    ['MA_TRAN_PLO', 'Ánh xạ PLO → PI → CLO', 'CLO không có PLO sẽ bị cảnh báo'],
+    ['DIEM_DANH', 'Ký hiệu điểm danh và hệ số quy đổi', 'Mặc định: X=1, OL=1, M=0.5, V-CP=0.5, V=0 (không cần sửa)'],
+    ['QUY_TAC', 'Các tham số nghiệp vụ của nhà trường', 'Mặc định chuẩn QĐ 450 (không sửa nếu không có yêu cầu từ P.QLCL)']
   ]
   guides.forEach(([sheet, content, note]) => {
     const row = wsGuide.addRow([sheet, content, note])

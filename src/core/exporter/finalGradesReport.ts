@@ -2,8 +2,9 @@
  * Xuất báo cáo kết quả học phần: `final_grades_report.xlsx`
  *
  * Sheets:
- * - BANG_GHI_DIEM_CLO : đúng mẫu Phụ lục 3 (bản Quá trình hoặc Cuối kỳ)
- * - BANG_DIEM_HOC_VU  : điểm danh + CC/GK/CK + điểm học phần
+ * - BANG_DIEM_QUA_TRINH : đúng mẫu Phụ lục 3 (bản Quá trình)
+ * - BANG_DIEM_CUOI_KY   : đúng mẫu Phụ lục 3 (bản Cuối kỳ)
+ * - BANG_DIEM_HOC_VU    : điểm danh + CC/GK/CK + điểm học phần
  * - CHI_TIET_CLO      : truy xuất điểm từng ô (đầu điểm, CLO) + PLO
  * - TONG_HOP_LO       : % đạt CLO/PLO, TB/min/max, biểu đồ, ô đề xuất cải tiến
  * - CANH_BAO          : lỗi dữ liệu, SV thiếu dữ liệu / dưới ngưỡng
@@ -80,14 +81,14 @@ function activeCloCodes(config: CourseConfig, phase: Phase): string[] {
   return config.cloList.map((c) => c.maClo).filter((code) => codes.has(code))
 }
 
-/** Sheet BANG_GHI_DIEM_CLO theo Phụ lục 3 */
+/** Sheet Phụ lục 3 (bản Quá trình hoặc Cuối kỳ) */
 function buildCloGradeSheet(
   wb: ExcelJS.Workbook,
   config: CourseConfig,
   students: ProcessedStudentResult[],
   phase: Phase,
   ctx: ReportContext,
-  sheetName = 'BANG_GHI_DIEM_CLO'
+  sheetName = 'BANG_DIEM_QUA_TRINH'
 ): void {
   const ws = wb.addWorksheet(sheetName)
   const activeCodes = activeCloCodes(config, phase)
@@ -628,10 +629,10 @@ export function buildFinalGradesWorkbook(
   const ctx = options.context ?? {}
 
   if (phase !== 'final') {
-    buildCloGradeSheet(wb, config, result.students, 'process', ctx, 'BANG_GHI_DIEM_CLO')
+    buildCloGradeSheet(wb, config, result.students, 'process', ctx, 'BANG_DIEM_QUA_TRINH')
   }
   if (phase !== 'process') {
-    buildCloGradeSheet(wb, config, result.students, 'final', ctx, 'BANG_GHI_DIEM_CK')
+    buildCloGradeSheet(wb, config, result.students, 'final', ctx, 'BANG_DIEM_CUOI_KY')
   }
   buildCourseGradeSheet(wb, config, result, options.rawFile, ctx)
   buildCloDetailSheet(wb, config, result)

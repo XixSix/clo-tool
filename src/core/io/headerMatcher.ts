@@ -44,9 +44,21 @@ const HEADER_ALIASES: Record<string, string[]> = {
   tt: ['stt', 'so'],
   made: ['made', 'made'],
   ghichu: ['ghichu'],
-  hinhthucthi: ['hinhthuc', 'hinhthucthi'],
+  hinhthucthi: ['hinhthuc', 'hinhthucthi', 'hinhthucdanhgia'],
   trongsoclo: ['trongsoclo', 'trongso'],
-  nhom: ['nhom', 'nhomdanhgia']
+  nhom: ['nhom', 'nhomdanhgia'],
+  trongsophantram: ['trongsophantram', 'trongso', 'trongsopt', 'phantram'],
+  diemtoida: ['diemtoida', 'diemmax', 'maxscore', 'toida'],
+  macotdiem: ['macotdiem', 'macot', 'cotdiem'],
+  madaudiem: ['madaudiem', 'daudiem'],
+  bacnangluc: ['bacnangluc', 'nangluc'],
+  sotinchi: ['sotinchi', 'tinchi', 'stc'],
+  loaihp: ['loaihp', 'loaihocphan'],
+  tenhp: ['tenhp', 'tenhocphan'],
+  mahp: ['mahp', 'mahocphan'],
+  maquytac: ['maquytac', 'quytac'],
+  giatri: ['giatri'],
+  mota: ['mota', 'diengiai']
 }
 
 function candidatesFor(normalized: string): string[] {
