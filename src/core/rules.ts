@@ -28,7 +28,8 @@ export const DEFAULT_BUSINESS_RULES: BusinessRules = {
   tinh_sv_vang_thi: true,
   canh_bao_cc_don_le: true,
   ty_le_nhom_27: 0.27,
-  nguong_co_mau_n: 30
+  nguong_co_mau_n: 30,
+  ty_le_dat_clo_canh_bao: 50
 }
 
 /**

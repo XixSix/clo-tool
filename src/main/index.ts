@@ -1,17 +1,20 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
+import { registerIpcHandlers } from './ipc'
+
+let mainWindow: BrowserWindow | null = null
 
 function createWindow(): void {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1280,
-    height: 800,
+    height: 860,
     minWidth: 1024,
     minHeight: 700,
     show: false,
     autoHideMenuBar: true,
     title: 'Phần mềm Đánh giá CLO/PLO - Đại học Thành Đông',
     webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
+      preload: join(__dirname, '../preload/index.mjs'),
       sandbox: false,
       contextIsolation: true,
       nodeIntegration: false
@@ -19,7 +22,11 @@ function createWindow(): void {
   })
 
   mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
+    mainWindow?.show()
+  })
+
+  mainWindow.on('closed', () => {
+    mainWindow = null
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -37,9 +44,7 @@ function createWindow(): void {
 
 app.whenReady().then(() => {
   app.setAppUserModelId('vn.thanhdong.clo-evaluator')
-
-  // Smoke test IPC handler
-  ipcMain.handle('ping', () => 'pong')
+  registerIpcHandlers(() => mainWindow)
 
   createWindow()
 

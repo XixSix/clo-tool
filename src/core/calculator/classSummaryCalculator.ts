@@ -52,7 +52,7 @@ export function calculateClassSummary(
       mean,
       min,
       max,
-      isBelowThreshold: passedPercent < 50 // Bật cờ cảnh báo nếu tỉ lệ đạt < 50%
+      isBelowThreshold: passedPercent < rules.ty_le_dat_clo_canh_bao
     }
   }
 

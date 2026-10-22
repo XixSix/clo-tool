@@ -17,7 +17,13 @@ import {
   classifyReliability,
   roundHalfUp
 } from './rules'
-import type { ExamPsychometrics, ItemPsychometrics, QuestionColumn, RawStudentRow } from './types'
+import type {
+  CourseConfig,
+  ExamPsychometrics,
+  ItemPsychometrics,
+  QuestionColumn,
+  RawStudentRow
+} from './types'
 
 export interface QuestionAggregated {
   cau: string
@@ -197,7 +203,55 @@ export function calculateCronbachAlpha(matrix: number[][]): {
 }
 
 /**
- * Tính toàn bộ chỉ số psychometrics cho một bài thi
+ * Tính toàn bộ chỉ số psychometrics cho mọi đợt thi trong Config.
+ *
+ * Quy tắc (QĐ450 Điều 5): tính riêng cho từng đợt (GK, CK) và từng mã đề,
+ * KHÔNG gộp các đợt với nhau. Bỏ qua nhóm CC (chuyên cần/thái độ).
+ */
+export function calculateAllExamPsychometrics(
+  config: CourseConfig,
+  students: RawStudentRow[]
+): ExamPsychometrics[] {
+  const groupNhom = new Map<string, string>()
+  for (const p of config.keHoachDanhGia) {
+    groupNhom.set(p.maDauDiem, p.nhom)
+  }
+
+  const groups = new Map<string, QuestionColumn[]>()
+  for (const q of config.cauHoi) {
+    const maDe = q.maDe ?? 'ALL'
+    const key = `${q.maDauDiem}|${maDe}`
+    const list = groups.get(key) ?? []
+    list.push(q)
+    groups.set(key, list)
+  }
+
+  const results: ExamPsychometrics[] = []
+  for (const [key, questions] of groups.entries()) {
+    const [maDauDiem, maDe] = key.split('|')
+    const nhom = groupNhom.get(maDauDiem)
+    if (nhom === 'CC') continue
+
+    const studentsOfExam =
+      maDe === 'ALL' ? students : students.filter((st) => (st.maDe ?? 'ALL') === maDe)
+
+    results.push(
+      calculateExamPsychometrics(
+        maDauDiem,
+        maDe,
+        questions,
+        studentsOfExam,
+        config.quyTac.ty_le_nhom_27,
+        config.quyTac.nguong_co_mau_n
+      )
+    )
+  }
+
+  return results
+}
+
+/**
+ * Tính toàn bộ chỉ số psychometrics cho một bài thi (một đợt, một mã đề)
  */
 export function calculateExamPsychometrics(
   maDauDiem: string,
@@ -313,7 +367,10 @@ export function calculateExamPsychometrics(
 
   // Cảnh báo cỡ mẫu nhỏ N < 30 hoặc g < 5
   let canhBaoCoMauN: string | undefined
-  if (m < nguongCoMauN || g < 5) {
+  if (n <= 1) {
+    canhBaoCoMauN =
+      'Đề chỉ có 1 câu nên không tính được Cronbach α (cần tối thiểu 2 câu). Độ khó p và độ phân biệt d vẫn dùng được.'
+  } else if (m < nguongCoMauN || g < 5) {
     canhBaoCoMauN = `Cỡ mẫu N = ${m} < ${nguongCoMauN} (nhóm 27% = ${g} SV): các chỉ số độ phân biệt d và độ tin cậy alpha có thể kém tin cậy.`
   }
 

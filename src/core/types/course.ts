@@ -65,6 +65,7 @@ export interface BusinessRules {
   canh_bao_cc_don_le: boolean // Mặc định: true (Quyết định #7)
   ty_le_nhom_27: number // Mặc định: 0.27 (27%)
   nguong_co_mau_n: number // Mặc định: 30
+  ty_le_dat_clo_canh_bao: number // Mặc định: 50 (% SV đạt CLO dưới ngưỡng này thì tô cảnh báo)
 }
 
 export interface CourseConfig {

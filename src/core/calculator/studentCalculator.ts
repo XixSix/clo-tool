@@ -35,11 +35,7 @@ export function evaluateStudent(
   )
 
   // Bước 4: Tính điểm nhóm C_cc, C_gk, C_ck và TB quá trình
-  const { groupScores, tbQuaTrinh } = calculateGroupScores(
-    config.keHoachDanhGia,
-    cellScores,
-    mode
-  )
+  const { groupScores, tbQuaTrinh } = calculateGroupScores(config.keHoachDanhGia, cellScores, mode)
 
   // Bước 5: Tính điểm học phần QD450 và RAW_POINTS
   const {

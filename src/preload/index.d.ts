@@ -1,9 +1,9 @@
-export interface IElectronAPI {
-  ping: () => Promise<string>
-}
+import type { CloApi } from '../shared/ipc'
 
 declare global {
   interface Window {
-    api: IElectronAPI
+    api: CloApi
   }
 }
+
+export {}

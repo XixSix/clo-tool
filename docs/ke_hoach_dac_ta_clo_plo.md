@@ -333,30 +333,30 @@ Những chỗ văn bản chưa nói rõ đã được chọn như sau. Tất c�
 
 **Tuần 0: Chốt quy tắc và dữ liệu (chưa viết code ứng dụng)**
 
-- [ ] Gửi P.QLCL các điểm "nên hỏi" ở mục VII (#1, #7), nếu có thay đổi thì cập nhật `QUY_TAC`.
-- [ ] Làm `Template_Config.xlsx` thật bằng Excel và điền thử một học phần có sẵn (ví dụ học phần trong Mẫu Excel 2026).
-- [ ] Xin 1–2 file điểm thật của học kỳ trước (đã ẩn danh) để thử, tránh chỉ thử bằng dữ liệu ví dụ.
-- [ ] Dựng khung dự án (Electron + TypeScript + React) và chạy được cửa sổ "Hello World".
+- [x] Chốt tạm quyết định #1 (`hp_method = QD450`) và #7 (CLO chỉ đo bằng CC → cảnh báo, không chặn); vẫn cần P.QLCL xác nhận chính thức.
+- [x] Làm `Template_Config.xlsx` (7 sheet + hướng dẫn) và tự sinh `Template_DiemTho.xlsx` từ Config.
+- [x] Dùng **dữ liệu mock** (KTLT101, 32 SV, 12 buổi, 3 CLO) thay cho điểm thật đã ẩn danh.
+- [x] Dựng khung dự án (Electron + TypeScript + React) và chạy được cửa sổ.
 
 **Tuần 1: Core Engine (chạy bằng test, chưa cần giao diện)**
 
-- [ ] `models`, `rules` (đọc `QUY_TAC`, làm tròn `decimal.js`), `excelParser`, `validator`.
-- [ ] `cloCalculator`: gom điểm theo ô (đầu điểm, CLO), CLO học phần, TBC CLO, điểm học phần (`QD450`, kèm tùy chọn `RAW_POINTS`), PI/PLO.
-- [ ] **Bộ test T5–T12 chạy xanh** trước khi sang bước sau.
+- [x] `models`, `rules` (đọc `QUY_TAC`, làm tròn `decimal.js`), `excelParser`, `validator`.
+- [x] `cloCalculator`: gom điểm theo ô (đầu điểm, CLO), CLO học phần, TBC CLO, điểm học phần (`QD450`, kèm tùy chọn `RAW_POINTS`), PI/PLO.
+- [x] **Bộ test T5–T12 chạy xanh** trước khi sang bước sau.
 
 **Tuần 2: Thống kê và xuất file**
 
-- [ ] `psychometrics`: p, d, α, "α nếu bỏ câu", cảnh báo cỡ mẫu. Bộ test T1–T4 chạy xanh.
-- [ ] `exporter`: `BANG_GHI_DIEM_CLO` theo Phụ lục 3 (cần **file mẫu thật của P.QLCL** để xuất đúng định dạng, đừng đoán cột), `BANG_DIEM_HOC_VU`, `TONG_HOP_LO`, tô màu SV cảnh báo.
-- [ ] Biểu đồ: vẽ bằng Chart.js, xuất PNG, chèn vào Excel.
-- [ ] Hàm đọc số thành chữ tiếng Việt cho cột "Bằng chữ".
+- [x] `psychometrics`: p, d, α, "α nếu bỏ câu", cảnh báo cỡ mẫu. Bộ test T1–T4 chạy xanh.
+- [x] `exporter`: `BANG_GHI_DIEM_CLO` (bản Quá trình) + `BANG_GHI_DIEM_CK` (bản Cuối kỳ) theo Phụ lục 3, `BANG_DIEM_HOC_VU`, `CHI_TIET_CLO`, `TONG_HOP_LO`, `CANH_BAO`; tô màu SV cảnh báo.
+- [x] Biểu đồ: vẽ PNG bằng `@napi-rs/canvas` (offline), chèn vào sheet `TONG_HOP_LO`.
+- [x] Hàm đọc số thành chữ tiếng Việt cho cột "Bằng chữ".
 
 **Tuần 3: Giao diện**
 
 - [ ] Màn hình chính: thanh bên với các tab (`1. Lập bảng điểm`, `2. Kiểm định đề thi`, `3. Hướng dẫn / Cài đặt`).
-- [ ] Màn "Lập bảng điểm": chọn file Config, chọn file điểm thô, khung tóm tắt (tên HP, số tín chỉ, số SV, số CLO phát hiện được, danh sách cảnh báo), nút **[ TÍNH TOÁN & THỐNG KÊ ]**.
+- [x] Màn "Lập bảng điểm": chọn file Config, chọn file điểm thô, khung tóm tắt (tên HP, số tín chỉ, số SV, số CLO phát hiện được, danh sách cảnh báo), nút **[ TÍNH TOÁN & THỐNG KÊ ]**.
 - [ ] Preview kết quả: bảng SV × CLO/điểm HP, biểu đồ % đạt, **bảng lỗi theo ô và cho sửa trực tiếp**.
-- [ ] Nút xuất: `[ XUẤT EXCEL BẢNG ĐIỂM ]`, `[ XUẤT BÁO CÁO PHÂN TÍCH ĐỀ THI ]`, `[ TẠO FILE ĐIỂM THÔ MẪU TỪ CONFIG ]`.
+- [x] Nút xuất: `[ XUẤT EXCEL BẢNG ĐIỂM ]`, `[ XUẤT BÁO CÁO PHÂN TÍCH ĐỀ THI ]`, `[ TẠO FILE MẪU ]`.
 
 **Tuần 4: Kiểm thử, tối ưu, đóng gói**
 
@@ -373,7 +373,7 @@ Những chỗ văn bản chưa nói rõ đã được chọn như sau. Tất c�
 | Khung dự án & build       | **electron-vite**                                  | Dựng sẵn cấu trúc main/preload/renderer, chạy thử nhanh                                |
 | Giao diện                 | **React**                                          | Các màn hình, bảng, form                                                               |
 | Bảng dữ liệu có sửa ô     | **AG Grid Community**                              | Bảng preview điểm, sửa ô lỗi tại chỗ                                                   |
-| Biểu đồ                   | **Chart.js**                                       | Biểu đồ trong app; xuất PNG để chèn vào Excel                                          |
+| Biểu đồ                   | **@napi-rs/canvas** (vẽ PNG), Chart.js dự phòng cho UI | Biểu đồ trong app; xuất PNG để chèn vào Excel                                          |
 | Đọc/ghi Excel             | **ExcelJS**                                        | Đọc Config và điểm thô; ghi file kết quả đúng mẫu (định dạng, tô màu, ô gộp, chèn ảnh) |
 | Làm tròn, tính toán số    | **decimal.js**                                     | Làm tròn half-up chính xác theo QĐ450                                                  |
 | Kiểm tra cấu trúc dữ liệu | **zod**                                            | Kiểm tra Config đọc vào đúng cấu trúc trước khi tính                                   |
