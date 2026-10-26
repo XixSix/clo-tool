@@ -5,7 +5,7 @@
  *
  * Kết quả:
  * - resources/templates/Template_Config.xlsx  : Config mẫu đầy đủ 7 sheet + hướng dẫn
- * - resources/templates/Template_DiemTho.xlsx : Điểm thô mẫu 32 SV + điểm danh 12 buổi
+ * - resources/templates/Template_DiemTho.xlsx : Điểm thô mẫu 10 SV, mỗi SV một ca biên
  */
 
 import { resolve, join } from 'node:path'
@@ -18,7 +18,7 @@ async function main(): Promise<void> {
   mkdirSync(outDir, { recursive: true })
 
   const config = buildMockConfig()
-  const { students, attendance } = buildMockClass(32)
+  const { students, attendance } = buildMockClass(10)
 
   await writeConfigTemplate(join(outDir, 'Template_Config.xlsx'), config)
   await writeRawGradesTemplate(join(outDir, 'Template_DiemTho.xlsx'), config, {

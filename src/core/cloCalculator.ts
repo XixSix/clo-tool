@@ -24,6 +24,7 @@ export function calculateEvaluation(
   students: RawStudentRow[]
 ): EvaluationResult {
   // Map cấu trúc câu hỏi theo mã đầu điểm & CLO: (maDauDiem, clo) -> QuestionColumn[]
+  // Gom các câu hỏi đo cùng 1 CLO trong 1 mã đầu điểm
   const cellQuestionsMap = new Map<string, typeof config.cauHoi>()
   for (const q of config.cauHoi) {
     const key = `${q.maDauDiem}_${q.clo}`

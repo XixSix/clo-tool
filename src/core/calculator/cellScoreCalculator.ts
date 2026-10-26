@@ -50,8 +50,20 @@ export function calculateCellScores(
           itemRatios: [0]
         }
       } else if (rawVal === null || rawVal === undefined) {
+        // Quyết định #8: thiếu điểm coi như 0 nhưng vẫn giữ trọng số trong mẫu số
+        // (nhất quán với mức điểm nhóm; vẫn gắn cờ + cảnh báo để QLCL soát)
         hasMissingData = true
-        warnings.push(`Chưa nhập điểm cho đầu điểm ${p.maDauDiem}`)
+        warnings.push(`Chưa nhập điểm cho đầu điểm ${p.maDauDiem} (tính 0)`)
+        cellScores[cellKey] = {
+          maDauDiem: p.maDauDiem,
+          maClo: p.clo,
+          score: 0,
+          rawScore: 0,
+          columnCodes: [p.maDauDiem],
+          totalEarned: 0,
+          totalMax: 10,
+          itemRatios: [0]
+        }
       } else {
         const valNum = Number(rawVal)
         const scoreRounded = roundStep(valNum, mode, 1)
@@ -108,8 +120,20 @@ export function calculateCellScores(
         itemRatios: ratios
       }
     } else if (cellHasMissing) {
+      // Quyết định #8: thiếu điểm (một số câu trống) coi như 0 cho cả ô,
+      // giữ nguyên trọng số trong mẫu số khi tính CLO/điểm nhóm
       hasMissingData = true
-      warnings.push(`Thiếu dữ liệu ở một số câu của ${p.maDauDiem} (${p.clo})`)
+      warnings.push(`Thiếu dữ liệu ở một số câu của ${p.maDauDiem} (${p.clo}) — tính 0`)
+      cellScores[cellKey] = {
+        maDauDiem: p.maDauDiem,
+        maClo: p.clo,
+        score: 0,
+        rawScore: 0,
+        columnCodes: colCodes,
+        totalEarned: 0,
+        totalMax: totalMaxDec.toNumber(),
+        itemRatios: []
+      }
     } else {
       let rawCalculatedScore = 0
       if (rules.clo_bo_phan === 'mean_of_ratios') {

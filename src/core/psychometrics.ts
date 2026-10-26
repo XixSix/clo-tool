@@ -233,7 +233,11 @@ export function calculateAllExamPsychometrics(
     if (nhom === 'CC') continue
 
     const studentsOfExam =
-      maDe === 'ALL' ? students : students.filter((st) => (st.maDe ?? 'ALL') === maDe)
+      maDe === 'ALL'
+        ? students
+        : students.filter(
+            (st) => (st.maDe ?? 'ALL') === maDe || st.maDe === undefined || st.maDe === 'ALL'
+          )
 
     results.push(
       calculateExamPsychometrics(

@@ -1,0 +1,1 @@
+- lỗi thiết kế: validate bắt buộc mọi đầu điểm phải có trong CAU_HOI mà calculateCellScores cho phép đầu điểm nhập trực tiếp.

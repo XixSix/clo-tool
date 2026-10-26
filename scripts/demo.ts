@@ -5,7 +5,7 @@
  *
  * Sinh ra trong thư mục out/demo:
  * - Template_Config.xlsx       : file cấu hình mẫu (7 sheet) của học phần KTLT101
- * - Template_DiemTho.xlsx      : file điểm thô mẫu 32 SV + điểm danh 12 buổi
+ * - Template_DiemTho.xlsx      : file điểm thô mẫu 10 SV, mỗi SV một ca biên + điểm danh 12 buổi
  * - final_grades_report.xlsx   : báo cáo điểm CLO/PLO + tổng hợp + cảnh báo
  * - exam_analysis_report.xlsx  : phân tích đề thi p, d, Cronbach α
  */
@@ -32,7 +32,7 @@ async function main(): Promise<void> {
   mkdirSync(outDir, { recursive: true })
 
   const config = buildMockConfig()
-  const { students, attendance } = buildMockClass(32)
+  const { students, attendance } = buildMockClass(10)
 
   const configPath = join(outDir, 'Template_Config.xlsx')
   const rawPath = join(outDir, 'Template_DiemTho.xlsx')

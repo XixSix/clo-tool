@@ -70,10 +70,10 @@ describe('parseCourseConfig', () => {
     expect(parsed.hasErrors).toBe(false)
     const config = parsed.config!
     expect(config.courseInfo.maHp).toBe('KTLT101')
-    expect(config.cloList.map((c) => c.maClo)).toEqual(['CLO2', 'CLO3', 'CLO4'])
-    expect(config.keHoachDanhGia).toHaveLength(8)
-    expect(config.cauHoi).toHaveLength(8)
-    expect(config.maTranPlo).toHaveLength(3)
+    expect(config.cloList.map((c) => c.maClo)).toEqual(['CLO2', 'CLO3', 'CLO4', 'CLO5'])
+    expect(config.keHoachDanhGia).toHaveLength(10)
+    expect(config.cauHoi).toHaveLength(11)
+    expect(config.maTranPlo).toHaveLength(4)
     expect(config.diemDanh).toHaveLength(5)
     expect(config.quyTac.nguong_dat_clo).toBe(4)
     expect(config.quyTac.rounding_mode).toBe('chain')
@@ -116,24 +116,24 @@ describe('parseRawGrades', () => {
     expect(file.students).toHaveLength(10)
     expect(file.students[0].maSv).toBe('0123456789')
     expect(file.attendanceSessions).toHaveLength(12)
-    expect(file.students[4].diemCacCot.CK_C3).toBe('VT')
-    expect(file.students[6].diemCacCot.KT4).toBeNull()
+    expect(file.students[4].diemCacCot.CK_C2).toBe('VT')
+    expect(file.students[6].diemCacCot.GKT_C2).toBeNull()
     expect(file.meta.lop).toBe('1A11_CNTT14')
-    expect(file.declaredMaxScores.CK_C2).toBe(4)
+    expect(file.declaredMaxScores.CK_C1).toBe(3)
   })
 
   it('chấp nhận dấu phẩy thập phân', async () => {
     const wb = new ExcelJS.Workbook()
     await wb.xlsx.readFile(rawPath)
     const ws = wb.getWorksheet('NHAP_LIEU')!
-    // Cột KT3 = 5 cột cố định + 12 buổi + CC + TD + 1
-    ws.getRow(7).getCell(20).value = '8,5'
+    // Cột TD = 5 cột cố định + 12 buổi + CC + 1
+    ws.getRow(7).getCell(19).value = '8,5'
     const commaFile = join(dir, 'raw-comma.xlsx')
     await wb.xlsx.writeFile(commaFile)
 
     const parsedConfig = await parseCourseConfig(configPath)
     const parsed = await parseRawGrades(commaFile, parsedConfig.config!)
-    expect(parsed.file!.students[1].diemCacCot.KT3).toBe(8.5)
+    expect(parsed.file!.students[1].diemCacCot.TD).toBe(8.5)
   })
 })
 

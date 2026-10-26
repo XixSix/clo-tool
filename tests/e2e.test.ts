@@ -81,7 +81,7 @@ describe('Pipeline end-to-end: Config + Điểm thô → Kết quả', () => {
     expect(st.courseScore).toBe(expected)
 
     const expectedCc = roundHalfUp(
-      (CC.cloScores.CLO2 + CC.cloScores.CLO3 + CC.cloScores.CLO4) / 3,
+      (CC.cloScores.CLO2 + CC.cloScores.CLO3 + CC.cloScores.CLO5) / 3,
       1
     )
     expect(CC.score).toBe(expectedCc)
@@ -89,7 +89,10 @@ describe('Pipeline end-to-end: Config + Điểm thô → Kết quả', () => {
 
   it('TBC CLO là trung bình cộng các CLO đã làm tròn', () => {
     const st = result.students[0]
-    const expected = roundHalfUp((st.cloScores.CLO2 + st.cloScores.CLO3 + st.cloScores.CLO4) / 3, 1)
+    const expected = roundHalfUp(
+      (st.cloScores.CLO2 + st.cloScores.CLO3 + st.cloScores.CLO4 + st.cloScores.CLO5) / 4,
+      1
+    )
     expect(st.tbcClo).toBe(expected)
     expect(st.tbcCloInWords.length).toBeGreaterThan(0)
   })
@@ -110,7 +113,7 @@ describe('Pipeline end-to-end: Config + Điểm thô → Kết quả', () => {
   })
 
   it('thống kê lớp có đủ CLO và PLO', () => {
-    expect(Object.keys(result.summary.cloStats)).toEqual(['CLO2', 'CLO3', 'CLO4'])
+    expect(Object.keys(result.summary.cloStats)).toEqual(['CLO2', 'CLO3', 'CLO4', 'CLO5'])
     expect(Object.keys(result.summary.ploStats)).toEqual(['PLO2', 'PLO3', 'PLO4'])
     expect(result.summary.totalStudents).toBe(32)
     expect(result.summary.absentStudents).toBe(1)
@@ -118,20 +121,29 @@ describe('Pipeline end-to-end: Config + Điểm thô → Kết quả', () => {
 })
 
 describe('Psychometrics theo từng đợt và mã đề', () => {
-  it('tách đúng các đợt thi, bỏ qua nhóm CC', () => {
+  it('tách đúng các đợt thi / đề, bỏ qua nhóm CC', () => {
     const exams = calculateAllExamPsychometrics(config, rawFile.students)
-    expect(exams.map((e) => e.maDauDiem).sort()).toEqual(['CK', 'KT3', 'KT4'])
+    // 3 bài thi: GK đề TN (GKT/D1), GK đề TL (GTX/D2), CK đề TL (CK/D3)
+    expect(exams.map((e) => e.maDauDiem).sort()).toEqual(['CK', 'GKT', 'GTX'])
 
     const ck = exams.find((e) => e.maDauDiem === 'CK')!
-    expect(ck.soSinhVien).toBe(30) // loại SV vắng thi và SV thiếu dữ liệu
-    expect(ck.soCauHoi).toBe(3)
+    expect(ck.maDe).toBe('D3')
+    expect(ck.soSinhVien).toBe(30) // lớp 32 SV: loại SV vắng thi (SV4) và SV trống toàn bộ (SV7)
+    expect(ck.soCauHoi).toBe(4)
     expect(ck.cronbachAlpha).toBeGreaterThanOrEqual(0)
     expect(ck.cronbachAlpha).toBeLessThanOrEqual(1)
-    expect(ck.items).toHaveLength(3)
+    expect(ck.items).toHaveLength(4)
     for (const item of ck.items) {
       expect(item.doKhoP).toBeGreaterThanOrEqual(0)
       expect(item.doKhoP).toBeLessThanOrEqual(1)
     }
+
+    // Đề GK TN (GKT/D1) có 2 câu cùng đo CLO3
+    const gkt = exams.find((e) => e.maDauDiem === 'GKT')!
+    expect(gkt.maDe).toBe('D1')
+    expect(gkt.soCauHoi).toBe(2)
+    expect(gkt.items.map((i) => i.cau)).toEqual(['Câu 1', 'Câu 2'])
+    expect(gkt.items.map((i) => i.diemToiDa)).toEqual([6, 4])
   })
 })
 
