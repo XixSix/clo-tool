@@ -3,7 +3,6 @@
  */
 
 import type { CourseConfig, ValidationIssue } from '../types'
-import { EPSILON } from './helpers'
 import { roundHalfUp } from '../rules'
 
 const VALID_GROUPS = new Set(['CC', 'GK', 'CK'])
@@ -11,9 +10,13 @@ const VALID_GROUPS = new Set(['CC', 'GK', 'CK'])
 export function validateKeHoach(config: CourseConfig): ValidationIssue[] {
   const issues: ValidationIssue[] = []
 
-  // 1. Tổng trọng số kế hoạch đánh giá
+  // 1. Tổng trọng số kế hoạch đánh giá.
+  // Trọng số bắt buộc là số nguyên (check bên dưới) nên tổng chính xác tuyệt đối
+  // trong float — so sánh bằng trực tiếp, không cần biên độ EPSILON
+  // (khác với tổng đề 10 ở crossSheet: điểm tối đa câu cho phép thập phân
+  //  không bội 0,25 nên tổng float cần biên độ).
   const totalWeight = config.keHoachDanhGia.reduce((sum, p) => sum + p.trongSoPhanTram, 0)
-  if (Math.abs(totalWeight - 100) > EPSILON) {
+  if (totalWeight !== 100) {
     issues.push({
       level: 'error',
       sheet: 'KE_HOACH_DANH_GIA',
@@ -61,7 +64,12 @@ export function validateKeHoach(config: CourseConfig): ValidationIssue[] {
     // Cùng một đầu điểm xuất hiện ở cả nhóm GK và CK -> dữ liệu nhập nhầm
     for (const other of config.keHoachDanhGia) {
       if (other === p) continue
-      if (other.maDauDiem === p.maDauDiem && other.nhom !== p.nhom && p.nhom !== 'CC' && other.nhom !== 'CC') {
+      if (
+        other.maDauDiem === p.maDauDiem &&
+        other.nhom !== p.nhom &&
+        p.nhom !== 'CC' &&
+        other.nhom !== 'CC'
+      ) {
         issues.push({
           level: 'error',
           sheet: 'KE_HOACH_DANH_GIA',
