@@ -13,8 +13,10 @@ function mock(): ReturnType<typeof buildMockConfig> {
   return buildMockConfig()
 }
 
-const errors = (issues: ReturnType<typeof validateConfig>) => issues.filter((i) => i.level === 'error')
-const warnings = (issues: ReturnType<typeof validateConfig>) => issues.filter((i) => i.level === 'warning')
+const errors = (issues: ReturnType<typeof validateConfig>) =>
+  issues.filter((i) => i.level === 'error')
+const warnings = (issues: ReturnType<typeof validateConfig>) =>
+  issues.filter((i) => i.level === 'warning')
 
 describe('validateConfig - cấu hình mẫu sạch', () => {
   it('mock chuẩn không có lỗi nào', () => {
@@ -39,7 +41,9 @@ describe('validateHocPhan - sheet HOC_PHAN', () => {
     config.courseInfo.loaiHp = 'truc_tuyen'
     const messages = errors(validateConfig(config)).map((i) => i.message)
     expect(messages).toContain('Số tín chỉ phải lớn hơn 0 (hiện tại: 0).')
-    expect(messages).toContain('Loại học phần "truc_tuyen" không hợp lệ (chỉ nhận "thuong" hoặc "thuc_hanh").')
+    expect(messages).toContain(
+      'Loại học phần "truc_tuyen" không hợp lệ (chỉ nhận "thuong" hoặc "thuc_hanh").'
+    )
   })
 
   it('Hinh_Thuc_Thi trống -> chỉ cảnh báo', () => {
@@ -56,16 +60,24 @@ describe('validateCloList - sheet CLO_LIST', () => {
     const config = mock()
     config.cloList[0].maClo = 'CL1'
     const messages = errors(validateConfig(config)).map((i) => i.message)
-    expect(messages).toContain('Mã CLO "CL1" phải theo dạng CLOx hoặc CLOx.y (ví dụ CLO1, CLO2, CLO1.1).')
+    expect(messages).toContain(
+      'Mã CLO "CL1" phải theo dạng CLOx hoặc CLOx.y (ví dụ CLO1, CLO2, CLO1.1).'
+    )
   })
 
   it('mã CLO dạng phân cấp CLO1.1 được chấp nhận', () => {
     const config = mock()
     config.cloList[0].maClo = 'CLO1.1'
     // Cập nhật tham chiếu cho khớp để không phát lỗi chéo
-    config.keHoachDanhGia.forEach((p) => { if (p.clo === 'CLO1') p.clo = 'CLO1.1' })
-    config.cauHoi.forEach((q) => { if (q.clo === 'CLO1') q.clo = 'CLO1.1' })
-    config.maTranPlo.forEach((m) => { if (m.clo === 'CLO1') m.clo = 'CLO1.1' })
+    config.keHoachDanhGia.forEach((p) => {
+      if (p.clo === 'CLO1') p.clo = 'CLO1.1'
+    })
+    config.cauHoi.forEach((q) => {
+      if (q.clo === 'CLO1') q.clo = 'CLO1.1'
+    })
+    config.maTranPlo.forEach((m) => {
+      if (m.clo === 'CLO1') m.clo = 'CLO1.1'
+    })
     expect(errors(validateConfig(config))).toHaveLength(0)
   })
 
@@ -95,6 +107,19 @@ describe('validateCloList - sheet CLO_LIST', () => {
     const messages = errors(validateConfig(config)).map((i) => i.message)
     expect(messages).toContain('Trọng số CLO của "CLO1" phải thuộc (0..100].')
   })
+
+  it('Bac_Nang_Luc trống / sai định dạng / bậc vượt thang -> cảnh báo (chỉ hiển thị, không tính điểm)', () => {
+    const config = mock()
+    config.cloList[0].bacNangLuc = ''
+    config.cloList[1].bacNangLuc = '3-6'
+    config.cloList[2].bacNangLuc = '7/6'
+    const issues = validateConfig(config)
+    expect(errors(issues)).toHaveLength(0)
+    const wms = warnings(issues).map((w) => w.message)
+    expect(wms).toContain('CLO "CLO1" thiếu bậc năng lực (Bac_Nang_Luc).')
+    expect(wms).toContain('Bậc năng lực "3-6" của CLO "CLO2" sai định dạng — phải dạng bậc/thang (ví dụ 3/6).')
+    expect(wms).toContain('Bậc năng lực "7/6" của CLO "CLO3" không hợp lệ — bậc phải là số nguyên từ 1 đến thang (6).')
+  })
 })
 
 describe('validateKeHoach - sheet KE_HOACH_DANH_GIA', () => {
@@ -105,8 +130,12 @@ describe('validateKeHoach - sheet KE_HOACH_DANH_GIA', () => {
     // Bù lại dòng khác để tổng vẫn 100, tránh lỗi chồng lấn nhiễu
     row1.trongSoPhanTram -= 0.5
     const messages = errors(validateConfig(config)).map((i) => i.message)
-    expect(messages).toContain(`Trọng số của đầu điểm "${row0.maDauDiem}" (CLO "${row0.clo}") phải là số nguyên % (nhận 20.5).`)
-    expect(messages).toContain(`Trọng số của đầu điểm "${row1.maDauDiem}" (CLO "${row1.clo}") phải là số nguyên % (nhận ${row1.trongSoPhanTram}).`)
+    expect(messages).toContain(
+      `Trọng số của đầu điểm "${row0.maDauDiem}" (CLO "${row0.clo}") phải là số nguyên % (nhận 20.5).`
+    )
+    expect(messages).toContain(
+      `Trọng số của đầu điểm "${row1.maDauDiem}" (CLO "${row1.clo}") phải là số nguyên % (nhận ${row1.trongSoPhanTram}).`
+    )
   })
 
   it('trọng số <= 0 -> lỗi', () => {
@@ -139,7 +168,9 @@ describe('validateKeHoach - sheet KE_HOACH_DANH_GIA', () => {
     const first = config.keHoachDanhGia[0]
     config.keHoachDanhGia.push({ ...first })
     const messages = errors(validateConfig(config)).map((i) => i.message)
-    expect(messages).toContain(`Cặp đầu điểm "${first.maDauDiem}" – CLO "${first.clo}" bị lặp trong kế hoạch.`)
+    expect(messages).toContain(
+      `Cặp đầu điểm "${first.maDauDiem}" – CLO "${first.clo}" bị lặp trong kế hoạch.`
+    )
   })
 
   it('Ma_Dau_Diem trống -> lỗi', () => {
@@ -171,7 +202,13 @@ describe('validateCauHoi - sheet CAU_HOI', () => {
   it('cùng cột điểm khai điểm tối đa khác nhau -> lỗi', () => {
     const config = mock()
     const src = config.cauHoi.find((q) => q.maDauDiem === 'GKT')!
-    const renamed = { ...src, maDauDiem: 'CK', clo: 'CLO5', cau: 'Câu 6', diemToiDa: src.diemToiDa + 0.25 }
+    const renamed = {
+      ...src,
+      maDauDiem: 'CK',
+      clo: 'CLO5',
+      cau: 'Câu 6',
+      diemToiDa: src.diemToiDa + 0.25
+    }
     config.cauHoi.push(renamed)
     const messages = errors(validateConfig(config)).map((i) => i.message)
     expect(messages).toContain(
@@ -196,7 +233,9 @@ describe('validateCauHoi - sheet CAU_HOI', () => {
     const issues = validateConfig(config)
     expect(errors(issues)).toHaveLength(0)
     const wms = warnings(issues).map((w) => w.message)
-    expect(wms).toContain(`Câu "${cc.cau}" (cột "CC") chưa khai mã đề — sẽ coi là áp dụng cho mọi đề (ALL).`)
+    expect(wms).toContain(
+      `Câu "${cc.cau}" (cột "CC") chưa khai mã đề — sẽ coi là áp dụng cho mọi đề (ALL).`
+    )
     expect(wms).toContain('Loại câu hỏi "TH" của cột "CC" không thuộc TN/TL.')
   })
 })
@@ -207,7 +246,9 @@ describe('validateMaTranPlo - sheet MA_TRAN_PLO', () => {
     config.maTranPlo.push({ ...config.maTranPlo[0] })
     const m = config.maTranPlo[0]
     const messages = errors(validateConfig(config)).map((i) => i.message)
-    expect(messages).toContain(`Ánh xạ (PLO "${m.plo}", PI "${m.pi}", CLO "${m.clo}") bị lặp làm trùng lặp dữ liệu.`)
+    expect(messages).toContain(
+      `Ánh xạ (PLO "${m.plo}", PI "${m.pi}", CLO "${m.clo}") bị lặp làm trùng lặp dữ liệu.`
+    )
   })
 
   it('PLO / PI trống -> lỗi', () => {
@@ -253,7 +294,9 @@ describe('validateQuyTac - sheet QUY_TAC', () => {
     const messages = errors(validateConfig(config)).map((i) => i.message)
     expect(messages).toContain('quyTac.hp_method "ABCD" không hợp lệ (QD450 / RAW_POINTS).')
     expect(messages).toContain('quyTac.rounding_mode "round" không hợp lệ (chain / final_only).')
-    expect(messages).toContain('quyTac.clo_bo_phan "sum" không hợp lệ (mean_of_ratios / ratio_of_sums).')
+    expect(messages).toContain(
+      'quyTac.clo_bo_phan "sum" không hợp lệ (mean_of_ratios / ratio_of_sums).'
+    )
   })
 
   it('ngưỡng ngoài [0..10] và tỷ lệ ngoài khoảng -> lỗi', () => {
@@ -263,10 +306,18 @@ describe('validateQuyTac - sheet QUY_TAC', () => {
     config.quyTac.ty_le_dat_clo_canh_bao = -5
     config.quyTac.nguong_co_mau_n = -1
     const messages = errors(validateConfig(config)).map((i) => i.message)
-    expect(messages).toContain('nguong_dat_clo = 12 không hợp lệ — ngưỡng đạt phải trong khoảng [0, 10].')
-    expect(messages).toContain('ty_le_nhom_27 = 1.5 không hợp lệ — phải là tỷ lệ trong khoảng [0, 1].')
-    expect(messages).toContain('ty_le_dat_clo_canh_bao = -5 không hợp lệ — phải trong khoảng [0, 100].')
-    expect(messages).toContain('nguong_co_mau_n = -1 không hợp lệ — phải là số nguyên dương hoặc 0.')
+    expect(messages).toContain(
+      'nguong_dat_clo = 12 không hợp lệ — ngưỡng đạt phải trong khoảng [0, 10].'
+    )
+    expect(messages).toContain(
+      'ty_le_nhom_27 = 1.5 không hợp lệ — phải là tỷ lệ trong khoảng [0, 1].'
+    )
+    expect(messages).toContain(
+      'ty_le_dat_clo_canh_bao = -5 không hợp lệ — phải trong khoảng [0, 100].'
+    )
+    expect(messages).toContain(
+      'nguong_co_mau_n = -1 không hợp lệ — phải là số nguyên dương hoặc 0.'
+    )
   })
 })
 
