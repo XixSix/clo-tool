@@ -3,34 +3,21 @@
  */
 
 import type ExcelJS from 'exceljs'
-import type { CourseInfo, ValidationIssue } from '../../types'
-import { findSheet, parseNumber } from '../excelUtils'
+import type { CourseInfo } from '../../types'
+import { findSheet, parseNumber } from '../../utils/excel'
 import { CONFIG_SHEET_COLUMNS, get, readTable } from './helpers'
+import { ConfigParseError } from './errors'
 
-const EMPTY_COURSE: CourseInfo = {
-  maHp: '',
-  tenHp: '',
-  soTinChi: 0,
-  hinhThucThi: '',
-  loaiHp: 'thuong'
-}
-
-export function parseHocPhanSheet(wb: ExcelJS.Workbook, issues: ValidationIssue[]): CourseInfo {
+export function parseHocPhanSheet(wb: ExcelJS.Workbook): CourseInfo {
   const ws = findSheet(wb, 'HOC_PHAN')
   if (!ws) {
-    issues.push({ level: 'error', message: 'Thiếu sheet HOC_PHAN trong file Config.' })
-    return { ...EMPTY_COURSE }
+    throw new ConfigParseError('Thiếu sheet HOC_PHAN trong file Config.')
   }
 
-  const { headers, rows } = readTable(ws, CONFIG_SHEET_COLUMNS.HOC_PHAN, 'HOC_PHAN', issues)
+  const { headers, rows } = readTable(ws, CONFIG_SHEET_COLUMNS.HOC_PHAN, 'HOC_PHAN')
   const r = rows[0]
   if (r === undefined) {
-    issues.push({
-      level: 'error',
-      sheet: 'HOC_PHAN',
-      message: 'Sheet HOC_PHAN không có dữ liệu.'
-    })
-    return { ...EMPTY_COURSE }
+    throw new ConfigParseError('Sheet HOC_PHAN không có dữ liệu.')
   }
 
   return {

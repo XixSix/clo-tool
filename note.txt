@@ -8,7 +8,7 @@
 - [2026-10-26] Đã sửa cellScoreCalculator: lọc câu hỏi theo mã đề của SV (maDe 'ALL' tính
   cho mọi SV; SV maDe 'ALL' tính mọi đề); thêm fixture đa đề (mockMultiDe) để bẫy ô điểm.
 - [2026-10-26] Điểm thô còn LỖI (mức error) thì pipeline:run chặn cứng, không tính nữa.
-- [MỚI - chờ chốt] parseNumber (excelUtils) nuốt im lặng cả "ô trống" và "gõ sai" (đều về
+- [MỚI - chờ chốt] parseNumber (utils/excel/cellValue) nuốt im lặng cả "ô trống" và "gõ sai" (đều về
   null → ?? mặc định): GV gõ "6a"/"abc" vào cột số (Trong_So_CLO, So_Tin_Chi, Diem_Toi_Da...)
   thì ngầm dùng giá trị mặc định không một cảnh báo. Muốn bắt: parseNumber phải phân biệt
   trống vs không-parse-được và bắn warning "ô X không phải số — dùng mặc định N". Chạm toàn

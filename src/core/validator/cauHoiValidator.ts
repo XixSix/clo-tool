@@ -113,9 +113,11 @@ export function validateCauHoi(config: CourseConfig): ValidationIssue[] {
     for (const [key, entry] of totals.entries()) {
       const [maDauDiem, maDe] = key.split('|')
       // Tính theo cột duy nhất để không cộng trùng
-      const unique = new Map(config.cauHoi
-        .filter((q) => q.maDauDiem === maDauDiem && (q.maDe ?? 'ALL') === maDe)
-        .map((q) => [q.maCotDiem, q]))
+      const unique = new Map(
+        config.cauHoi
+          .filter((q) => q.maDauDiem === maDauDiem && (q.maDe ?? 'ALL') === maDe)
+          .map((q) => [q.maCotDiem, q])
+      )
       const ploTotal = Array.from(unique.values())
         .filter((q) => ploClos.has(q.clo))
         .reduce((sum, q) => sum + q.diemToiDa, 0)

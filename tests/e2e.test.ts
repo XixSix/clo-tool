@@ -135,13 +135,7 @@ describe('Pipeline end-to-end: Config + Điểm thô → Kết quả', () => {
   })
 
   it('thống kê lớp có đủ CLO và PLO', () => {
-    expect(Object.keys(result.summary.cloStats)).toEqual([
-      'CLO1',
-      'CLO2',
-      'CLO3',
-      'CLO4',
-      'CLO5'
-    ])
+    expect(Object.keys(result.summary.cloStats)).toEqual(['CLO1', 'CLO2', 'CLO3', 'CLO4', 'CLO5'])
     expect(Object.keys(result.summary.ploStats)).toEqual(['PLO2', 'PLO3', 'PLO4'])
     expect(result.summary.totalStudents).toBe(32)
     expect(result.summary.absentStudents).toBe(1)
@@ -207,12 +201,8 @@ describe('Xuất Excel', () => {
     const processSheet = reloaded.getWorksheet('BANG_DIEM_QUA_TRINH')!
     expect(processSheet.getCell(14, 2).text).toBe('0123456789')
     // Cột 6 = CLO1, cột 7 = CLO2 (CLO bắt đầu sau 5 cột thông tin)
-    expect(Number(processSheet.getCell(14, 6).value)).toBe(
-      result.students[0].processCloScores.CLO1
-    )
-    expect(Number(processSheet.getCell(14, 7).value)).toBe(
-      result.students[0].processCloScores.CLO2
-    )
+    expect(Number(processSheet.getCell(14, 6).value)).toBe(result.students[0].processCloScores.CLO1)
+    expect(Number(processSheet.getCell(14, 7).value)).toBe(result.students[0].processCloScores.CLO2)
     expect(processSheet.getCell(14, 10).text.length).toBeGreaterThan(0) // TBC bằng chữ
 
     const finalSheet = reloaded.getWorksheet('BANG_DIEM_CUOI_KY')!

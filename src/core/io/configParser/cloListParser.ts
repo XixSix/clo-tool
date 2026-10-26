@@ -3,20 +3,22 @@
  */
 
 import type ExcelJS from 'exceljs'
-import type { CLODefinition, ValidationIssue } from '../../types'
-import { findSheet, parseNumber } from '../excelUtils'
+import type { CLODefinition } from '../../types'
+import { findSheet, parseNumber } from '../../utils/excel'
 import { CONFIG_SHEET_COLUMNS, get, readTable } from './helpers'
+import { ConfigParseError } from './errors'
 
-export function parseCloListSheet(wb: ExcelJS.Workbook, issues: ValidationIssue[]): CLODefinition[] {
+export function parseCloListSheet(
+  wb: ExcelJS.Workbook,
+): CLODefinition[] {
   const cloList: CLODefinition[] = []
 
   const ws = findSheet(wb, 'CLO_LIST')
   if (!ws) {
-    issues.push({ level: 'error', message: 'Thiếu sheet CLO_LIST trong file Config.' })
-    return cloList
+    throw new ConfigParseError('Thiếu sheet CLO_LIST trong file Config.')
   }
 
-  const { headers, rows } = readTable(ws, CONFIG_SHEET_COLUMNS.CLO_LIST, 'CLO_LIST', issues)
+  const { headers, rows } = readTable(ws, CONFIG_SHEET_COLUMNS.CLO_LIST, 'CLO_LIST')
   for (const r of rows) {
     const maClo = get(ws, r, headers, 'Ma_CLO')
     if (!maClo) continue

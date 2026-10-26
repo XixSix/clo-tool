@@ -20,7 +20,7 @@ import type {
   RawStudentRow,
   ValidationIssue
 } from '../types'
-import { cellText, findHeaderRow, parseNumber } from './excelUtils'
+import { cellText, findHeaderRow, parseNumber } from '../utils/excel'
 import type ExcelJS from 'exceljs'
 
 const BASE_COLUMNS = ['TT', 'Ma_SV', 'Ho', 'Ten', 'Ho_Ten', 'Ngay_Sinh', 'Ma_De', 'Ghi_Chu']
@@ -85,7 +85,7 @@ export async function parseRawGrades(
   filePath: string,
   config: CourseConfig
 ): Promise<RawGradesParseResult> {
-  const { readWorkbook, findSheet } = await import('./excelUtils')
+  const { readWorkbook, findSheet } = await import('../utils/excel')
   const wb = await readWorkbook(filePath)
   const issues: ValidationIssue[] = []
 

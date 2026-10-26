@@ -1,10 +1,5 @@
 import React, { useState } from 'react'
-import type {
-  ConfigSummaryDto,
-  IssueDto,
-  RawSummaryDto,
-  RunResultDto
-} from '../../shared/ipc'
+import type { ConfigSummaryDto, IssueDto, RawSummaryDto, RunResultDto } from '../../shared/ipc'
 
 function hasBridge(): boolean {
   return typeof window !== 'undefined' && 'api' in window
@@ -15,7 +10,13 @@ function fileName(path: string): string {
   return parts[parts.length - 1] || path
 }
 
-function IssueList({ issues, limit = 6 }: { issues: IssueDto[]; limit?: number }): React.ReactElement {
+function IssueList({
+  issues,
+  limit = 6
+}: {
+  issues: IssueDto[]
+  limit?: number
+}): React.ReactElement {
   if (issues.length === 0) {
     return <p className="text-sm text-emerald-600">Không có lỗi hay cảnh báo dữ liệu.</p>
   }
@@ -204,8 +205,8 @@ export default function App(): React.ReactElement {
       <main className="mx-auto w-full max-w-6xl flex-1 space-y-5 p-6">
         {!bridgeReady ? (
           <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
-            Chế độ Web Preview: các nút chọn file chỉ hoạt động khi chạy app Electron
-            (<code className="rounded bg-amber-100 px-1">npm run dev</code>).
+            Chế độ Web Preview: các nút chọn file chỉ hoạt động khi chạy app Electron (
+            <code className="rounded bg-amber-100 px-1">npm run dev</code>).
           </div>
         ) : null}
 
@@ -304,9 +305,7 @@ export default function App(): React.ReactElement {
                   ) : null}
                 </div>
                 <IssueList issues={config.issues} />
-                {config.error ? (
-                  <p className="text-xs text-red-600">{config.error}</p>
-                ) : null}
+                {config.error ? <p className="text-xs text-red-600">{config.error}</p> : null}
               </div>
             ) : null}
           </section>
@@ -441,7 +440,9 @@ export default function App(): React.ReactElement {
                               className={`h-full rounded-full ${
                                 stat.isBelowThreshold ? 'bg-red-400' : 'bg-emerald-500'
                               }`}
-                              style={{ width: `${Math.max(0, Math.min(100, stat.passedPercent))}%` }}
+                              style={{
+                                width: `${Math.max(0, Math.min(100, stat.passedPercent))}%`
+                              }}
                             />
                           </div>
                           <span

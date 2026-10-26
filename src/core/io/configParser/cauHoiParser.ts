@@ -3,20 +3,22 @@
  */
 
 import type ExcelJS from 'exceljs'
-import type { QuestionColumn, ValidationIssue } from '../../types'
-import { findSheet, parseNumber } from '../excelUtils'
+import type { QuestionColumn } from '../../types'
+import { findSheet, parseNumber } from '../../utils/excel'
 import { CONFIG_SHEET_COLUMNS, get, readTable } from './helpers'
+import { ConfigParseError } from './errors'
 
-export function parseCauHoiSheet(wb: ExcelJS.Workbook, issues: ValidationIssue[]): QuestionColumn[] {
+export function parseCauHoiSheet(
+  wb: ExcelJS.Workbook,
+): QuestionColumn[] {
   const cauHoi: QuestionColumn[] = []
 
   const ws = findSheet(wb, 'CAU_HOI')
   if (!ws) {
-    issues.push({ level: 'error', message: 'Thiếu sheet CAU_HOI trong file Config.' })
-    return cauHoi
+    throw new ConfigParseError('Thiếu sheet CAU_HOI trong file Config.')
   }
 
-  const { headers, rows } = readTable(ws, CONFIG_SHEET_COLUMNS.CAU_HOI, 'CAU_HOI', issues)
+  const { headers, rows } = readTable(ws, CONFIG_SHEET_COLUMNS.CAU_HOI, 'CAU_HOI')
   for (const r of rows) {
     const maCotDiem = get(ws, r, headers, 'Ma_Cot_Diem')
     const maDauDiem = get(ws, r, headers, 'Ma_Dau_Diem')

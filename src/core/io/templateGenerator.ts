@@ -9,7 +9,7 @@
 import ExcelJS from 'exceljs'
 import type { CourseConfig, RawStudentRow } from '../types'
 import { setWidths, styleCell, styleHeaderRow, styleTitle, BORDER_THIN } from '../exporter/style'
-import { writeWorkbook } from './excelUtils'
+import { writeWorkbook } from '../utils/excel'
 
 const HEADER_FILL = 'FF1E40AF'
 const INPUT_FILL = 'FFFEF9C3'
@@ -203,8 +203,16 @@ export function buildConfigWorkbook(config: CourseConfig): ExcelJS.Workbook {
       'Mã cột điểm là tên cột thực tế trong file điểm thô; một câu đo nhiều CLO thì tách nhiều dòng'
     ],
     ['MA_TRAN_PLO', 'Ánh xạ PLO → PI → CLO', 'CLO không có PLO sẽ bị cảnh báo'],
-    ['DIEM_DANH', 'Ký hiệu điểm danh và hệ số quy đổi', 'Mặc định: X=1, OL=1, M=0.5, V-CP=0.5, V=0 (không cần sửa)'],
-    ['QUY_TAC', 'Các tham số nghiệp vụ của nhà trường', 'Mặc định chuẩn QĐ 450 (không sửa nếu không có yêu cầu từ P.QLCL)']
+    [
+      'DIEM_DANH',
+      'Ký hiệu điểm danh và hệ số quy đổi',
+      'Mặc định: X=1, OL=1, M=0.5, V-CP=0.5, V=0 (không cần sửa)'
+    ],
+    [
+      'QUY_TAC',
+      'Các tham số nghiệp vụ của nhà trường',
+      'Mặc định chuẩn QĐ 450 (không sửa nếu không có yêu cầu từ P.QLCL)'
+    ]
   ]
   guides.forEach(([sheet, content, note]) => {
     const row = wsGuide.addRow([sheet, content, note])

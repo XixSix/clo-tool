@@ -12,7 +12,12 @@
 
 import { calculateClassSummary } from './classSummaryCalculator'
 import { evaluateStudent } from './studentCalculator'
-import type { CourseConfig, EvaluationResult, ProcessedStudentResult, RawStudentRow } from '../types'
+import type {
+  CourseConfig,
+  EvaluationResult,
+  ProcessedStudentResult,
+  RawStudentRow
+} from '../types'
 
 /**
  * Tính toán toàn bộ điểm số học phần, CLO, TBC CLO và PLO cho danh sách sinh viên

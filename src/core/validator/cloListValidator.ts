@@ -12,18 +12,22 @@ export function validateCloList(config: CourseConfig): ValidationIssue[] {
 
   // Validate all sheet
   if (config.cloList.length === 0) {
-    issues.push({ level: 'error', sheet: 'CLO_LIST', message: 'Chưa khai báo CLO nào.' })
+    issues.push({
+      level: 'error',
+      sheet: 'CLO_LIST',
+      message: 'Chưa khai báo CLO nào.'
+    })
   }
 
   const seen = new Set<string>()
   for (const clo of config.cloList) {
     // Validate Ma_CLO
     if (!clo.maClo || clo.maClo.trim() === '') {
-      issues.push({ 
-        level: 'error', 
-        sheet: 'CLO_LIST', 
-        column: 'Ma_CLO', 
-        message: 'Thiếu Mã CLO.' 
+      issues.push({
+        level: 'error',
+        sheet: 'CLO_LIST',
+        column: 'Ma_CLO',
+        message: 'Thiếu Mã CLO.'
       })
       continue
     }
@@ -46,19 +50,6 @@ export function validateCloList(config: CourseConfig): ValidationIssue[] {
       })
     }
     seen.add(clo.maClo)
-
-    // Validate Trong_so_CLO
-    if (
-      clo.trongSoClo !== undefined &&
-      (!Number.isFinite(clo.trongSoClo) || clo.trongSoClo <= 0 || clo.trongSoClo > 100)
-    ) {
-      issues.push({
-        level: 'error',
-        sheet: 'CLO_LIST',
-        column: 'Trong_So_CLO',
-        message: `Trọng số CLO của "${clo.maClo}" phải thuộc (0..100].`
-      })
-    }
 
     // Validate Noi_dung
     if (!clo.noiDung || clo.noiDung.trim() === '') {
@@ -100,6 +91,19 @@ export function validateCloList(config: CourseConfig): ValidationIssue[] {
           })
         }
       }
+    }
+
+    // Validate Trong_so_CLO
+    if (
+      clo.trongSoClo !== undefined &&
+      (!Number.isFinite(clo.trongSoClo) || clo.trongSoClo <= 0 || clo.trongSoClo > 100)
+    ) {
+      issues.push({
+        level: 'error',
+        sheet: 'CLO_LIST',
+        column: 'Trong_So_CLO',
+        message: `Trọng số CLO của "${clo.maClo}" phải thuộc (0..100].`
+      })
     }
   }
 

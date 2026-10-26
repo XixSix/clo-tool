@@ -4,16 +4,15 @@
  */
 
 import type ExcelJS from 'exceljs'
-import type { BusinessRules, ValidationIssue } from '../../types'
+import type { BusinessRules } from '../../types'
 import { DEFAULT_BUSINESS_RULES } from '../../rules'
-import { findSheet, parseBoolean, parseNumber } from '../excelUtils'
+import { findSheet, parseBoolean, parseNumber } from '../../utils/excel'
 import { CONFIG_SHEET_COLUMNS, get, readTable } from './helpers'
 
 function parseBusinessRules(
   ws: ExcelJS.Worksheet,
   headers: Record<string, number>,
   rows: number[],
-  issues: ValidationIssue[]
 ): BusinessRules {
   const rules: BusinessRules = { ...DEFAULT_BUSINESS_RULES }
 
@@ -59,23 +58,17 @@ function parseBusinessRules(
         rules.ty_le_dat_clo_canh_bao = parseNumber(rawValue) ?? rules.ty_le_dat_clo_canh_bao
         break
       default:
-        issues.push({
-          level: 'warning',
-          sheet: ws.name,
-          row: r,
-          column: 'Ma_Quy_Tac',
-          message: `Quy tắc "${key}" không được hỗ trợ, đã bỏ qua.`
-        })
+        continue
     }
   }
 
   return rules
 }
 
-export function parseQuyTacSheet(wb: ExcelJS.Workbook, issues: ValidationIssue[]): BusinessRules {
+export function parseQuyTacSheet(wb: ExcelJS.Workbook): BusinessRules {
   const ws = findSheet(wb, 'QUY_TAC')
   if (!ws) return { ...DEFAULT_BUSINESS_RULES }
 
-  const { headers, rows } = readTable(ws, CONFIG_SHEET_COLUMNS.QUY_TAC, 'QUY_TAC', issues)
-  return parseBusinessRules(ws, headers, rows, issues)
+  const { headers, rows } = readTable(ws, CONFIG_SHEET_COLUMNS.QUY_TAC, 'QUY_TAC')
+  return parseBusinessRules(ws, headers, rows)
 }

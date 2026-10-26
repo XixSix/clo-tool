@@ -5,9 +5,9 @@
  * - Tên cột có thể lệch dấu/khoảng trắng/hoa thường; nếu lệch nhiều sẽ gợi ý.
  */
 
-import { cellText, findHeaderRow, rowTexts } from '../excelUtils'
+import { cellText, findHeaderRow, rowTexts } from '../../utils/excel'
 import type ExcelJS from 'exceljs'
-import type { ValidationIssue } from '../../types'
+import { ConfigParseError } from './errors'
 
 /** Tên cột chuẩn của từng sheet (dùng để dò tiêu đề) */
 export const CONFIG_SHEET_COLUMNS: Record<string, string[]> = {
@@ -45,31 +45,23 @@ export function get(
 export function readTable(
   ws: ExcelJS.Worksheet,
   columns: string[],
-  sheetName: string,
-  issues: ValidationIssue[]
+  sheetName: string
 ): { headers: Record<string, number>; rows: number[] } {
   const header = findHeaderRow(ws, columns)
   if (!header) {
-    issues.push({
-      level: 'error',
-      sheet: sheetName,
-      message: `Không tìm thấy hàng tiêu đề của sheet ${sheetName}.`,
-      suggestion: `Cần tối thiểu các cột: ${columns.join(', ')}`
-    })
-    return { headers: {}, rows: [] }
+    throw new ConfigParseError(
+      `Không tìm thấy hàng tiêu đề của sheet ${sheetName}. Cần tối thiểu các cột: ${columns.join(', ')}`
+    )
   }
 
-  for (const missing of header.match.missing) {
-    issues.push({
-      level: 'error',
-      sheet: sheetName,
-      row: header.rowNumber,
-      column: missing,
-      message: `Thiếu cột "${missing}" trong sheet ${sheetName}.`,
-      suggestion: header.match.suggestions[missing]
-        ? `Có phải bạn muốn đặt tên là "${header.match.suggestions[missing]}"?`
-        : undefined
-    })
+  if (header.match.missing.length > 0) {
+    const missing = header.match.missing
+      .map((column) => {
+        const suggestion = header.match.suggestions[column]
+        return suggestion ? `"${column}" (gợi ý: "${suggestion}")` : `"${column}"`
+      })
+      .join(', ')
+    throw new ConfigParseError(`Thiếu cột ${missing} trong sheet ${sheetName}.`)
   }
 
   const rows: number[] = []

@@ -39,10 +39,10 @@ Kết quả nằm trong `out/demo/`:
 
 | File                        | Nội dung                                                     |
 | :-------------------------- | :----------------------------------------------------------- |
-| `Template_Config.xlsx`      | Config mẫu 7 sheet + sheet hướng dẫn                          |
-| `Template_DiemTho.xlsx`     | Điểm thô mẫu (điểm danh, CC, TD, KT3, KT4, CK)                |
+| `Template_Config.xlsx`      | Config mẫu 7 sheet + sheet hướng dẫn                         |
+| `Template_DiemTho.xlsx`     | Điểm thô mẫu (điểm danh, CC, TD, KT3, KT4, CK)               |
 | `final_grades_report.xlsx`  | Bảng điểm CLO/PLO, điểm học vụ, chi tiết, tổng hợp, cảnh báo |
-| `exam_analysis_report.xlsx` | p, d, Cronbach α, gợi ý cải tiến                              |
+| `exam_analysis_report.xlsx` | p, d, Cronbach α, gợi ý cải tiến                             |
 
 Sinh lại file mẫu đi kèm app:
 
@@ -67,13 +67,13 @@ npm run build     # Build production (electron-vite)
 
 Học phần **KTLT101 – Kỹ thuật lập trình**, 3 tín chỉ, 3 CLO:
 
-| Nhóm | Đầu điểm | CLO   | Trọng số |
-| :--- | :------- | :---- | -------: |
-| CC   | CC       | CLO2  |       5% |
-| CC   | CC       | CLO3  |       5% |
-| CC   | TD       | CLO4  |      10% |
-| GK   | KT3      | CLO3  |      15% |
-| GK   | KT4      | CLO4  |      15% |
+| Nhóm | Đầu điểm   | CLO            |        Trọng số |
+| :--- | :--------- | :------------- | --------------: |
+| CC   | CC         | CLO2           |              5% |
+| CC   | CC         | CLO3           |              5% |
+| CC   | TD         | CLO4           |             10% |
+| GK   | KT3        | CLO3           |             15% |
+| GK   | KT4        | CLO4           |             15% |
 | CK   | CK (3 câu) | CLO2/CLO3/CLO4 | 20% / 15% / 15% |
 
 - 32 sinh viên, 12 buổi điểm danh (`X`, `OL`, `M`, `V-CP`, `V`).
@@ -90,22 +90,22 @@ Học phần **KTLT101 – Kỹ thuật lập trình**, 3 tín chỉ, 3 CLO:
 
 `final_grades_report.xlsx`:
 
-| Sheet                 | Nội dung                                                                 |
-| :-------------------- | :----------------------------------------------------------------------- |
-| `BANG_DIEM_QUA_TRINH` | Phụ lục 3 – bản **Quá trình** (CC + GK), TBC CLO bằng số và bằng chữ      |
-| `BANG_DIEM_CUOI_KY`   | Phụ lục 3 – bản **Cuối kỳ** (CK)                                          |
-| `BANG_DIEM_HOC_VU`  | Điểm danh từng buổi, số buổi vắng, CC/GK/CK, điểm học phần                |
-| `CHI_TIET_CLO`      | Truy xuất từng ô (đầu điểm, CLO) → CLO → PLO                              |
-| `TONG_HOP_LO`       | % đạt CLO/PLO, TB/min/max, 2 biểu đồ PNG, ô đề xuất cải tiến              |
-| `CANH_BAO`          | Lỗi dữ liệu, SV vắng thi/thiếu điểm, CLO dưới ngưỡng                      |
+| Sheet                 | Nội dung                                                             |
+| :-------------------- | :------------------------------------------------------------------- |
+| `BANG_DIEM_QUA_TRINH` | Phụ lục 3 – bản **Quá trình** (CC + GK), TBC CLO bằng số và bằng chữ |
+| `BANG_DIEM_CUOI_KY`   | Phụ lục 3 – bản **Cuối kỳ** (CK)                                     |
+| `BANG_DIEM_HOC_VU`    | Điểm danh từng buổi, số buổi vắng, CC/GK/CK, điểm học phần           |
+| `CHI_TIET_CLO`        | Truy xuất từng ô (đầu điểm, CLO) → CLO → PLO                         |
+| `TONG_HOP_LO`         | % đạt CLO/PLO, TB/min/max, 2 biểu đồ PNG, ô đề xuất cải tiến         |
+| `CANH_BAO`            | Lỗi dữ liệu, SV vắng thi/thiếu điểm, CLO dưới ngưỡng                 |
 
 `exam_analysis_report.xlsx`:
 
-| Sheet            | Nội dung                                                       |
-| :--------------- | :------------------------------------------------------------- |
-| `P_D_TUNG_CAU`   | Độ khó `p`, độ phân biệt `d`, mức độ, α nếu bỏ câu, cảnh báo   |
-| `DO_TIN_CAY`     | Cronbach α theo từng đợt / mã đề, cảnh báo cỡ mẫu              |
-| `GOI_Y_CAI_TIEN` | 5 câu hỏi định hướng cải tiến + độ phủ CLO                     |
+| Sheet            | Nội dung                                                     |
+| :--------------- | :----------------------------------------------------------- |
+| `P_D_TUNG_CAU`   | Độ khó `p`, độ phân biệt `d`, mức độ, α nếu bỏ câu, cảnh báo |
+| `DO_TIN_CAY`     | Cronbach α theo từng đợt / mã đề, cảnh báo cỡ mẫu            |
+| `GOI_Y_CAI_TIEN` | 5 câu hỏi định hướng cải tiến + độ phủ CLO                   |
 
 ---
 

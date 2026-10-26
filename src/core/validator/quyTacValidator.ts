@@ -75,7 +75,11 @@ export function validateQuyTac(config: CourseConfig): ValidationIssue[] {
     })
   }
 
-  if (!Number.isFinite(rules.ty_le_dat_clo_canh_bao) || rules.ty_le_dat_clo_canh_bao < 0 || rules.ty_le_dat_clo_canh_bao > 100) {
+  if (
+    !Number.isFinite(rules.ty_le_dat_clo_canh_bao) ||
+    rules.ty_le_dat_clo_canh_bao < 0 ||
+    rules.ty_le_dat_clo_canh_bao > 100
+  ) {
     issues.push({
       level: 'error',
       sheet: 'QUY_TAC',

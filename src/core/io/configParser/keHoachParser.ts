@@ -3,28 +3,22 @@
  */
 
 import type ExcelJS from 'exceljs'
-import type { EvaluationPlanItem, ValidationIssue } from '../../types'
-import { findSheet, parseNumber } from '../excelUtils'
+import type { EvaluationPlanItem } from '../../types'
+import { findSheet, parseNumber } from '../../utils/excel'
 import { CONFIG_SHEET_COLUMNS, get, readTable } from './helpers'
+import { ConfigParseError } from './errors'
 
 export function parseKeHoachSheet(
   wb: ExcelJS.Workbook,
-  issues: ValidationIssue[]
 ): EvaluationPlanItem[] {
   const keHoachDanhGia: EvaluationPlanItem[] = []
 
   const ws = findSheet(wb, 'KE_HOACH_DANH_GIA')
   if (!ws) {
-    issues.push({ level: 'error', message: 'Thiếu sheet KE_HOACH_DANH_GIA trong file Config.' })
-    return keHoachDanhGia
+    throw new ConfigParseError('Thiếu sheet KE_HOACH_DANH_GIA trong file Config.')
   }
 
-  const { headers, rows } = readTable(
-    ws,
-    CONFIG_SHEET_COLUMNS.KE_HOACH_DANH_GIA,
-    'KE_HOACH_DANH_GIA',
-    issues
-  )
+  const { headers, rows } = readTable(ws, CONFIG_SHEET_COLUMNS.KE_HOACH_DANH_GIA, 'KE_HOACH_DANH_GIA')
   for (const r of rows) {
     const nhomRaw = get(ws, r, headers, 'Nhom').toUpperCase()
     const maDauDiem = get(ws, r, headers, 'Ma_Dau_Diem')
@@ -32,13 +26,6 @@ export function parseKeHoachSheet(
     const trongSo = parseNumber(get(ws, r, headers, 'Trong_So_Phan_Tram'))
     if (!maDauDiem && !clo) continue
     if (!['CC', 'GK', 'CK'].includes(nhomRaw)) {
-      issues.push({
-        level: 'error',
-        sheet: 'KE_HOACH_DANH_GIA',
-        row: r,
-        column: 'Nhom',
-        message: `Nhóm "${nhomRaw}" không hợp lệ (chỉ nhận CC, GK, CK).`
-      })
       continue
     }
     keHoachDanhGia.push({

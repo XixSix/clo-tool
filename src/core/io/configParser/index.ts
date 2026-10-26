@@ -8,8 +8,8 @@
  * Orchestrator chỉ mở workbook, gọi tuần tự từng parser và ghép kết quả.
  */
 
-import type { ConfigParseResult, CourseConfig, ValidationIssue } from '../../types'
-import { readWorkbook } from '../excelUtils'
+import type { ConfigParseResult, CourseConfig } from '../../types'
+import { readWorkbook } from '../../utils/excel'
 import { parseHocPhanSheet } from './hocPhanParser'
 import { parseCloListSheet } from './cloListParser'
 import { parseKeHoachSheet } from './keHoachParser'
@@ -19,24 +19,23 @@ import { parseDiemDanhSheet } from './diemDanhParser'
 import { parseQuyTacSheet } from './quyTacParser'
 
 export * from './helpers'
+export * from './errors'
 
 export async function parseCourseConfig(filePath: string): Promise<ConfigParseResult> {
   const wb = await readWorkbook(filePath)
-  const issues: ValidationIssue[] = []
-
   const config: CourseConfig = {
-    courseInfo: parseHocPhanSheet(wb, issues),
-    cloList: parseCloListSheet(wb, issues),
-    keHoachDanhGia: parseKeHoachSheet(wb, issues),
-    cauHoi: parseCauHoiSheet(wb, issues),
-    maTranPlo: parseMaTranPloSheet(wb, issues),
-    diemDanh: parseDiemDanhSheet(wb, issues),
-    quyTac: parseQuyTacSheet(wb, issues)
+    courseInfo: parseHocPhanSheet(wb),
+    cloList: parseCloListSheet(wb),
+    keHoachDanhGia: parseKeHoachSheet(wb),
+    cauHoi: parseCauHoiSheet(wb),
+    maTranPlo: parseMaTranPloSheet(wb),
+    diemDanh: parseDiemDanhSheet(wb),
+    quyTac: parseQuyTacSheet(wb)
   }
 
   return {
     config,
-    issues,
-    hasErrors: issues.some((i) => i.level === 'error')
+    issues: [],
+    hasErrors: false
   }
 }

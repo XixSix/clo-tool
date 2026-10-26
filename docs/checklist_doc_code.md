@@ -21,20 +21,21 @@ IPC: config:parse → raw:parse → pipeline:run (CHẶN CỨNG khi điểm thô
 ## Pha 0 — Bản đồ tổng
 
 - [ ] `docs/ke_hoach_dac_ta_clo_plo.md` — mục VI (dòng chảy) + **mục VII: Quyết định #1–#12** (mọi con số/liệu quyết có nguồn ở đây)
-- [ ] `src/core/index.ts` — facade, mọi public API của `@core`
+- [X] `src/core/index.ts` — facade, mọi public API của `@core`
 
 ## Pha 1 — Types (khâu giao kèo giữa các module)
 
-- [ ] `src/core/types/course.ts` — CourseConfig, QuestionColumn (maDe/loai tuỳ chọn), BusinessRules, EvaluationPlanItem
-- [ ] `src/core/types/student.ts` — RawStudentRow (maSv dạng văn bản giữ số 0 đầu, maDe?, diemCacCot = number | 'VT' | null)
-- [ ] `src/core/types/validation.ts` — ValidationIssue, ParseResult<T>, ConfigParseResult, RawGradesFile
+- [X] `src/core/types/course.ts` — CourseConfig, QuestionColumn (maDe/loai tuỳ chọn), BusinessRules, EvaluationPlanItem
+- [X] `src/core/types/student.ts` — RawStudentRow (maSv dạng văn bản giữ số 0 đầu, maDe?, diemCacCot = number | 'VT' | null)
+- [ ] `src/core/types/validation.ts` — ValidationIssue, ParseResult<T></t>, ConfigParseResult, RawGradesFile
 - [ ] `src/core/types/result.ts` — CellScoreDetail, ProcessedStudentResult (shape kết quả này quyết định mọi thứ phía dưới)
 - [ ] `src/core/types/psychometrics.ts` — ExamPsychometrics / ItemPsychometrics
 
 ## Pha 2 — Tiện ích Excel (nền cho cả hai bước parse)
 
-- [ ] `src/core/io/excelUtils.ts` — **⚠️ có lỗi đã ghi nhận trong `note.txt`: `parseNumber` nuốt im lặng cả ô trống lẫn gõ sai ("6a") → đều trả null → `??` về mặc định không một cảnh báo**
-- [ ] `src/core/io/headerMatcher.ts` — dò tiêu đề theo TÊN cột, gợi ý tên gần giống khi lệch
+- [X] `src/core/utils/excel/cellValue.ts` — **⚠️ có lỗi đã ghi nhận trong `note.txt`: `parseNumber` nuốt im lặng cả ô trống lẫn gõ sai ("6a") → đều trả null → `??` về mặc định không một cảnh báo**
+- [X] `src/core/utils/excel/workbook.ts` — mở/ghi workbook, dò sheet theo tên, dò hàng tiêu đề
+- [X] `src/core/utils/excel/headerMatcher.ts` — dò tiêu đề theo TÊN cột, gợi ý tên gần giống khi lệch
 
 ## Pha 3 — Parse Config (`io/configParser/` — mỗi sheet một file, đồng bộ với validator)
 
@@ -89,20 +90,20 @@ IPC: config:parse → raw:parse → pipeline:run (CHẶN CỨNG khi điểm thô
 
 ## Anchor xác minh (dùng để soi bất kỳ stage nào)
 
-| Anchor | Đối chiếu |
-|---|---|
-| `tests/goldenQd450.test.ts` (T1–T12) | số đã tính tay theo QĐ450; ví dụ Hùng CLO3 = 8,7 (không phải 8,3 — QĐ #8) |
-| `tests/validator.test.ts`, `tests/io.test.ts` | thông báo lỗi cố định từng validator |
-| `tests/multiDe.test.ts` | bẫy bug lọc maDe cấp ô điểm (SV làm 1 trong 2 đề) |
-| `npm run demo` | SV0 = {9.6, 7.3, 7.6, 7.3, 7.1} |
+| Anchor                                            | Đối chiếu                                                                          |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `tests/goldenQd450.test.ts` (T1–T12)           | số đã tính tay theo QĐ450; ví dụ Hùng CLO3 = 8,7 (không phải 8,3 — QĐ #8) |
+| `tests/validator.test.ts`, `tests/io.test.ts` | thông báo lỗi cố định từng validator                                           |
+| `tests/multiDe.test.ts`                         | bẫy bug lọc maDe cấp ô điểm (SV làm 1 trong 2 đề)                            |
+| `npm run demo`                                  | SV0 = {9.6, 7.3, 7.6, 7.3, 7.1}                                                       |
 
 ## Điểm dễ nhầm đã chốt (tra nhanh)
 
-| # | 선 | Vị trí |
-|---|---|---|
-| QĐ #9 | câu trống = 0 điểm câu, giữ trọng số trong mẫu số mọi cấp | cellScoreCalculator |
-| QĐ #10 | lọc câu theo maDe của SV ở cấp ô (≠ ALL sẽ chỉ tính đề đó) | cellScoreCalculator + psychometrics |
-| QĐ #11 | điểm thô còn error → pipeline không tính | main/ipc.ts |
-| QĐ #12 | mọi cặp đuôi đầu-CLO bắt buộc khai CAU_HOI (cột trực tiếp chỉ fallback) | crossSheetValidator + cellScoreCalculator |
-| EPSILON | chỉ còn dùng cho "tổng đề = 10" (vì diemToiDa cho phép lẻ); tổng trọng số 100% so cứng vì nguyên | validator/helpers + crossSheet |
-| parseNumber | nuốt im lặng gõ sai — chờ chốt (note.txt) | io/excelUtils.ts |
+| #           | 선                                                                                                              | Vị trí                                  |
+| ----------- | --------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| QĐ #9      | câu trống = 0 điểm câu, giữ trọng số trong mẫu số mọi cấp                                           | cellScoreCalculator                       |
+| QĐ #10     | lọc câu theo maDe của SV ở cấp ô (≠ ALL sẽ chỉ tính đề đó)                                        | cellScoreCalculator + psychometrics       |
+| QĐ #11     | điểm thô còn error → pipeline không tính                                                                 | main/ipc.ts                               |
+| QĐ #12     | mọi cặp đuôi đầu-CLO bắt buộc khai CAU_HOI (cột trực tiếp chỉ fallback)                             | crossSheetValidator + cellScoreCalculator |
+| EPSILON     | chỉ còn dùng cho "tổng đề = 10" (vì diemToiDa cho phép lẻ); tổng trọng số 100% so cứng vì nguyên | validator/helpers + crossSheet            |
+| parseNumber | nuốt im lặng gõ sai — chờ chốt (note.txt)                                                                 | utils/excel/cellValue.ts                  |

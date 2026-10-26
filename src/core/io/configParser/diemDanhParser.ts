@@ -4,18 +4,17 @@
  */
 
 import type ExcelJS from 'exceljs'
-import type { AttendanceRule, ValidationIssue } from '../../types'
-import { findSheet, parseNumber } from '../excelUtils'
+import type { AttendanceRule } from '../../types'
+import { findSheet, parseNumber } from '../../utils/excel'
 import { CONFIG_SHEET_COLUMNS, get, readTable } from './helpers'
 
 export function parseDiemDanhSheet(
   wb: ExcelJS.Workbook,
-  issues: ValidationIssue[]
 ): AttendanceRule[] | undefined {
   const ws = findSheet(wb, 'DIEM_DANH')
   if (!ws) return undefined
 
-  const { headers, rows } = readTable(ws, CONFIG_SHEET_COLUMNS.DIEM_DANH, 'DIEM_DANH', issues)
+  const { headers, rows } = readTable(ws, CONFIG_SHEET_COLUMNS.DIEM_DANH, 'DIEM_DANH')
   const parsed: AttendanceRule[] = []
   for (const r of rows) {
     const kyHieu = get(ws, r, headers, 'Ky_Hieu')

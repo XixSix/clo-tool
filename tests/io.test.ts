@@ -70,13 +70,7 @@ describe('parseCourseConfig', () => {
     expect(parsed.hasErrors).toBe(false)
     const config = parsed.config!
     expect(config.courseInfo.maHp).toBe('KTLT101')
-    expect(config.cloList.map((c) => c.maClo)).toEqual([
-      'CLO1',
-      'CLO2',
-      'CLO3',
-      'CLO4',
-      'CLO5'
-    ])
+    expect(config.cloList.map((c) => c.maClo)).toEqual(['CLO1', 'CLO2', 'CLO3', 'CLO4', 'CLO5'])
     expect(config.keHoachDanhGia).toHaveLength(11)
     expect(config.cauHoi).toHaveLength(50)
     expect(config.maTranPlo).toHaveLength(5)
@@ -91,9 +85,7 @@ describe('parseCourseConfig', () => {
     const broken = join(dir, 'broken.xlsx')
     await wb.xlsx.writeFile(broken)
 
-    const parsed = await parseCourseConfig(broken)
-    expect(parsed.hasErrors).toBe(true)
-    expect(parsed.issues.some((i) => i.message.includes('CLO_LIST'))).toBe(true)
+    await expect(parseCourseConfig(broken)).rejects.toThrow('Thiếu cột')
   })
 
   it('đọc đúng QUY_TAC do người dùng đổi giá trị', async () => {

@@ -3,17 +3,18 @@
  */
 
 import type ExcelJS from 'exceljs'
-import type { PLOMapping, ValidationIssue } from '../../types'
-import { findSheet } from '../excelUtils'
+import type { PLOMapping } from '../../types'
+import { findSheet } from '../../utils/excel'
 import { CONFIG_SHEET_COLUMNS, get, readTable } from './helpers'
+import { ConfigParseError } from './errors'
 
-export function parseMaTranPloSheet(wb: ExcelJS.Workbook, issues: ValidationIssue[]): PLOMapping[] {
+export function parseMaTranPloSheet(wb: ExcelJS.Workbook): PLOMapping[] {
   const maTranPlo: PLOMapping[] = []
 
   const ws = findSheet(wb, 'MA_TRAN_PLO')
-  if (!ws) return maTranPlo
+  if (!ws) throw new ConfigParseError('Thiếu sheet MA_TRAN_PLO trong file Config.')
 
-  const { headers, rows } = readTable(ws, CONFIG_SHEET_COLUMNS.MA_TRAN_PLO, 'MA_TRAN_PLO', issues)
+  const { headers, rows } = readTable(ws, CONFIG_SHEET_COLUMNS.MA_TRAN_PLO, 'MA_TRAN_PLO')
   for (const r of rows) {
     const plo = get(ws, r, headers, 'PLO')
     const clo = get(ws, r, headers, 'CLO')

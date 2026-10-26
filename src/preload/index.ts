@@ -6,8 +6,7 @@ const api: CloApi = {
   pickFile: (kind) => ipcRenderer.invoke('dialog:pick-file', kind),
   pickDirectory: () => ipcRenderer.invoke('dialog:pick-directory'),
   parseConfig: (configPath) => ipcRenderer.invoke('config:parse', configPath),
-  parseRawGrades: (configPath, rawPath) =>
-    ipcRenderer.invoke('raw:parse', configPath, rawPath),
+  parseRawGrades: (configPath, rawPath) => ipcRenderer.invoke('raw:parse', configPath, rawPath),
   runPipeline: (configPath, rawPath, outputDir) =>
     ipcRenderer.invoke('pipeline:run', configPath, rawPath, outputDir),
   createSamples: (outputDir) => ipcRenderer.invoke('samples:create', outputDir),
