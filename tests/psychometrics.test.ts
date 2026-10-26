@@ -5,7 +5,7 @@ import {
   calculateCronbachAlphaFromVariances,
   calculateExamPsychometrics,
   sampleVariance
-} from '@core/psychometrics'
+} from '@core/index'
 import { roundHalfUp } from '@core/rules'
 import { GOLDEN_T4 } from './fixtures/goldenQd450Data'
 import type { QuestionColumn, RawStudentRow } from '@core/types'

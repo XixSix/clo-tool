@@ -16,14 +16,14 @@ import {
   classifyDiscrimination,
   classifyReliability,
   roundHalfUp
-} from './rules'
+} from '../rules'
 import type {
   CourseConfig,
   ExamPsychometrics,
   ItemPsychometrics,
   QuestionColumn,
   RawStudentRow
-} from './types'
+} from '../types'
 
 export interface QuestionAggregated {
   cau: string

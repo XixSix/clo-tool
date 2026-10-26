@@ -1,8 +1,8 @@
 /**
- * Core Engine Điều phối Tính toán Điểm CLO, TBC CLO, Điểm Học phần và PLO
+ * Orchestrator Điều phối Tính toán Điểm CLO, TBC CLO, Điểm Học phần và PLO
  * Quy chuẩn: Đại học Thành Đông (QĐ 450/QĐ-ĐHTĐ ngày 07/8/2024)
  *
- * File này đóng vai trò orchestrator, tập hợp các sub-calculators từ ./calculator:
+ * File này đóng vai trò orchestrator, tập hợp các sub-calculators cùng thư mục:
  * - cellScoreCalculator: Tính điểm ô s(j,k)
  * - cloScoreCalculator: Tính CLO cả học phần, quá trình, cuối kỳ, TBC CLO, điểm nhóm
  * - courseScoreCalculator: Tính điểm học phần (QD450 & RAW_POINTS), PLO
@@ -10,11 +10,9 @@
  * - classSummaryCalculator: Thống kê tổng hợp toàn lớp
  */
 
-import { calculateClassSummary, evaluateStudent } from './calculator'
-import type { CourseConfig, EvaluationResult, ProcessedStudentResult, RawStudentRow } from './types'
-
-// Re-export tất cả sub-calculators để các module khác hoặc test có thể dùng trực tiếp
-export * from './calculator'
+import { calculateClassSummary } from './classSummaryCalculator'
+import { evaluateStudent } from './studentCalculator'
+import type { CourseConfig, EvaluationResult, ProcessedStudentResult, RawStudentRow } from '../types'
 
 /**
  * Tính toán toàn bộ điểm số học phần, CLO, TBC CLO và PLO cho danh sách sinh viên

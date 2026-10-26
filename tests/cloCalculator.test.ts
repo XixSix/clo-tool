@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calculateEvaluation } from '@core/cloCalculator'
+import { calculateEvaluation } from '@core/index'
 import { GOLDEN_HUNG, HUNG_COURSE_CONFIG, HUNG_STUDENT_ROW } from './fixtures/goldenQd450Data'
 import type { CourseConfig, RawStudentRow } from '@core/types'
 

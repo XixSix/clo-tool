@@ -4,7 +4,7 @@
  */
 
 import Decimal from 'decimal.js'
-import { numberToWordsVi } from '../numberToWordsVi'
+import { numberToWordsVi } from '../utils/numberToWordsVi'
 import { roundStep } from '../rules'
 import type {
   AssessmentGroup,

@@ -15,8 +15,8 @@ import type {
   CourseConfig,
   RawGradesFile,
   ValidationIssue
-} from './types'
-import { roundHalfUp } from './rules'
+} from '../types'
+import { roundHalfUp } from '../rules'
 
 export interface AttendanceComputeResult {
   scores: AttendanceScore[]

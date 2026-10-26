@@ -11,8 +11,8 @@
  */
 
 import ExcelJS from 'exceljs'
-import { numberToWordsVi } from '../numberToWordsVi'
-import { computeAttendanceScores } from '../attendance'
+import { numberToWordsVi } from '../utils/numberToWordsVi'
+import { computeAttendanceScores } from '../calculator/attendanceCalculator'
 import { roundHalfUp } from '../rules'
 import type {
   CourseConfig,

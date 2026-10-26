@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { numberToWordsVi } from '@core/numberToWordsVi'
+import { numberToWordsVi } from '@core/index'
 
 describe('Number to Words Vietnamese Module', () => {
   it('phải giữ chữ phẩy không khi điểm tròn thang 10 (Chuẩn học vụ ĐH)', () => {
