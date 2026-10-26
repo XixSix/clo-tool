@@ -34,16 +34,21 @@ describe('validateHocPhan - sheet HOC_PHAN', () => {
     expect(messages).toContain('Thiếu Tên học phần (Ten_HP).')
   })
 
-  it('soTinChi <= 0 và Loai_HP lạ -> lỗi', () => {
+  it('soTinChi <= 0 / thập phân và Loai_HP lạ -> lỗi', () => {
     const config = mock()
     config.courseInfo.soTinChi = 0
     // @ts-expect-error -- người dùng có thể nhập giá trị lạ từ Excel
     config.courseInfo.loaiHp = 'truc_tuyen'
     const messages = errors(validateConfig(config)).map((i) => i.message)
-    expect(messages).toContain('Số tín chỉ phải lớn hơn 0 (hiện tại: 0).')
+    expect(messages).toContain('Số tín chỉ phải là số nguyên lớn hơn 0 (hiện tại: 0).')
     expect(messages).toContain(
       'Loại học phần "truc_tuyen" không hợp lệ (chỉ nhận "thuong" hoặc "thuc_hanh").'
     )
+
+    const config2 = mock()
+    config2.courseInfo.soTinChi = 2.5
+    const messages2 = errors(validateConfig(config2)).map((i) => i.message)
+    expect(messages2).toContain('Số tín chỉ phải là số nguyên lớn hơn 0 (hiện tại: 2.5).')
   })
 
   it('Hinh_Thuc_Thi trống -> chỉ cảnh báo', () => {
@@ -117,8 +122,12 @@ describe('validateCloList - sheet CLO_LIST', () => {
     expect(errors(issues)).toHaveLength(0)
     const wms = warnings(issues).map((w) => w.message)
     expect(wms).toContain('CLO "CLO1" thiếu bậc năng lực (Bac_Nang_Luc).')
-    expect(wms).toContain('Bậc năng lực "3-6" của CLO "CLO2" sai định dạng — phải dạng bậc/thang (ví dụ 3/6).')
-    expect(wms).toContain('Bậc năng lực "7/6" của CLO "CLO3" không hợp lệ — bậc phải là số nguyên từ 1 đến thang (6).')
+    expect(wms).toContain(
+      'Bậc năng lực "3-6" của CLO "CLO2" sai định dạng — phải dạng bậc/thang (ví dụ 3/6).'
+    )
+    expect(wms).toContain(
+      'Bậc năng lực "7/6" của CLO "CLO3" không hợp lệ — bậc phải là số nguyên từ 1 đến thang (6).'
+    )
   })
 })
 
@@ -136,6 +145,26 @@ describe('validateKeHoach - sheet KE_HOACH_DANH_GIA', () => {
     expect(messages).toContain(
       `Trọng số của đầu điểm "${row1.maDauDiem}" (CLO "${row1.clo}") phải là số nguyên % (nhận ${row1.trongSoPhanTram}).`
     )
+  })
+
+  it('trọng số thập phân nhưng tổng đúng 100 -> CHỈ báo lỗi nguyên, không báo tổng ≠ 100%', () => {
+    const config = mock()
+    config.keHoachDanhGia[0].trongSoPhanTram = 20.5
+    // Bù để tổng vẫn = 100 (20.5 + đổi dòng khác 5 -> 4.5)
+    const other = config.keHoachDanhGia.find((p) => p.trongSoPhanTram === 5)!
+    other.trongSoPhanTram = 4.5
+    const messages = errors(validateConfig(config)).map((i) => i.message)
+    expect(messages.some((m) => m.includes('phải bằng 100%'))).toBe(false)
+    expect(messages).toContain(
+      `Trọng số của đầu điểm "${config.keHoachDanhGia[0].maDauDiem}" (CLO "${config.keHoachDanhGia[0].clo}") phải là số nguyên % (nhận 20.5).`
+    )
+  })
+
+  it('trọng số nguyên nhưng tổng lệch -> báo tổng ≠ 100%', () => {
+    const config = mock()
+    config.keHoachDanhGia[0].trongSoPhanTram = 19
+    const messages = errors(validateConfig(config)).map((i) => i.message)
+    expect(messages).toContain('Tổng trọng số kế hoạch đánh giá = 99%, phải bằng 100%.')
   })
 
   it('trọng số <= 0 -> lỗi', () => {

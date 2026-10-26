@@ -9,24 +9,14 @@ const VALID_GROUPS = new Set(['CC', 'GK', 'CK'])
 
 export function validateKeHoach(config: CourseConfig): ValidationIssue[] {
   const issues: ValidationIssue[] = []
-
-  // 1. Tổng trọng số kế hoạch đánh giá.
-  // Trọng số bắt buộc là số nguyên (check bên dưới) nên tổng chính xác tuyệt đối
-  // trong float — so sánh bằng trực tiếp, không cần biên độ EPSILON
-  // (khác với tổng đề 10 ở crossSheet: điểm tối đa câu cho phép thập phân
-  //  không bội 0,25 nên tổng float cần biên độ).
   const totalWeight = config.keHoachDanhGia.reduce((sum, p) => sum + p.trongSoPhanTram, 0)
-  if (totalWeight !== 100) {
-    issues.push({
-      level: 'error',
-      sheet: 'KE_HOACH_DANH_GIA',
-      column: 'Trong_So_Phan_Tram',
-      message: `Tổng trọng số kế hoạch đánh giá = ${roundHalfUp(totalWeight, 2)}%, phải bằng 100%.`
-    })
-  }
+  // Cờ: có trọng số không nguyên → lỗi "tổng ≠ 100%" trở thành nhiễu
+  // (lỗi gốc đã nằm ở từng dòng), nên chỉ so tổng khi mọi trọng số đều nguyên
+  let hasIntegerViolation = false
 
   const seenPairs = new Set<string>()
   for (const p of config.keHoachDanhGia) {
+    // Validate nhóm
     if (!VALID_GROUPS.has(p.nhom)) {
       issues.push({
         level: 'error',
@@ -36,6 +26,7 @@ export function validateKeHoach(config: CourseConfig): ValidationIssue[] {
       })
     }
 
+    // Validate mã đầu điểm
     if (!p.maDauDiem || p.maDauDiem.trim() === '') {
       issues.push({
         level: 'error',
@@ -45,6 +36,7 @@ export function validateKeHoach(config: CourseConfig): ValidationIssue[] {
       })
     }
 
+    // Validate trọng số
     if (!Number.isInteger(p.trongSoPhanTram)) {
       issues.push({
         level: 'error',
@@ -52,6 +44,7 @@ export function validateKeHoach(config: CourseConfig): ValidationIssue[] {
         column: 'Trong_So_Phan_Tram',
         message: `Trọng số của đầu điểm "${p.maDauDiem}" (CLO "${p.clo}") phải là số nguyên % (nhận ${p.trongSoPhanTram}).`
       })
+      hasIntegerViolation = true
     } else if (p.trongSoPhanTram <= 0) {
       issues.push({
         level: 'error',
@@ -90,6 +83,20 @@ export function validateKeHoach(config: CourseConfig): ValidationIssue[] {
       })
     }
     seenPairs.add(pairKey)
+  }
+
+  // Validate tổng trọng số — SAU vòng for: số nguyên đã được kiểm tra ở từng dòng,
+  // nếu có lỗi gốc thì báo tổng chỉ gây nhiễu. Trọng số nguyên + số nguyên trong
+  // float cộng chính xác tuyệt đối → so sánh bằng trực tiếp, không cần biên độ EPSILON
+  // (khác với tổng đề 10 ở crossSheet: điểm tối đa câu cho phép thập phân
+  // không bội 0,25 nên tổng float cần biên độ).
+  if (!hasIntegerViolation && totalWeight !== 100) {
+    issues.push({
+      level: 'error',
+      sheet: 'KE_HOACH_DANH_GIA',
+      column: 'Trong_So_Phan_Tram',
+      message: `Tổng trọng số kế hoạch đánh giá = ${roundHalfUp(totalWeight, 2)}%, phải bằng 100%.`
+    })
   }
 
   // CLO chỉ đo bằng chuyên cần/thái độ (Quyết định #7: không chặn)
