@@ -141,8 +141,7 @@ export function buildMockConfig(): CourseConfig {
         maDauDiem: 'CC',
         clo: 'CLO1',
         trongSoPhanTram: 20,
-        hinhThuc: 'Điểm danh',
-        thoiDiem: 'Suốt kỳ'
+        hinhThuc: 'Điểm danh'
       },
       {
         nhom: 'GK',
@@ -150,8 +149,7 @@ export function buildMockConfig(): CourseConfig {
         maDauDiem: 'GKT',
         clo: 'CLO2',
         trongSoPhanTram: 6,
-        hinhThuc: 'Trắc nghiệm 40 câu (câu 1–12)',
-        thoiDiem: 'Tuần 6'
+        hinhThuc: 'Trắc nghiệm 40 câu (câu 1–12)'
       },
       {
         nhom: 'GK',
@@ -159,8 +157,7 @@ export function buildMockConfig(): CourseConfig {
         maDauDiem: 'GKT',
         clo: 'CLO3',
         trongSoPhanTram: 5,
-        hinhThuc: 'Trắc nghiệm 40 câu (câu 13–28)',
-        thoiDiem: 'Tuần 6'
+        hinhThuc: 'Trắc nghiệm 40 câu (câu 13–28)'
       },
       {
         nhom: 'GK',
@@ -168,8 +165,7 @@ export function buildMockConfig(): CourseConfig {
         maDauDiem: 'GKT',
         clo: 'CLO4',
         trongSoPhanTram: 4,
-        hinhThuc: 'Trắc nghiệm 40 câu (câu 29–40)',
-        thoiDiem: 'Tuần 6'
+        hinhThuc: 'Trắc nghiệm 40 câu (câu 29–40)'
       },
       {
         nhom: 'GK',
@@ -177,8 +173,7 @@ export function buildMockConfig(): CourseConfig {
         maDauDiem: 'GTX',
         clo: 'CLO2',
         trongSoPhanTram: 4,
-        hinhThuc: 'Tự luận (câu 1)',
-        thoiDiem: 'Tuần 6'
+        hinhThuc: 'Tự luận (câu 1)'
       },
       {
         nhom: 'GK',
@@ -186,8 +181,7 @@ export function buildMockConfig(): CourseConfig {
         maDauDiem: 'GTX',
         clo: 'CLO3',
         trongSoPhanTram: 5,
-        hinhThuc: 'Tự luận (câu 2)',
-        thoiDiem: 'Tuần 6'
+        hinhThuc: 'Tự luận (câu 2)'
       },
       {
         nhom: 'GK',
@@ -195,8 +189,7 @@ export function buildMockConfig(): CourseConfig {
         maDauDiem: 'GTX',
         clo: 'CLO4',
         trongSoPhanTram: 6,
-        hinhThuc: 'Tự luận (câu 3+4 cùng CLO)',
-        thoiDiem: 'Tuần 6'
+        hinhThuc: 'Tự luận (câu 3+4 cùng CLO)'
       },
       {
         nhom: 'CK',
@@ -204,8 +197,7 @@ export function buildMockConfig(): CourseConfig {
         maDauDiem: 'CK',
         clo: 'CLO2',
         trongSoPhanTram: 10,
-        hinhThuc: 'Tự luận (câu 1)',
-        thoiDiem: 'Cuối kỳ'
+        hinhThuc: 'Tự luận (câu 1)'
       },
       {
         nhom: 'CK',
@@ -213,8 +205,7 @@ export function buildMockConfig(): CourseConfig {
         maDauDiem: 'CK',
         clo: 'CLO3',
         trongSoPhanTram: 10,
-        hinhThuc: 'Tự luận (câu 2+3 cùng CLO)',
-        thoiDiem: 'Cuối kỳ'
+        hinhThuc: 'Tự luận (câu 2+3 cùng CLO)'
       },
       {
         nhom: 'CK',
@@ -222,8 +213,7 @@ export function buildMockConfig(): CourseConfig {
         maDauDiem: 'CK',
         clo: 'CLO4',
         trongSoPhanTram: 20,
-        hinhThuc: 'Tự luận (câu 4)',
-        thoiDiem: 'Cuối kỳ'
+        hinhThuc: 'Tự luận (câu 4)'
       },
       {
         nhom: 'CK',
@@ -231,8 +221,7 @@ export function buildMockConfig(): CourseConfig {
         maDauDiem: 'CK',
         clo: 'CLO5',
         trongSoPhanTram: 10,
-        hinhThuc: 'Tự luận (câu 5)',
-        thoiDiem: 'Cuối kỳ'
+        hinhThuc: 'Tự luận (câu 5)'
       }
     ],
     cauHoi: [

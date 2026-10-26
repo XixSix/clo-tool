@@ -1,8 +1,6 @@
 /**
  * Data Models: CẤU HÌNH HỌC PHẦN (COURSE CONFIG INPUT)
  * Quy chuẩn: Đại học Thành Đông (QĐ 450/QĐ-ĐHTĐ ngày 07/8/2024)
- *
- * Lưu ý: File này độc lập 100%, không import bất kỳ package nào từ Electron hoặc React.
  */
 
 export interface CourseInfo {
@@ -29,7 +27,6 @@ export interface EvaluationPlanItem {
   clo: string
   trongSoPhanTram: number // e.g. 10 (tổng toàn kế hoạch phải = 100%)
   hinhThuc?: string
-  thoiDiem?: string
 }
 
 export interface QuestionColumn {

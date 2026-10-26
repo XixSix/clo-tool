@@ -38,8 +38,7 @@ export const CONFIG_SHEET_COLUMNS: Record<string, string[]> = {
     'Ma_Dau_Diem',
     'CLO',
     'Trong_So_Phan_Tram',
-    'Hinh_Thuc',
-    'Thoi_Diem'
+    'Hinh_Thuc'
   ],
   CAU_HOI: ['Ma_Cot_Diem', 'Ma_Dau_Diem', 'Cau', 'CLO', 'Diem_Toi_Da', 'Ma_De', 'Loai'],
   MA_TRAN_PLO: ['PLO', 'PI', 'CLO'],
@@ -254,8 +253,7 @@ export async function parseCourseConfig(filePath: string): Promise<ConfigParseRe
         maDauDiem,
         clo,
         trongSoPhanTram: trongSo ?? 0,
-        hinhThuc: get(wsKeHoach, r, headers, 'Hinh_Thuc') || undefined,
-        thoiDiem: get(wsKeHoach, r, headers, 'Thoi_Diem') || undefined
+        hinhThuc: get(wsKeHoach, r, headers, 'Hinh_Thuc') || undefined
       })
     }
   }

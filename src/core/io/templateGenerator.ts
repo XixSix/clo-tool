@@ -77,8 +77,7 @@ export function buildConfigWorkbook(config: CourseConfig): ExcelJS.Workbook {
     { header: 'Mã đầu điểm', key: 'Ma_Dau_Diem', width: 16 },
     { header: 'CLO', key: 'CLO', width: 14 },
     { header: 'Trọng số %', key: 'Trong_So_Phan_Tram', width: 20 },
-    { header: 'Hình thức', key: 'Hinh_Thuc', width: 18 },
-    { header: 'Thời điểm', key: 'Thoi_Diem', width: 16 }
+    { header: 'Hình thức', key: 'Hinh_Thuc', width: 18 }
   ])
   config.keHoachDanhGia.forEach((p) =>
     wsKeHoach.addRow({
@@ -87,8 +86,7 @@ export function buildConfigWorkbook(config: CourseConfig): ExcelJS.Workbook {
       Ma_Dau_Diem: p.maDauDiem,
       CLO: p.clo,
       Trong_So_Phan_Tram: p.trongSoPhanTram,
-      Hinh_Thuc: p.hinhThuc ?? '',
-      Thoi_Diem: p.thoiDiem ?? ''
+      Hinh_Thuc: p.hinhThuc ?? ''
     })
   )
 
