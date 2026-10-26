@@ -50,7 +50,7 @@ export function calculateCellScores(
           itemRatios: [0]
         }
       } else if (rawVal === null || rawVal === undefined) {
-        // Quyết định #8: thiếu điểm coi như 0 nhưng vẫn giữ trọng số trong mẫu số
+        // Quyết định #9: thiếu điểm coi như 0 nhưng vẫn giữ trọng số trong mẫu số
         // (nhất quán với mức điểm nhóm; vẫn gắn cờ + cảnh báo để QLCL soát)
         hasMissingData = true
         warnings.push(`Chưa nhập điểm cho đầu điểm ${p.maDauDiem} (tính 0)`)
@@ -97,7 +97,10 @@ export function calculateCellScores(
       if (rawScore === 'VT') {
         cellHasVT = true
       } else if (rawScore === null || rawScore === undefined) {
+        // Quyết định #9 (cấp câu): câu trống = 0 điểm câu, vẫn góp tỷ lệ 0 vào
+        // trung bình của ô — không hủy cả ô; vẫn gắn cờ + cảnh báo cho QLCL
         cellHasMissing = true
+        if (q.diemToiDa > 0) ratios.push(0)
       } else {
         const scoreNum = Number(rawScore)
         totalEarnedDec = totalEarnedDec.add(scoreNum)
@@ -120,19 +123,35 @@ export function calculateCellScores(
         itemRatios: ratios
       }
     } else if (cellHasMissing) {
-      // Quyết định #8: thiếu điểm (một số câu trống) coi như 0 cho cả ô,
-      // giữ nguyên trọng số trong mẫu số khi tính CLO/điểm nhóm
+      // Quyết định #9 (cấp câu): không hủy cả ô — các câu trống đã góp tỷ lệ 0
+      // vào trung bình ở trên; sẽ tính như bình thường bên dưới, chỉ thêm cờ +
+      // cảnh báo để QLCL soát dữ liệu thiếu
       hasMissingData = true
-      warnings.push(`Thiếu dữ liệu ở một số câu của ${p.maDauDiem} (${p.clo}) — tính 0`)
+      warnings.push(`Thiếu dữ liệu ở một số câu của ${p.maDauDiem} (${p.clo}) — câu trống tính 0`)
+      let rawCalculatedScore = 0
+      if (rules.clo_bo_phan === 'mean_of_ratios') {
+        // QĐ450 Điều 9.3: s = (1/n) * sum(d_i / t_i) * 10
+        if (ratios.length > 0) {
+          const sumRatios = ratios.reduce((acc, r) => acc.add(r), new Decimal(0))
+          rawCalculatedScore = sumRatios.div(ratios.length).mul(10).toNumber()
+        }
+      } else {
+        // ratio_of_sums: s = (sum d / sum t) * 10
+        if (totalMaxDec.gt(0)) {
+          rawCalculatedScore = totalEarnedDec.div(totalMaxDec).mul(10).toNumber()
+        }
+      }
+
+      const scoreRounded = roundStep(rawCalculatedScore, mode, 1)
       cellScores[cellKey] = {
         maDauDiem: p.maDauDiem,
         maClo: p.clo,
-        score: 0,
-        rawScore: 0,
+        score: scoreRounded,
+        rawScore: rawCalculatedScore,
         columnCodes: colCodes,
-        totalEarned: 0,
+        totalEarned: totalEarnedDec.toNumber(),
         totalMax: totalMaxDec.toNumber(),
-        itemRatios: []
+        itemRatios: ratios
       }
     } else {
       let rawCalculatedScore = 0

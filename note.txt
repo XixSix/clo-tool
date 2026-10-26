@@ -1,1 +1,2 @@
 - lỗi thiết kế: validate bắt buộc mọi đầu điểm phải có trong CAU_HOI mà calculateCellScores cho phép đầu điểm nhập trực tiếp.
+- cải thiện phần đề trắc nghiệm nếu có nhiều câu thì nên có 1 template riêng

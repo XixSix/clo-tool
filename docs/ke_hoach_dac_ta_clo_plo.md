@@ -103,7 +103,7 @@ _Trường hợp một cột đo nhiều CLO:_
 
 $$\text{CLO}_k = \frac{\sum_{j} w_{j,k}\, s_{j,k}}{\sum_{j} w_{j,k}}$$
 
-- Tổng chạy trên **các đầu điểm có đo CLO $k$**; đầu điểm thiếu dữ liệu tính 0 điểm nhưng giữ nguyên trọng số trong mẫu số **[Quyết định #9]**. CLO chỉ đo ở cuối kỳ thì mẫu số chỉ có trọng số cuối kỳ.
+- Tổng chạy trên **các đầu điểm có đo CLO $k$**; chỗ thiếu dữ liệu tính 0 nhưng giữ nguyên trọng số trong mẫu số **[Quyết định #9]**. CLO chỉ đo ở cuối kỳ thì mẫu số chỉ có trọng số cuối kỳ.
 - Khớp ví dụ Hùng (QĐ450 tr.32): $\text{CLO}_{1.1} = \frac{7{,}5\times 0{,}3 + 7{,}1\times 0{,}5}{0{,}8} = 7{,}3$.
 - Bảng ghi điểm **Quá trình** (nộp trước khi thi, theo Mẫu xls): chỉ lấy các đầu điểm thuộc nhóm `CC` và `GK`, cùng công thức.
 - Lưu ý QLCL cho phép đặt trọng số khác nhau cho CLO ở các lần đo (ví dụ 0,4 cho bài kiểm tra và 0,6 cho thi cuối kỳ khi CK đòi mức năng lực cao hơn). Việc này nằm sẵn trong `w(j,k)`.
@@ -320,7 +320,7 @@ Những chỗ văn bản chưa nói rõ đã được chọn như sau. Tất c�
 |  6  | "Bằng chữ" ở Phụ lục 3               | Đọc số thành chữ (6,7 → "Sáu phẩy bảy")                                                                                              |                                                                                                  |
 |  7  | CLO chỉ đo bằng chuyên cần           | Chỉ cảnh báo, không chặn                                                                                                             | Nên hỏi P.QLCL xem Quyết định 39/2026 có yêu cầu hình thức đánh giá khác không                   |
 |  8  | Ví dụ CLO3 = 8,3 trong Mẫu xls       | Coi là ví dụ nhầm                                                                                                                    | Không dùng làm test                                                                              |
-|  9  | Sinh viên thiếu điểm (cột trống)     | Tính 0 điểm cho ô đó, **giữ nguyên trọng số trong mẫu số** ở mọi cấp (Cbp, CLO, nhóm); vẫn cảnh báo ở CANH_BAO                                        | Nhất quán với mức điểm nhóm; kèm cờ `hasMissingData`                                             |
+|  9  | Sinh viên thiếu điểm (cột trống)     | "Thiếu ở cấp nào thành 0 ở cấp đó": câu trống trong đề nhiều câu = 0 điểm câu (góp tỷ lệ 0 vào TB của ô, ô vẫn được tính); cột trống thang 10 = 0 cả ô. **Giữ nguyên trọng số trong mẫu số** ở mọi cấp (Cbp, CLO, nhóm); vẫn cảnh báo ở CANH_BAO | Nhất quán với cách chấm "câu không trả lời = 0" của trắc nghiệm; kèm cờ `hasMissingData` |
 
 ---
 
