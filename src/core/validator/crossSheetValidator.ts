@@ -63,7 +63,19 @@ export function validateCrossSheet(config: CourseConfig): ValidationIssue[] {
     }
   }
 
-  // 4. Tổng điểm tối đa mỗi đề phải bằng 10
+  // 4. CLO chưa được ánh xạ tới PI/PLO (đối chiếu CLO_LIST với MA_TRAN_PLO)
+  const mappedClo = new Set(config.maTranPlo.map((m) => m.clo))
+  for (const clo of config.cloList) {
+    if (clo.maClo && !mappedClo.has(clo.maClo)) {
+      issues.push({
+        level: 'warning',
+        sheet: 'MA_TRAN_PLO',
+        message: `CLO "${clo.maClo}" chưa được ánh xạ tới PI/PLO nào.`
+      })
+    }
+  }
+
+  // 5. Tổng điểm tối đa mỗi đề phải bằng 10
   for (const [key, total] of Object.entries(examMaxScores(config.cauHoi))) {
     if (Math.abs(total - 10) > EPSILON) {
       const [maDauDiem, maDe] = key.split('|')
