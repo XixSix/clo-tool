@@ -1,8 +1,6 @@
 /**
  * Data Models: KẾT QUẢ TÍNH ĐIỂM (OUTPUT TRACEABILITY)
  * Quy chuẩn: Đại học Thành Đông (QĐ 450/QĐ-ĐHTĐ ngày 07/8/2024)
- *
- * Lưu ý: File này độc lập 100%, không import bất kỳ package nào từ Electron hoặc React.
  */
 
 import type { AssessmentGroup, CourseConfig } from './course'
