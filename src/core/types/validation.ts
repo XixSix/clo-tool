@@ -1,18 +1,17 @@
 /**
  * Data Models: KIỂM TRA HỢP LỆ & KẾT QUẢ ĐỌC FILE
  * Quy chuẩn: Đại học Thành Đông (QĐ 450/QĐ-ĐHTĐ ngày 07/8/2024)
- *
- * Lưu ý: File này độc lập 100%, không import bất kỳ package nào từ Electron hoặc React.
  */
 
 import type { RawStudentRow } from './student'
+import type { CourseConfig } from './course'
 
 /** Mức độ của một phát hiện khi kiểm tra dữ liệu */
 export type IssueLevel = 'error' | 'warning'
 
 /**
  * Một lỗi / cảnh báo dữ liệu.
- * Luôn cố gắng chỉ rõ vị trí: sheet + dòng + cột (theo mục V của đặc tả).
+ * Luôn cố gắng chỉ rõ vị trí: sheet + dòng + cột.
  */
 export interface ValidationIssue {
   level: IssueLevel
@@ -20,13 +19,19 @@ export interface ValidationIssue {
   row?: number
   column?: string
   message: string
-  /** Gợi ý sửa, ví dụ tên cột gần giống */
-  suggestion?: string
+  suggestion?: string // Gợi ý sửa
 }
 
 /** Kết quả đọc một file Excel */
 export interface ParseResult<T> {
   data?: T
+  issues: ValidationIssue[]
+  hasErrors: boolean
+}
+
+/** Kết quả đọc file Config học phần (CourseConfig) */
+export interface ConfigParseResult {
+  config?: CourseConfig
   issues: ValidationIssue[]
   hasErrors: boolean
 }
