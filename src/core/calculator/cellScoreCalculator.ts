@@ -32,7 +32,14 @@ export function calculateCellScores(
 
   for (const p of config.keHoachDanhGia) {
     const cellKey = `${p.maDauDiem}_${p.clo}`
-    const questions = cellQuestionsMap.get(cellKey) ?? []
+    // Lọc câu hỏi theo mã đề của SV: câu maDe 'ALL' áp dụng cho mọi SV;
+    // SV có mã đề riêng chỉ tính câu của đề đó; SV maDe 'ALL' (làm mọi đề)
+    // được tính với mọi câu. Nhất quán với cách psychometrics lọc SV theo đề.
+    const studentDe = student.maDe ?? 'ALL'
+    const questions = (cellQuestionsMap.get(cellKey) ?? []).filter((q) => {
+      const qDe = q.maDe ?? 'ALL'
+      return qDe === 'ALL' || studentDe === 'ALL' || qDe === studentDe
+    })
 
     if (questions.length === 0) {
       // Cột điểm trực tiếp (ví dụ CC hoặc TH thang 10)

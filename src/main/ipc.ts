@@ -261,6 +261,16 @@ export function registerIpcHandlers(getWindow: () => BrowserWindow | null): void
           ...applied.issues
         ]
 
+        // Chặn cứng: điểm thô còn lỗi (điểm âm/vượt cận, mã SV trùng/thiếu...) thì
+        // KHÔNG tính — tránh phát kết quả từ dữ liệu bẩn.
+        if (hasErrors(issues)) {
+          return {
+            ...empty,
+            issues: issues.map(toIssueDto),
+            error: 'File điểm thô còn lỗi. Vui lòng sửa các mục báo đỏ trước khi tính.'
+          }
+        }
+
         const result: EvaluationResult = calculateEvaluation(loaded.config, rawFile.students)
         const exams = calculateAllExamPsychometrics(loaded.config, rawFile.students)
 

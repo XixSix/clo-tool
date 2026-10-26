@@ -192,7 +192,7 @@ Làm một lần cho mỗi học phần. Gồm 7 sheet:
 **Ghi chú thiết kế:**
 
 - Chuyên cần và thái độ học tập được gắn CLO như mọi đầu điểm khác (QĐ450: CC → CLO3.1; Mẫu Excel 2026: CC → CLO2 và CLO3, thái độ → CLO4), nên nằm trong `KE_HOACH_DANH_GIA`.
-- `CAU_HOI` xử lý câu hỏi đo nhiều CLO bằng cách tách cột (mỗi cột một CLO) và hỗ trợ đề thi nhiều mã đề.
+- `CAU_HOI` xử lý câu hỏi đo nhiều CLO bằng cách tách cột (mỗi cột một CLO) và hỗ trợ đề thi nhiều mã đề. Khi một đầu điểm có nhiều đề, ô điểm của mỗi SV chỉ dùng câu của đề SV làm: câu `maDe = ALL` tính cho mọi SV, câu khai `maDe` cụ thể chỉ tính cho SV cùng đề, SV không khai mã đề (~ `ALL`) tính với mọi câu **[Quyết định #10]**.
 - "Trình độ năng lực" có dạng `bậc/thang` (QĐ450 dùng 3/6, 3/5, 4/5), không phải một số đơn.
 
 ### 2. Input 2: File điểm thô của lớp (`raw_grades.xlsx`, sheet `NHAP_LIEU`)
@@ -321,6 +321,9 @@ Những chỗ văn bản chưa nói rõ đã được chọn như sau. Tất c�
 |  7  | CLO chỉ đo bằng chuyên cần           | Chỉ cảnh báo, không chặn                                                                                                             | Nên hỏi P.QLCL xem Quyết định 39/2026 có yêu cầu hình thức đánh giá khác không                   |
 |  8  | Ví dụ CLO3 = 8,3 trong Mẫu xls       | Coi là ví dụ nhầm                                                                                                                    | Không dùng làm test                                                                              |
 |  9  | Sinh viên thiếu điểm (cột trống)     | "Thiếu ở cấp nào thành 0 ở cấp đó": câu trống trong đề nhiều câu = 0 điểm câu (góp tỷ lệ 0 vào TB của ô, ô vẫn được tính); cột trống thang 10 = 0 cả ô. **Giữ nguyên trọng số trong mẫu số** ở mọi cấp (Cbp, CLO, nhóm); vẫn cảnh báo ở CANH_BAO | Nhất quán với cách chấm "câu không trả lời = 0" của trắc nghiệm; kèm cờ `hasMissingData` |
+|  10 | Cùng một đầu điểm có nhiều mã đề     | Câu được khai `maDe` cụ thể chỉ tính cho SV cùng đề; câu `maDe = ALL` tính cho mọi SV; SV không khai mã đề (~ `ALL`) tính với mọi câu. Điểm ô $s(j,k)$ luôn bỏ câu của đề SV không làm (khác với cảnh báo "chưa nhập điểm" từ validator) | Nhất quán với psychometrics (mỗi đề chỉ thống kê SV làm đề đó); fixture `mockMultiDe` bẫy regression |
+|  11 | Điểm thô còn lỗi (mức error)         | `pipeline:run` chặn cứng — không xuất báo cáo khi có điểm âm/vượt cận, mã SV trùng/thiếu; cảnh báo (warning) không chặn | UI vẫn hiển thị danh sách lỗi ngay tại bước đọc điểm thô |
+|  12 | Mọi cặp (đầu điểm, CLO) phải khai trong `CAU_HOI` | Kể cả cột điểm trực tiếp thang 10 (CC, TD): khai như một câu hỏi `diemToiDa = 10, maDe = ALL`. Nhánh "cột điểm trực tiếp" trong `calculateCellScores` chỉ giữ làm fallback an toàn, validator ghi đè cấu hình | Chốt tạm thời; muốn cho phép cột trực tiếp thuần thì gỡ check cặp trong `crossSheetValidator` |
 
 ---
 
