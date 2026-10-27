@@ -44,8 +44,7 @@ beforeAll(async () => {
     sessions: MOCK_SESSION_LABELS.map((label) => ({ label }))
   })
 
-  const parsedConfig = await parseCourseConfig(configPath)
-  config = parsedConfig.config!
+  config = await parseCourseConfig(configPath)
   const parsedRaw = await parseRawGrades(rawPath, config)
   const applied = applyAttendance(parsedRaw.file!, config)
   rawFile = applied.file
@@ -196,7 +195,7 @@ describe('Xuất Excel', () => {
 
     const buffer = await wb.xlsx.writeBuffer()
     const reloaded = new ExcelJS.Workbook()
-    await reloaded.xlsx.load(buffer as Buffer)
+    await reloaded.xlsx.load(buffer as unknown as Buffer)
 
     const processSheet = reloaded.getWorksheet('BANG_DIEM_QUA_TRINH')!
     expect(processSheet.getCell(14, 2).text).toBe('0123456789')

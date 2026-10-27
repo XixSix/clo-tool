@@ -4,7 +4,6 @@
  */
 
 import type { RawStudentRow } from './student'
-import type { CourseConfig } from './course'
 
 /** Mức độ của một phát hiện khi kiểm tra dữ liệu */
 export type IssueLevel = 'error' | 'warning'
@@ -20,20 +19,6 @@ export interface ValidationIssue {
   column?: string
   message: string
   suggestion?: string // Gợi ý sửa
-}
-
-/** Kết quả đọc một file Excel */
-export interface ParseResult<T> {
-  data?: T
-  issues: ValidationIssue[]
-  hasErrors: boolean
-}
-
-/** Kết quả đọc file Config học phần (CourseConfig) */
-export interface ConfigParseResult {
-  config?: CourseConfig
-  issues: ValidationIssue[]
-  hasErrors: boolean
 }
 
 /** Thông tin lớp đọc từ phần đầu sheet NHAP_LIEU */

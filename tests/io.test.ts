@@ -66,9 +66,7 @@ describe('headerMatcher', () => {
 
 describe('parseCourseConfig', () => {
   it('đọc đủ 7 sheet của file Config mẫu', async () => {
-    const parsed = await parseCourseConfig(configPath)
-    expect(parsed.hasErrors).toBe(false)
-    const config = parsed.config!
+    const config = await parseCourseConfig(configPath)
     expect(config.courseInfo.maHp).toBe('KTLT101')
     expect(config.cloList.map((c) => c.maClo)).toEqual(['CLO1', 'CLO2', 'CLO3', 'CLO4', 'CLO5'])
     expect(config.keHoachDanhGia).toHaveLength(11)
@@ -99,16 +97,16 @@ describe('parseCourseConfig', () => {
     const changed = join(dir, 'config-changed.xlsx')
     await wb.xlsx.writeFile(changed)
 
-    const parsed = await parseCourseConfig(changed)
-    expect(parsed.config!.quyTac.nguong_dat_clo).toBe(5.5)
-    expect(parsed.config!.quyTac.rounding_mode).toBe('final_only')
+    const config = await parseCourseConfig(changed)
+    expect(config.quyTac.nguong_dat_clo).toBe(5.5)
+    expect(config.quyTac.rounding_mode).toBe('final_only')
   })
 })
 
 describe('parseRawGrades', () => {
   it('đọc sinh viên, giữ Mã SV dạng văn bản và nhận diện VT / ô trống', async () => {
-    const parsedConfig = await parseCourseConfig(configPath)
-    const parsed = await parseRawGrades(rawPath, parsedConfig.config!)
+    const config = await parseCourseConfig(configPath)
+    const parsed = await parseRawGrades(rawPath, config)
     expect(parsed.hasErrors).toBe(false)
     const file = parsed.file!
     expect(file.students).toHaveLength(10)
@@ -129,16 +127,16 @@ describe('parseRawGrades', () => {
     const commaFile = join(dir, 'raw-comma.xlsx')
     await wb.xlsx.writeFile(commaFile)
 
-    const parsedConfig = await parseCourseConfig(configPath)
-    const parsed = await parseRawGrades(commaFile, parsedConfig.config!)
+    const config = await parseCourseConfig(configPath)
+    const parsed = await parseRawGrades(commaFile, config)
     expect(parsed.file!.students[1].diemCacCot.CC).toBe(8.5)
   })
 })
 
 describe('validator', () => {
   it('Config mẫu không có lỗi', async () => {
-    const parsed = await parseCourseConfig(configPath)
-    const issues = validateConfig(parsed.config!)
+    const config = await parseCourseConfig(configPath)
+    const issues = validateConfig(config)
     expect(issues.filter((i) => i.level === 'error')).toHaveLength(0)
   })
 
@@ -157,20 +155,20 @@ describe('validator', () => {
   })
 
   it('phát hiện điểm vượt điểm tối đa', async () => {
-    const parsedConfig = await parseCourseConfig(configPath)
-    const parsed = await parseRawGrades(rawPath, parsedConfig.config!)
+    const config = await parseCourseConfig(configPath)
+    const parsed = await parseRawGrades(rawPath, config)
     parsed.file!.students[0].diemCacCot.CK_C2 = 9
-    const issues = validateRawGrades(parsedConfig.config!, parsed.file!)
+    const issues = validateRawGrades(config, parsed.file!)
     expect(issues.some((i) => i.level === 'error' && i.message.includes('> điểm tối đa'))).toBe(
       true
     )
   })
 
   it('không báo thiếu điểm CC sau khi đã tính từ điểm danh', async () => {
-    const parsedConfig = await parseCourseConfig(configPath)
-    const parsed = await parseRawGrades(rawPath, parsedConfig.config!)
-    const applied = applyAttendance(parsed.file!, parsedConfig.config!)
-    const issues = validateRawGrades(parsedConfig.config!, applied.file)
+    const config = await parseCourseConfig(configPath)
+    const parsed = await parseRawGrades(rawPath, config)
+    const applied = applyAttendance(parsed.file!, config)
+    const issues = validateRawGrades(config, applied.file)
     expect(issues.some((i) => i.message.includes('chưa nhập điểm cột "CC"'))).toBe(false)
   })
 })

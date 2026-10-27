@@ -53,13 +53,7 @@ async function main(): Promise<void> {
 
   console.log('2. Đọc lại file vừa sinh (kiểm tra parser)...')
   const parsedConfig = await parseCourseConfig(configPath)
-  if (!parsedConfig.config || parsedConfig.hasErrors) {
-    console.error('Lỗi đọc Config:')
-    console.error(parsedConfig.issues)
-    process.exitCode = 1
-    return
-  }
-  const parsedRaw = await parseRawGrades(rawPath, parsedConfig.config)
+  const parsedRaw = await parseRawGrades(rawPath, parsedConfig)
   if (!parsedRaw.file || parsedRaw.hasErrors) {
     console.error('Lỗi đọc điểm thô:')
     console.error(parsedRaw.issues)
@@ -68,11 +62,10 @@ async function main(): Promise<void> {
   }
 
   console.log('3. Kiểm tra hợp lệ...')
-  const configIssues = validateConfig(parsedConfig.config)
-  const applied = applyAttendance(parsedRaw.file, parsedConfig.config)
-  const rawIssues = validateRawGrades(parsedConfig.config, applied.file)
+  const configIssues = validateConfig(parsedConfig)
+  const applied = applyAttendance(parsedRaw.file, parsedConfig)
+  const rawIssues = validateRawGrades(parsedConfig, applied.file)
   const allIssues = [
-    ...parsedConfig.issues,
     ...parsedRaw.issues,
     ...configIssues,
     ...rawIssues,
@@ -86,7 +79,7 @@ async function main(): Promise<void> {
   for (const issue of warnings.slice(0, 5)) console.log(`     [CẢNH BÁO] ${issue.message}`)
 
   console.log('4. Tính toán CLO/PLO...')
-  const result = calculateEvaluation(parsedConfig.config, applied.file.students)
+  const result = calculateEvaluation(parsedConfig, applied.file.students)
   const sample = result.students[0]
   console.log(`   - Số SV: ${result.summary.totalStudents}`)
   console.log(
@@ -94,7 +87,7 @@ async function main(): Promise<void> {
   )
 
   console.log('5. Phân tích đề thi...')
-  const exams = calculateAllExamPsychometrics(parsedConfig.config, applied.file.students)
+  const exams = calculateAllExamPsychometrics(parsedConfig, applied.file.students)
   for (const exam of exams) {
     console.log(
       `   - ${exam.maDauDiem}/${exam.maDe}: N=${exam.soSinhVien}, α=${exam.cronbachAlpha} (${exam.mucDoTinCay})`
@@ -104,7 +97,7 @@ async function main(): Promise<void> {
   console.log('6. Xuất báo cáo Excel...')
   const finalPath = join(outDir, 'final_grades_report.xlsx')
   const examPath = join(outDir, 'exam_analysis_report.xlsx')
-  await writeFinalGradesReport(finalPath, parsedConfig.config, result, {
+  await writeFinalGradesReport(finalPath, parsedConfig, result, {
     phase: 'both',
     rawFile: applied.file,
     issues: allIssues,
@@ -116,7 +109,7 @@ async function main(): Promise<void> {
       diaDanh: 'Hải Phòng'
     }
   })
-  await writeExamAnalysisReport(examPath, parsedConfig.config, exams, allIssues)
+  await writeExamAnalysisReport(examPath, parsedConfig, exams, allIssues)
   console.log('   -', finalPath)
   console.log('   -', examPath)
 

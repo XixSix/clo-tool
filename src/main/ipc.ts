@@ -52,10 +52,9 @@ interface LoadedConfig {
 
 async function loadConfig(configPath: string): Promise<LoadedConfig> {
   try {
-    const parsed = await parseCourseConfig(configPath)
-    if (!parsed.config) return { issues: parsed.issues, error: 'Không đọc được file Config.' }
-    const issues = [...parsed.issues, ...validateConfig(parsed.config)]
-    return { config: parsed.config, issues }
+    const config = await parseCourseConfig(configPath)
+    const issues = validateConfig(config)
+    return { config, issues }
   } catch (error) {
     return {
       issues: [],

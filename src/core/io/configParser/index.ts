@@ -8,7 +8,7 @@
  * Orchestrator chỉ mở workbook, gọi tuần tự từng parser và ghép kết quả.
  */
 
-import type { ConfigParseResult, CourseConfig } from '../../types'
+import type { CourseConfig } from '../../types'
 import { readWorkbook } from '../../utils/excel'
 import { parseHocPhanSheet } from './hocPhanParser'
 import { parseCloListSheet } from './cloListParser'
@@ -21,7 +21,7 @@ import { parseQuyTacSheet } from './quyTacParser'
 export * from './helpers'
 export * from './errors'
 
-export async function parseCourseConfig(filePath: string): Promise<ConfigParseResult> {
+export async function parseCourseConfig(filePath: string): Promise<CourseConfig> {
   const wb = await readWorkbook(filePath)
   const config: CourseConfig = {
     courseInfo: parseHocPhanSheet(wb),
@@ -33,9 +33,5 @@ export async function parseCourseConfig(filePath: string): Promise<ConfigParseRe
     quyTac: parseQuyTacSheet(wb)
   }
 
-  return {
-    config,
-    issues: [],
-    hasErrors: false
-  }
+  return config
 }
