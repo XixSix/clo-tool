@@ -267,6 +267,49 @@ describe('validateCauHoi - sheet CAU_HOI', () => {
     )
     expect(wms).toContain('Loại câu hỏi "TH" của cột "CC" không thuộc TN/TL.')
   })
+
+  it('thiếu dữ liệu bắt buộc -> lỗi / cảnh báo', () => {
+    const config = mock()
+    const row = config.cauHoi[0]
+    row.maCotDiem = ''
+    row.maDauDiem = ''
+    row.clo = ''
+    row.cau = ''
+    const issues = validateConfig(config)
+    const errs = errors(issues).map((i) => i.message)
+    const wms = warnings(issues).map((i) => i.message)
+    expect(errs).toContain('Thiếu Mã cột điểm.')
+    expect(errs).toContain('Thiếu Mã đầu điểm.')
+    expect(errs).toContain('Thiếu mã CLO.')
+    expect(wms).toContain('Thiếu tên câu hỏi.')
+  })
+
+  it('cùng câu nhưng khác CLO trong cùng đề -> hợp lệ', () => {
+    const config = mock()
+    const src = config.cauHoi.find((q) => q.maDauDiem === 'GKT')!
+    // Cùng câu, cùng đề, khác CLO và khác cột -> là các ý a, b của cùng một câu
+    config.cauHoi.push({ ...src, maCotDiem: 'GKT_C99', clo: 'CLO5' })
+    const messages = errors(validateConfig(config)).map((i) => i.message)
+    expect(messages.some((m) => m.includes('bị trùng tên'))).toBe(false)
+  })
+
+  it('cùng cột điểm dùng ở 2 đầu điểm -> lỗi', () => {
+    const config = mock()
+    const src = config.cauHoi.find((q) => q.maDauDiem === 'GKT')!
+    config.cauHoi.push({ ...src, maDauDiem: 'CK', clo: 'CLO5', cau: 'Câu 99' })
+    const messages = errors(validateConfig(config)).map((i) => i.message)
+    expect(messages).toContain(
+      `Cột điểm "${src.maCotDiem}" được dùng ở nhiều đầu điểm (GKT, CK).`
+    )
+  })
+
+  it('cùng cột điểm dùng ở 2 đề nhưng khác CLO -> cảnh báo', () => {
+    const config = mock()
+    const src = config.cauHoi.find((q) => q.maDauDiem === 'GKT')!
+    config.cauHoi.push({ ...src, maDe: 'D9', clo: 'CLO5', cau: 'Câu 99' })
+    const wms = warnings(validateConfig(config)).map((i) => i.message)
+    expect(wms).toContain(`Cột điểm "${src.maCotDiem}" được dùng ở nhiều đề (D1, D9).`)
+  })
 })
 
 describe('validateMaTranPlo - sheet MA_TRAN_PLO', () => {
@@ -287,6 +330,38 @@ describe('validateMaTranPlo - sheet MA_TRAN_PLO', () => {
     const messages = errors(validateConfig(config)).map((i) => i.message)
     expect(messages).toContain('Thiếu mã PLO.')
     expect(messages).toContain('Thiếu mã PI.')
+  })
+
+  it('CLO trống -> lỗi', () => {
+    const config = mock()
+    config.maTranPlo[0].clo = ''
+    const messages = errors(validateConfig(config)).map((i) => i.message)
+    expect(messages).toContain('Thiếu mã CLO.')
+  })
+
+  it('cùng PI dùng ở 2 PLO -> lỗi', () => {
+    const config = mock()
+    config.maTranPlo.push({ plo: 'PLO3', pi: 'PI2.1', clo: 'CLO5' })
+    const messages = errors(validateConfig(config)).map((i) => i.message)
+    expect(messages).toContain('PI "PI2.1" được dùng ở nhiều PLO (PLO2, PLO3).')
+  })
+
+  it('PI sai định dạng / không khớp PLO -> cảnh báo', () => {
+    const config = mock()
+    config.maTranPlo[0].pi = 'PI2'
+    config.maTranPlo[1].pi = 'PI9.1'
+    const wms = warnings(validateConfig(config)).map((i) => i.message)
+    expect(wms).toContain('Mã PI "PI2" không đúng dạng PI<số>.<số> (ví dụ PI2.1).')
+    expect(wms).toContain(
+      'PI "PI9.1" không khớp PLO "PLO2" — PI phải thuộc đúng PLO theo số hiệu (PI2.x).'
+    )
+  })
+
+  it('một CLO gắn nhiều PI trong cùng PLO -> cảnh báo', () => {
+    const config = mock()
+    config.maTranPlo.push({ plo: 'PLO2', pi: 'PI2.9', clo: 'CLO1' })
+    const wms = warnings(validateConfig(config)).map((i) => i.message)
+    expect(wms).toContain('CLO "CLO1" được gán cho nhiều PI trong PLO "PLO2" (PI2.1, PI2.9).')
   })
 })
 
@@ -366,5 +441,13 @@ describe('validateCrossSheet - check chéo được giữ nguyên', () => {
     config.maTranPlo = config.maTranPlo.filter((m) => m.clo !== last.maClo)
     const messages = errors(validateConfig(config)).map((i) => i.message)
     expect(messages).toContain(`CLO "${last.maClo}" không được đầu điểm nào đo.`)
+  })
+
+  it('khoảng trắng thừa trong mã không gây lỗi chéo', () => {
+    const config = mock()
+    const q = config.cauHoi.find((item) => item.maDauDiem === 'GKT')!
+    q.maDauDiem = ` ${q.maDauDiem} `
+    q.clo = ` ${q.clo} `
+    expect(errors(validateConfig(config))).toHaveLength(0)
   })
 })

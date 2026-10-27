@@ -15,10 +15,12 @@ export function isMultipleOfQuarter(value: number): boolean {
 export function examMaxScores(cauHoi: QuestionColumn[]): Record<string, number> {
   const groups = new Map<string, Map<string, number>>()
   for (const q of cauHoi) {
-    const key = `${q.maDauDiem}|${q.maDe ?? 'ALL'}`
+    // Trim mã và coi mã đề trống là ALL để gộp đúng đề
+    const maDe = (q.maDe ?? 'ALL').trim() || 'ALL'
+    const key = `${q.maDauDiem.trim()}|${maDe}`
     const columns = groups.get(key) ?? new Map<string, number>()
     // Một cột điểm có thể phục vụ nhiều CLO -> chỉ cộng một lần
-    columns.set(q.maCotDiem, q.diemToiDa)
+    columns.set(q.maCotDiem.trim(), q.diemToiDa)
     groups.set(key, columns)
   }
 

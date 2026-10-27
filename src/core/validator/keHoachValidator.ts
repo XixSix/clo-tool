@@ -7,23 +7,26 @@ import { roundHalfUp } from '../rules'
 
 const VALID_GROUPS = new Set(['CC', 'GK', 'CK'])
 
-export function validateKeHoach(config: CourseConfig): ValidationIssue[] {
+export const validateKeHoach = (config: CourseConfig): ValidationIssue[] => {
   const issues: ValidationIssue[] = []
-  if (config.keHoachDanhGia.length === 0) {
+  const plan = config.keHoachDanhGia
+
+  // Validate all sheet
+  if (plan.length === 0) {
     issues.push({
       level: 'error',
       sheet: 'KE_HOACH_DANH_GIA',
       message: 'Chưa khai báo kế hoạch đánh giá nào.'
     })
   }
-  const totalWeight = config.keHoachDanhGia.reduce((sum, p) => sum + p.trongSoPhanTram, 0)
-  // Cờ: có trọng số không nguyên → lỗi "tổng ≠ 100%" trở thành nhiễu
-  // (lỗi gốc đã nằm ở từng dòng), nên chỉ so tổng khi mọi trọng số đều nguyên
-  let hasIntegerViolation = false
 
+  // Gom nhóm theo đầu điểm / CLO trong một lượt duyệt, thay cho các vòng lặp lồng nhau
+  const groupsByDauDiem = new Map<string, Set<string>>()
+  const groupsByClo = new Map<string, Set<string>>()
   const seenPairs = new Set<string>()
-  for (const p of config.keHoachDanhGia) {
-    // Validate nhóm
+
+  for (const p of plan) {
+    // Validate Nhom
     if (!VALID_GROUPS.has(p.nhom)) {
       issues.push({
         level: 'error',
@@ -33,7 +36,17 @@ export function validateKeHoach(config: CourseConfig): ValidationIssue[] {
       })
     }
 
-    // Validate mã đầu điểm
+    // Validate Thanh_Phan
+    if (!p.thanhPhan || p.thanhPhan.trim() === '') {
+      issues.push({
+        level: 'warning',
+        sheet: 'KE_HOACH_DANH_GIA',
+        column: 'Thanh_Phan',
+        message: 'Thiếu Thành phần.'
+      })
+    }
+
+    // Validate Ma_Dau_Diem
     if (!p.maDauDiem || p.maDauDiem.trim() === '') {
       issues.push({
         level: 'error',
@@ -51,7 +64,6 @@ export function validateKeHoach(config: CourseConfig): ValidationIssue[] {
         column: 'Trong_So_Phan_Tram',
         message: `Trọng số của đầu điểm "${p.maDauDiem}" (CLO "${p.clo}") phải là số nguyên % (nhận ${p.trongSoPhanTram}).`
       })
-      hasIntegerViolation = true
     } else if (p.trongSoPhanTram <= 0) {
       issues.push({
         level: 'error',
@@ -61,23 +73,14 @@ export function validateKeHoach(config: CourseConfig): ValidationIssue[] {
       })
     }
 
-    // Cùng một đầu điểm xuất hiện ở cả nhóm GK và CK -> dữ liệu nhập nhầm
-    for (const other of config.keHoachDanhGia) {
-      if (other === p) continue
-      if (
-        other.maDauDiem === p.maDauDiem &&
-        other.nhom !== p.nhom &&
-        p.nhom !== 'CC' &&
-        other.nhom !== 'CC'
-      ) {
-        issues.push({
-          level: 'error',
-          sheet: 'KE_HOACH_DANH_GIA',
-          column: 'Ma_Dau_Diem',
-          message: `Mã đầu điểm "${p.maDauDiem}" bị dùng ở cả nhóm ${p.nhom} và ${other.nhom}.`
-        })
-        break
-      }
+    // Validate Hinh_Thiuc
+    if (!p.hinhThuc || p.hinhThuc.trim() === '') {
+      issues.push({
+        level: 'warning',
+        sheet: 'KE_HOACH_DANH_GIA',
+        column: 'Hinh_Thuc',
+        message: 'Thiếu Hình thức.'
+      })
     }
 
     // Cặp (đầu điểm, CLO) bị lặp -> trọng số cộng đôi
@@ -90,14 +93,29 @@ export function validateKeHoach(config: CourseConfig): ValidationIssue[] {
       })
     }
     seenPairs.add(pairKey)
+
+    addToGroup(groupsByDauDiem, p.maDauDiem, p.nhom)
+    addToGroup(groupsByClo, p.clo, p.nhom)
   }
 
-  // Validate tổng trọng số — SAU vòng for: số nguyên đã được kiểm tra ở từng dòng,
-  // nếu có lỗi gốc thì báo tổng chỉ gây nhiễu. Trọng số nguyên + số nguyên trong
-  // float cộng chính xác tuyệt đối → so sánh bằng trực tiếp, không cần biên độ EPSILON
-  // (khác với tổng đề 10 ở crossSheet: điểm tối đa câu cho phép thập phân
-  // không bội 0,25 nên tổng float cần biên độ).
-  if (!hasIntegerViolation && totalWeight !== 100) {
+  // Cùng một đầu điểm xuất hiện ở 2 nhóm khác CC (GK/CK) -> dữ liệu nhập nhầm
+  for (const [maDauDiem, groups] of groupsByDauDiem) {
+    const nonCc = [...groups].filter((g) => g !== 'CC')
+    if (nonCc.length > 1) {
+      issues.push({
+        level: 'error',
+        sheet: 'KE_HOACH_DANH_GIA',
+        column: 'Ma_Dau_Diem',
+        message: `Mã đầu điểm "${maDauDiem}" bị dùng ở cả nhóm ${nonCc.join(' và ')}.`
+      })
+    }
+  }
+
+  // Chỉ so tổng khi mọi trọng số đều nguyên: trọng số thập phân đã báo lỗi ở
+  // từng dòng nên "tổng ≠ 100%" chỉ gây nhiễu. Trọng số nguyên cộng chính xác
+  // tuyệt đối trong float -> so sánh trực tiếp, không cần EPSILON.
+  const totalWeight = plan.reduce((sum, p) => sum + p.trongSoPhanTram, 0)
+  if (plan.every((p) => Number.isInteger(p.trongSoPhanTram)) && totalWeight !== 100) {
     issues.push({
       level: 'error',
       sheet: 'KE_HOACH_DANH_GIA',
@@ -109,8 +127,8 @@ export function validateKeHoach(config: CourseConfig): ValidationIssue[] {
   // CLO chỉ đo bằng chuyên cần/thái độ (Quyết định #7: không chặn)
   if (config.quyTac.canh_bao_cc_don_le) {
     for (const clo of config.cloList) {
-      const items = config.keHoachDanhGia.filter((p) => p.clo === clo.maClo)
-      if (items.length > 0 && items.every((p) => p.nhom === 'CC')) {
+      const groups = groupsByClo.get(clo.maClo)
+      if (groups && [...groups].every((g) => g === 'CC')) {
         issues.push({
           level: 'warning',
           sheet: 'KE_HOACH_DANH_GIA',
@@ -122,4 +140,10 @@ export function validateKeHoach(config: CourseConfig): ValidationIssue[] {
   }
 
   return issues
+}
+
+function addToGroup(map: Map<string, Set<string>>, key: string, value: string): void {
+  const set = map.get(key) ?? new Set<string>()
+  set.add(value)
+  map.set(key, set)
 }

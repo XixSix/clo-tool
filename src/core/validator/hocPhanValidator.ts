@@ -6,7 +6,7 @@ import type { CourseConfig, ValidationIssue } from '../types'
 
 const VALID_LOAI_HP = new Set(['thuong', 'thuc_hanh'])
 
-export function validateHocPhan(config: CourseConfig): ValidationIssue[] {
+export const validateHocPhan = (config: CourseConfig): ValidationIssue[] => {
   const issues: ValidationIssue[] = []
   const info = config.courseInfo
 
@@ -30,6 +30,7 @@ export function validateHocPhan(config: CourseConfig): ValidationIssue[] {
     })
   }
 
+  // Validate So_Tin_Chi
   if (!Number.isInteger(info.soTinChi) || info.soTinChi <= 0) {
     issues.push({
       level: 'error',

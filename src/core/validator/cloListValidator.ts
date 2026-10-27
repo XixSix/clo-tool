@@ -9,9 +9,10 @@ const CLO_CODE_PATTERN = /^CLO\d+(\.\d+)?$/
 
 export function validateCloList(config: CourseConfig): ValidationIssue[] {
   const issues: ValidationIssue[] = []
+  const cloList = config.cloList
 
   // Validate all sheet
-  if (config.cloList.length === 0) {
+  if (cloList.length === 0) {
     issues.push({
       level: 'error',
       sheet: 'CLO_LIST',
@@ -20,7 +21,7 @@ export function validateCloList(config: CourseConfig): ValidationIssue[] {
   }
 
   const seen = new Set<string>()
-  for (const clo of config.cloList) {
+  for (const clo of cloList) {
     // Validate Ma_CLO
     if (!clo.maClo || clo.maClo.trim() === '') {
       issues.push({
@@ -51,7 +52,7 @@ export function validateCloList(config: CourseConfig): ValidationIssue[] {
     }
     seen.add(clo.maClo)
 
-    // Validate Noi_dung
+    // Validate Noi_Dung
     if (!clo.noiDung || clo.noiDung.trim() === '') {
       issues.push({
         level: 'warning',
@@ -93,7 +94,7 @@ export function validateCloList(config: CourseConfig): ValidationIssue[] {
       }
     }
 
-    // Validate Trong_so_CLO
+    // Validate Trong_So_CLO
     if (
       clo.trongSoClo !== undefined &&
       (!Number.isFinite(clo.trongSoClo) || clo.trongSoClo <= 0 || clo.trongSoClo > 100)
