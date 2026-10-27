@@ -5,7 +5,8 @@
  *
  * - configParser: parse Template_Config.xlsx → CourseConfig
  * - rawGradesParser: parse Template_DiemTho.xlsx → RawGradesFile
- * - templateGenerator: sinh lại 2 file template mẫu
+ * - configTemplateGenerator: sinh Template_Config.xlsx
+ * - rawGradesTemplateGenerator: sinh Template_DiemTho.xlsx
  */
 
 export * from './configParser'
