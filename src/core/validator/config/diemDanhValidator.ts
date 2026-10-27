@@ -2,7 +2,7 @@
  * Validate sheet DIEM_DANH — bảng chuyển ký hiệu điểm danh sang hệ số.
  */
 
-import type { CourseConfig, ValidationIssue } from '../types'
+import type { CourseConfig, ValidationIssue } from '../../types'
 
 export function validateDiemDanh(config: CourseConfig): ValidationIssue[] {
   const issues: ValidationIssue[] = []

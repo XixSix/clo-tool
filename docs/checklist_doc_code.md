@@ -45,15 +45,15 @@ IPC: config:parse → raw:parse → pipeline:run (CHẶN CỨNG khi điểm thô
 
 ## Pha 4 — Parse điểm thô
 
-- [ ] `src/core/io/rawGradesParser.ts` — meta lớp, hàng "Điểm tối đa", dò cột theo tên, điểm danh (Buổi 1..N), SV thiếu mã → prefix `__MISSING_`
+- [ ] `src/core/io/rawGradesParser/` — orchestrator + `metaParser`, `headerParser`, `attendanceParser`, `maxScoreParser`, `studentParser`; meta lớp, hàng "Điểm tối đa", dò cột theo tên, điểm danh (Buổi 1..N), SV thiếu mã → prefix `__MISSING_`; lỗi cấu trúc/ô không parse được → `RawGradesParseError` (không chuyển sang validator)
 
 ## Pha 5 — Validate (`src/core/validator/` — mỗi sheet một file)
 
 - [ ] `helpers.ts` — EPSILON (chỉ còn dùng cho tổng đề = 10), `examMaxScores` (không cộng trùng cột)
-- [ ] Sheets: `hocPhan` (tín chỉ bắt buộc nguyên) → `cloList` (format CLOx(.y), bậc/thang) → `keHoach` (nguyên %, tổng 100% SAU vòng for, GK-CK trùng) → `cauHoi` (cột dùng đè, câu trùng tên, ≤50% PLO) → `maTranPlo` → `diemDanh` → `quyTac` (enum + khoảng giá trị thay vì rơi về mặc định im lặng)
-- [ ] `crossSheetValidator.ts` — tham chiếu CLO, cặp khớp 2 chiều, CLO treo, tổng đề = 10, chưa ánh xạ PLO
-- [ ] `rawGradesValidator.ts` — mã SV trùng/thiếu, điểm âm/vượt max, bội 0,25, N < ngưỡng cỡ mẫu
-- [ ] `index.ts` — `validateConfig` = thông báo trộn 8 validator; `hasErrors` chặn tính
+- [ ] `config/` — Sheets: `hocPhan` (tín chỉ bắt buộc nguyên) → `cloList` (format CLOx(.y), bậc/thang) → `keHoach` (nguyên %, tổng 100% SAU vòng for, GK-CK trùng) → `cauHoi` (cột dùng đè, câu trùng tên, ≤50% PLO) → `maTranPlo` → `diemDanh` → `quyTac` (enum + khoảng giá trị thay vì rơi về mặc định im lặng)
+- [ ] `config/crossSheetValidator.ts` — tham chiếu CLO, cặp khớp 2 chiều, CLO treo, tổng đề = 10, chưa ánh xạ PLO
+- [ ] `src/core/validator/rawGrades/` — mã SV trùng/thiếu, điểm âm/vượt max, bội 0,25, N < ngưỡng cỡ mẫu; báo đúng dòng Excel qua `excelRow`
+- [ ] `index.ts` — facade re-export `validateConfig` / `validateRawGrades`; `hasErrors` chặn tính
 
 ## Pha 6 — Điểm danh
 

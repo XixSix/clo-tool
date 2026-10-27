@@ -63,6 +63,26 @@ async function loadConfig(configPath: string): Promise<LoadedConfig> {
   }
 }
 
+interface LoadedRawGrades {
+  file: RawGradesFile
+  issues: ValidationIssue[]
+}
+
+/** Đọc điểm thô, gắn điểm danh và validate trong một luồng duy nhất */
+async function loadRawGrades(
+  config: CourseConfig,
+  rawPath: string
+): Promise<LoadedRawGrades> {
+  const file = await parseRawGrades(rawPath, config)
+  const applied = applyAttendance(file, config)
+  const validation = validateRawGrades(config, applied.file)
+
+  return {
+    file: applied.file,
+    issues: [...validation, ...applied.issues]
+  }
+}
+
 export function registerIpcHandlers(getWindow: () => BrowserWindow | null): void {
   ipcMain.handle('dialog:pick-file', async (_event, kind: 'config' | 'raw') => {
     const win = getWindow()
@@ -154,44 +174,27 @@ export function registerIpcHandlers(getWindow: () => BrowserWindow | null): void
       }
 
       try {
-        const parsed = await parseRawGrades(rawPath, loaded.config)
-        if (!parsed.file) {
-          return {
-            ok: false,
-            filePath: rawPath,
-            studentCount: 0,
-            sessionCount: 0,
-            missingDataCount: 0,
-            absentFinalCount: 0,
-            issues: parsed.issues.map(toIssueDto),
-            hasErrors: true,
-            error: 'Không đọc được dữ liệu điểm thô.'
-          }
-        }
-
-        const applied = applyAttendance(parsed.file, loaded.config)
-        const validation = validateRawGrades(loaded.config, applied.file)
-        const issues = [...parsed.issues, ...validation, ...applied.issues]
+        const raw = await loadRawGrades(loaded.config, rawPath)
         const ckCodes = new Set(
           loaded.config.keHoachDanhGia.filter((p) => p.nhom === 'CK').map((p) => p.maDauDiem)
         )
 
-        const missingDataCount = applied.file.students.filter((st) =>
+        const missingDataCount = raw.file.students.filter((st) =>
           Object.values(st.diemCacCot).some((value) => value === null)
         ).length
-        const absentFinalCount = applied.file.students.filter((st) =>
+        const absentFinalCount = raw.file.students.filter((st) =>
           Object.entries(st.diemCacCot).some(([code, value]) => ckCodes.has(code) && value === 'VT')
         ).length
 
         return {
           ok: true,
           filePath: rawPath,
-          studentCount: applied.file.students.length,
-          sessionCount: applied.file.attendanceSessions.length,
+          studentCount: raw.file.students.length,
+          sessionCount: raw.file.attendanceSessions.length,
           missingDataCount,
           absentFinalCount,
-          issues: issues.map(toIssueDto),
-          hasErrors: hasErrors(issues)
+          issues: raw.issues.map(toIssueDto),
+          hasErrors: hasErrors(raw.issues)
         }
       } catch (error) {
         return {
@@ -241,24 +244,9 @@ export function registerIpcHandlers(getWindow: () => BrowserWindow | null): void
       }
 
       try {
-        const parsedRaw = await parseRawGrades(rawPath, loaded.config)
-        if (!parsedRaw.file) {
-          return {
-            ...empty,
-            issues: parsedRaw.issues.map(toIssueDto),
-            error: 'Không đọc được file điểm thô.'
-          }
-        }
-
-        const applied = applyAttendance(parsedRaw.file, loaded.config)
-        const rawFile: RawGradesFile = applied.file
-        const validation = validateRawGrades(loaded.config, rawFile)
-        const issues: ValidationIssue[] = [
-          ...loaded.issues,
-          ...parsedRaw.issues,
-          ...validation,
-          ...applied.issues
-        ]
+        const raw = await loadRawGrades(loaded.config, rawPath)
+        const rawFile: RawGradesFile = raw.file
+        const issues: ValidationIssue[] = [...loaded.issues, ...raw.issues]
 
         // Chặn cứng: điểm thô còn lỗi (điểm âm/vượt cận, mã SV trùng/thiếu...) thì
         // KHÔNG tính — tránh phát kết quả từ dữ liệu bẩn.

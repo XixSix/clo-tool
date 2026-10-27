@@ -46,7 +46,7 @@ beforeAll(async () => {
 
   config = await parseCourseConfig(configPath)
   const parsedRaw = await parseRawGrades(rawPath, config)
-  const applied = applyAttendance(parsedRaw.file!, config)
+  const applied = applyAttendance(parsedRaw, config)
   rawFile = applied.file
   result = calculateEvaluation(config, rawFile.students)
 })

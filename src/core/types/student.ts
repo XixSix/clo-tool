@@ -11,4 +11,6 @@ export interface RawStudentRow {
   maDe?: string
   diemCacCot: Record<string, number | 'VT' | null | undefined>
   ghiChu?: string
+  /** Dòng thực tế trong sheet, dùng để báo lỗi đúng vị trí */
+  excelRow?: number
 }

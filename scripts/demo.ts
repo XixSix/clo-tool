@@ -53,24 +53,21 @@ async function main(): Promise<void> {
 
   console.log('2. Đọc lại file vừa sinh (kiểm tra parser)...')
   const parsedConfig = await parseCourseConfig(configPath)
-  const parsedRaw = await parseRawGrades(rawPath, parsedConfig)
-  if (!parsedRaw.file || parsedRaw.hasErrors) {
+  let parsedRaw: Awaited<ReturnType<typeof parseRawGrades>>
+  try {
+    parsedRaw = await parseRawGrades(rawPath, parsedConfig)
+  } catch (error) {
     console.error('Lỗi đọc điểm thô:')
-    console.error(parsedRaw.issues)
+    console.error(error instanceof Error ? error.message : error)
     process.exitCode = 1
     return
   }
 
   console.log('3. Kiểm tra hợp lệ...')
   const configIssues = validateConfig(parsedConfig)
-  const applied = applyAttendance(parsedRaw.file, parsedConfig)
+  const applied = applyAttendance(parsedRaw, parsedConfig)
   const rawIssues = validateRawGrades(parsedConfig, applied.file)
-  const allIssues = [
-    ...parsedRaw.issues,
-    ...configIssues,
-    ...rawIssues,
-    ...applied.issues
-  ]
+  const allIssues = [...configIssues, ...rawIssues, ...applied.issues]
 
   const errors = allIssues.filter((i) => i.level === 'error')
   const warnings = allIssues.filter((i) => i.level === 'warning')
@@ -102,10 +99,10 @@ async function main(): Promise<void> {
     rawFile: applied.file,
     issues: allIssues,
     context: {
-      hocKy: parsedRaw.file.meta.hocKy ?? 'HK1',
-      namHoc: parsedRaw.file.meta.namHoc ?? '2026-2027',
-      lop: parsedRaw.file.meta.lop ?? '1A11_CNTT14',
-      giangVien: parsedRaw.file.meta.giangVien ?? 'Nguyễn Văn Giảng',
+      hocKy: applied.file.meta.hocKy ?? 'HK1',
+      namHoc: applied.file.meta.namHoc ?? '2026-2027',
+      lop: applied.file.meta.lop ?? '1A11_CNTT14',
+      giangVien: applied.file.meta.giangVien ?? 'Nguyễn Văn Giảng',
       diaDanh: 'Hải Phòng'
     }
   })

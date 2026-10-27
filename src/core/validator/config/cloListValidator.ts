@@ -2,7 +2,7 @@
  * Validate sheet CLO_LIST — danh mục chuẩn đầu ra (CLO).
  */
 
-import type { CourseConfig, ValidationIssue } from '../types'
+import type { CourseConfig, ValidationIssue } from '../../types'
 
 // Chấp nhận cả dạng phân cấp CLOx.y (ví dụ CLO1.1) theo QĐ450
 const CLO_CODE_PATTERN = /^CLO\d+(\.\d+)?$/

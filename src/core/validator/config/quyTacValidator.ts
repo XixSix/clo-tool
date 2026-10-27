@@ -3,7 +3,7 @@
  * Giá trị lạ phải báo lỗi thay vì để engine lặng lẽ rơi về mặc định.
  */
 
-import type { BusinessRules, CourseConfig, ValidationIssue } from '../types'
+import type { BusinessRules, CourseConfig, ValidationIssue } from '../../types'
 
 const HP_METHODS = new Set(['QD450', 'RAW_POINTS'])
 const CLO_BO_PHAN = new Set(['mean_of_ratios', 'ratio_of_sums'])

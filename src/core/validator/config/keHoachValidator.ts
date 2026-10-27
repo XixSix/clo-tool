@@ -2,8 +2,8 @@
  * Validate sheet KE_HOACH_DANH_GIA — kế hoạch đánh giá từng CLO.
  */
 
-import type { CourseConfig, ValidationIssue } from '../types'
-import { roundHalfUp } from '../rules'
+import type { CourseConfig, ValidationIssue } from '../../types'
+import { roundHalfUp } from '../../rules'
 
 const VALID_GROUPS = new Set(['CC', 'GK', 'CK'])
 

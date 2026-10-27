@@ -20,9 +20,9 @@
  *   (cùng câu nhưng khác CLO được phép — đó là các ý a, b của cùng câu).
  */
 
-import type { CourseConfig, ValidationIssue } from '../types'
-import { isMultipleOfQuarter } from './helpers'
-import { roundHalfUp } from '../rules'
+import type { CourseConfig, ValidationIssue } from '../../types'
+import { isMultipleOfQuarter } from '../helpers'
+import { roundHalfUp } from '../../rules'
 
 const VALID_LOAI = new Set(['TL', 'TN'])
 

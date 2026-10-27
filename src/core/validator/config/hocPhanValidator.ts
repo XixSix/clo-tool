@@ -2,7 +2,7 @@
  * Validate sheet HOC_PHAN — thông tin chung của học phần.
  */
 
-import type { CourseConfig, ValidationIssue } from '../types'
+import type { CourseConfig, ValidationIssue } from '../../types'
 
 const VALID_LOAI_HP = new Set(['thuong', 'thuc_hanh'])
 

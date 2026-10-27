@@ -2,9 +2,9 @@
  * Validate chéo giữa các sheet (KE_HOACH ↔ CAU_HOI ↔ CLO_LIST ↔ MA_TRAN_PLO).
  */
 
-import type { CourseConfig, ValidationIssue } from '../types'
-import { EPSILON, examMaxScores } from './helpers'
-import { roundHalfUp } from '../rules'
+import type { CourseConfig, ValidationIssue } from '../../types'
+import { EPSILON, examMaxScores } from '../helpers'
+import { roundHalfUp } from '../../rules'
 
 export function validateCrossSheet(config: CourseConfig): ValidationIssue[] {
   const issues: ValidationIssue[] = []
