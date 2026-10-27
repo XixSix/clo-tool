@@ -6,37 +6,55 @@
  */
 
 import ExcelJS from 'exceljs'
-import { normalizeHeader } from './headerMatcher'
+import { normalizeHeader } from '../normalizeVi'
+import { formatDate } from '../formatDate'
 
 /** Đọc text an toàn (xử lý ô gộp, richText, công thức, ngày) */
 export function cellText(cell: ExcelJS.Cell | undefined): string {
   if (!cell) return ''
-
   const targetCell = cell.isMerged && cell.master ? cell.master : cell
   const value = targetCell.value
 
   if (value === null || value === undefined) return ''
-  if (value instanceof Date) return formatDate(value)
-  if (typeof value === 'object') {
-    if ('richText' in value && Array.isArray(value.richText)) {
-      return value.richText.map((part) => part.text).join('')
-    }
-    if ('text' in value) return String(value.text ?? '')
-    if ('result' in value) return String(value.result ?? '')
-    if ('formula' in value) return ''
-  }
-  try {
-    return String(cell.text ?? '').trim()
-  } catch {
-    return ''
-  }
-}
 
-export function formatDate(date: Date): string {
-  if (isNaN(date.getTime())) return ''
-  const d = String(date.getDate()).padStart(2, '0')
-  const m = String(date.getMonth() + 1).padStart(2, '0')
-  return `${d}/${m}/${date.getFullYear()}`
+  // 1. Xử lý Date trực tiếp
+  if (value instanceof Date) {
+    return formatDate(value)
+  }
+
+  // 2. Xử lý các kiểu Object phức tạp của ExcelJS
+  if (typeof value === 'object') {
+    // Rich Text
+    if ('richText' in value && Array.isArray(value.richText)) {
+      return value.richText
+        .map((part) => part.text)
+        .join('')
+        .trim()
+    }
+
+    // Hyperlink ({ text, hyperlink })
+    if ('text' in value && value.text !== undefined) {
+      return String(value.text).trim()
+    }
+
+    // Formula ({ formula, result })
+    if ('result' in value && value.result !== undefined && value.result !== null) {
+      const res = value.result
+      if (res instanceof Date) return formatDate(res)
+      if (typeof res === 'object' && 'error' in res) return String(res.error).trim()
+      return String(res).trim()
+    }
+
+    // Formula chưa có result
+    if ('formula' in value) return ''
+
+    // Cell error trực tiếp ({ error: '#VALUE!' })
+    if ('error' in value) return String(value.error).trim()
+  }
+
+  // 3. Fallback: Dùng targetCell.text (đã qua format hiển thị của Excel) hoặc targetCell.value
+  const formattedText = targetCell.text ?? String(value)
+  return formattedText.trim()
 }
 
 /** Chấp nhận cả "2,5" và "2.5" (dán từ Google Sheets/Excel) */

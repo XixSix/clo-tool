@@ -6,16 +6,9 @@
  * tên gần nhất để hiển thị trên màn hình lỗi.
  */
 
-/** Bỏ dấu tiếng Việt, lowercase, bỏ mọi ký tự không phải chữ/số */
-export function normalizeHeader(raw: string): string {
-  if (!raw) return ''
-  return raw
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/đ/gi, 'd')
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '')
-}
+import { normalizeHeader } from '../normalizeVi'
+
+export { normalizeHeader }
 
 /** Khoảng cách Levenshtein dùng để gợi ý tên cột gần giống */
 export function levenshtein(a: string, b: string): number {
