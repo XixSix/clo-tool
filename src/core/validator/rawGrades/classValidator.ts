@@ -4,10 +4,7 @@
 
 import type { CourseConfig, RawGradesFile, ValidationIssue } from '../../types'
 
-export function validateRawClass(
-  config: CourseConfig,
-  file: RawGradesFile
-): ValidationIssue[] {
+export function validateRawClass(config: CourseConfig, file: RawGradesFile): ValidationIssue[] {
   const issues: ValidationIssue[] = []
 
   if (file.students.length < config.quyTac.nguong_co_mau_n) {

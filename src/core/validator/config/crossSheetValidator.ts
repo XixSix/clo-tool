@@ -29,8 +29,7 @@ export function validateCrossSheet(config: CourseConfig): ValidationIssue[] {
 
   // 2. Cặp (đầu điểm, CLO) phải khớp 2 chiều giữa KE_HOACH_DANH_GIA và CAU_HOI
   // Trim mã trước khi so khớp để khoảng trắng thừa không tạo cặp "khác nhau".
-  const pairKey = (maDauDiem: string, clo: string): string =>
-    `${maDauDiem.trim()}|${clo.trim()}`
+  const pairKey = (maDauDiem: string, clo: string): string => `${maDauDiem.trim()}|${clo.trim()}`
   const planKeys = new Set(config.keHoachDanhGia.map((p) => pairKey(p.maDauDiem, p.clo)))
   const questionKeys = new Set(config.cauHoi.map((q) => pairKey(q.maDauDiem, q.clo)))
 

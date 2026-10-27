@@ -7,10 +7,7 @@ import type { RawGradesMeta } from '../../types'
 import { cellText, normalizeHeader } from '../../utils/excel'
 import { META_LABELS } from './helpers'
 
-export function parseRawGradesMeta(
-  ws: ExcelJS.Worksheet,
-  headerRow: number
-): RawGradesMeta {
+export function parseRawGradesMeta(ws: ExcelJS.Worksheet, headerRow: number): RawGradesMeta {
   const meta: RawGradesMeta = {}
 
   for (let r = 1; r < headerRow; r++) {

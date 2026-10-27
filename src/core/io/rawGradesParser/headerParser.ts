@@ -34,17 +34,12 @@ export function parseRawGradesHeader(
 }
 
 /** Cột điểm có trong Config nhưng không dò được trong file */
-export function assertScoreColumns(
-  header: RawHeaderInfo,
-  scoreColumns: string[]
-): void {
+export function assertScoreColumns(header: RawHeaderInfo, scoreColumns: string[]): void {
   for (const maCot of scoreColumns) {
     if (header.mapping[maCot] !== undefined) continue
 
     const suggestion = header.suggestions[maCot]
     const hint = suggestion ? ` Có phải bạn muốn đặt tên là "${suggestion}"?` : ''
-    throw new RawGradesParseError(
-      `Thiếu cột điểm "${maCot}" khai báo trong Config.${hint}`
-    )
+    throw new RawGradesParseError(`Thiếu cột điểm "${maCot}" khai báo trong Config.${hint}`)
   }
 }
