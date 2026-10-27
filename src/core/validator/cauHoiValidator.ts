@@ -10,6 +10,13 @@ const VALID_LOAI = new Set(['TL', 'TN'])
 
 export function validateCauHoi(config: CourseConfig): ValidationIssue[] {
   const issues: ValidationIssue[] = []
+  if (config.cauHoi.length === 0) {
+    issues.push({
+      level: 'error',
+      sheet: 'CAU_HOI',
+      message: 'Chưa khai báo câu hỏi hoặc cột điểm nào.'
+    })
+  }
 
   const maxByColumn = new Map<string, number>()
   const cellColumns = new Map<string, Set<string>>()

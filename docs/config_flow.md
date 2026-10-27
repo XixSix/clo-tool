@@ -178,13 +178,7 @@ sheetName   = tên sheet dùng trong thông báo lỗi
 Ví dụ với `HOC_PHAN`:
 
 ```ts
-[
-  'Ma_HP',
-  'Ten_HP',
-  'So_Tin_Chi',
-  'Hinh_Thuc_Thi',
-  'Loai_HP'
-]
+;['Ma_HP', 'Ten_HP', 'So_Tin_Chi', 'Hinh_Thuc_Thi', 'Loai_HP']
 ```
 
 ### Các bước
@@ -317,11 +311,7 @@ Kết quả:
 
 ```ts
 {
-  maHp,
-  tenHp,
-  soTinChi,
-  hinhThucThi,
-  loaiHp
+  ;(maHp, tenHp, soTinChi, hinhThucThi, loaiHp)
 }
 ```
 

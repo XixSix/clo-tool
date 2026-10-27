@@ -7,23 +7,21 @@ import type ExcelJS from 'exceljs'
 import type { AttendanceRule } from '../../types'
 import { findSheet, parseNumber } from '../../utils/excel'
 import { CONFIG_SHEET_COLUMNS, get, readTable } from './helpers'
+export function parseDiemDanhSheet(wb: ExcelJS.Workbook): AttendanceRule[] | undefined {
+  const diemdanh: AttendanceRule[] = []
 
-export function parseDiemDanhSheet(
-  wb: ExcelJS.Workbook,
-): AttendanceRule[] | undefined {
   const ws = findSheet(wb, 'DIEM_DANH')
   if (!ws) return undefined
 
   const { headers, rows } = readTable(ws, CONFIG_SHEET_COLUMNS.DIEM_DANH, 'DIEM_DANH')
-  const parsed: AttendanceRule[] = []
+  if (rows.length === 0) return undefined
+
   for (const r of rows) {
-    const kyHieu = get(ws, r, headers, 'Ky_Hieu')
-    if (!kyHieu) continue
-    parsed.push({
-      kyHieu,
+    diemdanh.push({
+      kyHieu: get(ws, r, headers, 'Ky_Hieu'),
       heSo: parseNumber(get(ws, r, headers, 'He_So')) ?? 0,
       dienGiai: get(ws, r, headers, 'Dien_Giai') || undefined
     })
   }
-  return parsed.length > 0 ? parsed : undefined
+  return diemdanh.length > 0 ? diemdanh : undefined
 }

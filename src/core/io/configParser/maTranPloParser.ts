@@ -15,11 +15,15 @@ export function parseMaTranPloSheet(wb: ExcelJS.Workbook): PLOMapping[] {
   if (!ws) throw new ConfigParseError('Thiếu sheet MA_TRAN_PLO trong file Config.')
 
   const { headers, rows } = readTable(ws, CONFIG_SHEET_COLUMNS.MA_TRAN_PLO, 'MA_TRAN_PLO')
+  if (rows.length === 0) {
+    throw new ConfigParseError('Sheet MA_TRAN_PLO không có dữ liệu.')
+  }
   for (const r of rows) {
-    const plo = get(ws, r, headers, 'PLO')
-    const clo = get(ws, r, headers, 'CLO')
-    if (!plo || !clo) continue
-    maTranPlo.push({ plo, pi: get(ws, r, headers, 'PI'), clo })
+    maTranPlo.push({
+      plo: get(ws, r, headers, 'PLO'),
+      pi: get(ws, r, headers, 'PI'),
+      clo: get(ws, r, headers, 'CLO')
+    })
   }
   return maTranPlo
 }

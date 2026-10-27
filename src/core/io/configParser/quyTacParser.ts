@@ -12,7 +12,7 @@ import { CONFIG_SHEET_COLUMNS, get, readTable } from './helpers'
 function parseBusinessRules(
   ws: ExcelJS.Worksheet,
   headers: Record<string, number>,
-  rows: number[],
+  rows: number[]
 ): BusinessRules {
   const rules: BusinessRules = { ...DEFAULT_BUSINESS_RULES }
 

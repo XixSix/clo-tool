@@ -6,6 +6,13 @@ import type { CourseConfig, ValidationIssue } from '../types'
 
 export function validateMaTranPlo(config: CourseConfig): ValidationIssue[] {
   const issues: ValidationIssue[] = []
+  if (config.maTranPlo.length === 0) {
+    issues.push({
+      level: 'error',
+      sheet: 'MA_TRAN_PLO',
+      message: 'Chưa khai báo ánh xạ PLO/PI/CLO nào.'
+    })
+  }
   const seen = new Set<string>()
 
   for (const m of config.maTranPlo) {

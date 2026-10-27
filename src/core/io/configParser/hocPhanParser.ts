@@ -15,10 +15,11 @@ export function parseHocPhanSheet(wb: ExcelJS.Workbook): CourseInfo {
   }
 
   const { headers, rows } = readTable(ws, CONFIG_SHEET_COLUMNS.HOC_PHAN, 'HOC_PHAN')
-  const r = rows[0]
-  if (r === undefined) {
+  if (rows.length === 0) {
     throw new ConfigParseError('Sheet HOC_PHAN không có dữ liệu.')
   }
+
+  const r = rows[0]
 
   return {
     maHp: get(ws, r, headers, 'Ma_HP'),

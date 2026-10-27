@@ -8,9 +8,7 @@ import { findSheet, parseNumber } from '../../utils/excel'
 import { CONFIG_SHEET_COLUMNS, get, readTable } from './helpers'
 import { ConfigParseError } from './errors'
 
-export function parseCauHoiSheet(
-  wb: ExcelJS.Workbook,
-): QuestionColumn[] {
+export function parseCauHoiSheet(wb: ExcelJS.Workbook): QuestionColumn[] {
   const cauHoi: QuestionColumn[] = []
 
   const ws = findSheet(wb, 'CAU_HOI')
@@ -19,14 +17,14 @@ export function parseCauHoiSheet(
   }
 
   const { headers, rows } = readTable(ws, CONFIG_SHEET_COLUMNS.CAU_HOI, 'CAU_HOI')
+  if (rows.length === 0) {
+    throw new ConfigParseError('Sheet CAU_HOI không có dữ liệu.')
+  }
   for (const r of rows) {
-    const maCotDiem = get(ws, r, headers, 'Ma_Cot_Diem')
-    const maDauDiem = get(ws, r, headers, 'Ma_Dau_Diem')
-    if (!maCotDiem && !maDauDiem) continue
     const loaiRaw = get(ws, r, headers, 'Loai').toUpperCase()
     cauHoi.push({
-      maCotDiem,
-      maDauDiem,
+      maCotDiem: get(ws, r, headers, 'Ma_Cot_Diem'),
+      maDauDiem: get(ws, r, headers, 'Ma_Dau_Diem'),
       cau: get(ws, r, headers, 'Cau'),
       clo: get(ws, r, headers, 'CLO'),
       diemToiDa: parseNumber(get(ws, r, headers, 'Diem_Toi_Da')) ?? 0,

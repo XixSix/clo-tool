@@ -9,6 +9,13 @@ const VALID_GROUPS = new Set(['CC', 'GK', 'CK'])
 
 export function validateKeHoach(config: CourseConfig): ValidationIssue[] {
   const issues: ValidationIssue[] = []
+  if (config.keHoachDanhGia.length === 0) {
+    issues.push({
+      level: 'error',
+      sheet: 'KE_HOACH_DANH_GIA',
+      message: 'Chưa khai báo kế hoạch đánh giá nào.'
+    })
+  }
   const totalWeight = config.keHoachDanhGia.reduce((sum, p) => sum + p.trongSoPhanTram, 0)
   // Cờ: có trọng số không nguyên → lỗi "tổng ≠ 100%" trở thành nhiễu
   // (lỗi gốc đã nằm ở từng dòng), nên chỉ so tổng khi mọi trọng số đều nguyên
