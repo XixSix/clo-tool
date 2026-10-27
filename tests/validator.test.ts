@@ -298,9 +298,7 @@ describe('validateCauHoi - sheet CAU_HOI', () => {
     const src = config.cauHoi.find((q) => q.maDauDiem === 'GKT')!
     config.cauHoi.push({ ...src, maDauDiem: 'CK', clo: 'CLO5', cau: 'Câu 99' })
     const messages = errors(validateConfig(config)).map((i) => i.message)
-    expect(messages).toContain(
-      `Cột điểm "${src.maCotDiem}" được dùng ở nhiều đầu điểm (GKT, CK).`
-    )
+    expect(messages).toContain(`Cột điểm "${src.maCotDiem}" được dùng ở nhiều đầu điểm (GKT, CK).`)
   })
 
   it('cùng cột điểm dùng ở 2 đề nhưng khác CLO -> cảnh báo', () => {
@@ -365,65 +363,6 @@ describe('validateMaTranPlo - sheet MA_TRAN_PLO', () => {
   })
 })
 
-describe('validateDiemDanh - sheet DIEM_DANH', () => {
-  it('ký hiệu lặp / trống -> lỗi', () => {
-    const config = mock()
-    config.diemDanh!.push({ ...config.diemDanh![0] })
-    const messages = errors(validateConfig(config)).map((i) => i.message)
-    expect(messages).toContain('Ký hiệu điểm danh "X" bị lặp.')
-
-    const config2 = mock()
-    config2.diemDanh![0].kyHieu = ''
-    const messages2 = errors(validateConfig(config2)).map((i) => i.message)
-    expect(messages2).toContain('Ký hiệu điểm danh không được trống.')
-  })
-
-  it('heSo ngoài [0, 1] -> lỗi', () => {
-    const config = mock()
-    config.diemDanh![0].heSo = 1.5
-    const messages = errors(validateConfig(config)).map((i) => i.message)
-    expect(messages).toContain('Hệ số của ký hiệu "X" phải trong khoảng [0, 1] (nhận 1.5).')
-  })
-})
-
-describe('validateQuyTac - sheet QUY_TAC', () => {
-  it('enum lạ -> lỗi thay vì rơi về mặc định im lặng', () => {
-    const config = mock()
-    // @ts-expect-error -- giá trị lạ từ Excel
-    config.quyTac.hp_method = 'ABCD'
-    // @ts-expect-error -- giá trị lạ từ Excel
-    config.quyTac.rounding_mode = 'round'
-    // @ts-expect-error -- giá trị lạ từ Excel
-    config.quyTac.clo_bo_phan = 'sum'
-    const messages = errors(validateConfig(config)).map((i) => i.message)
-    expect(messages).toContain('quyTac.hp_method "ABCD" không hợp lệ (QD450 / RAW_POINTS).')
-    expect(messages).toContain('quyTac.rounding_mode "round" không hợp lệ (chain / final_only).')
-    expect(messages).toContain(
-      'quyTac.clo_bo_phan "sum" không hợp lệ (mean_of_ratios / ratio_of_sums).'
-    )
-  })
-
-  it('ngưỡng ngoài [0..10] và tỷ lệ ngoài khoảng -> lỗi', () => {
-    const config = mock()
-    config.quyTac.nguong_dat_clo = 12
-    config.quyTac.ty_le_nhom_27 = 1.5
-    config.quyTac.ty_le_dat_clo_canh_bao = -5
-    config.quyTac.nguong_co_mau_n = -1
-    const messages = errors(validateConfig(config)).map((i) => i.message)
-    expect(messages).toContain(
-      'nguong_dat_clo = 12 không hợp lệ — ngưỡng đạt phải trong khoảng [0, 10].'
-    )
-    expect(messages).toContain(
-      'ty_le_nhom_27 = 1.5 không hợp lệ — phải là tỷ lệ trong khoảng [0, 1].'
-    )
-    expect(messages).toContain(
-      'ty_le_dat_clo_canh_bao = -5 không hợp lệ — phải trong khoảng [0, 100].'
-    )
-    expect(messages).toContain(
-      'nguong_co_mau_n = -1 không hợp lệ — phải là số nguyên dương hoặc 0.'
-    )
-  })
-})
 
 describe('validateCrossSheet - check chéo được giữ nguyên', () => {
   it('CLO không tồn tại / không được đo / cặp lệch 2 chiều -> lỗi với thông báo cũ', () => {

@@ -23,8 +23,6 @@ export const CONFIG_SHEET_COLUMNS: Record<string, string[]> = {
   ],
   CAU_HOI: ['Ma_Cot_Diem', 'Ma_Dau_Diem', 'Cau', 'CLO', 'Diem_Toi_Da', 'Ma_De', 'Loai'],
   MA_TRAN_PLO: ['PLO', 'PI', 'CLO'],
-  DIEM_DANH: ['Ky_Hieu', 'He_So', 'Dien_Giai'],
-  QUY_TAC: ['Ma_Quy_Tac', 'Gia_Tri']
 }
 
 /** Đọc giá trị 1 ô theo tên cột đã dò được; thiếu cột → chuỗi rỗng */

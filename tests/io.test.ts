@@ -65,7 +65,7 @@ describe('headerMatcher', () => {
 })
 
 describe('parseCourseConfig', () => {
-  it('đọc đủ 7 sheet của file Config mẫu', async () => {
+  it('đọc Config và dùng mặc định cho điểm danh, quy tắc', async () => {
     const config = await parseCourseConfig(configPath)
     expect(config.courseInfo.maHp).toBe('KTLT101')
     expect(config.cloList.map((c) => c.maClo)).toEqual(['CLO1', 'CLO2', 'CLO3', 'CLO4', 'CLO5'])
@@ -86,20 +86,10 @@ describe('parseCourseConfig', () => {
     await expect(parseCourseConfig(broken)).rejects.toThrow('Thiếu cột')
   })
 
-  it('đọc đúng QUY_TAC do người dùng đổi giá trị', async () => {
-    const wb = new ExcelJS.Workbook()
-    await wb.xlsx.readFile(configPath)
-    const ws = wb.getWorksheet('QUY_TAC')!
-    ws.eachRow((row, idx) => {
-      if (idx > 1 && row.getCell(1).value === 'nguong_dat_clo') row.getCell(2).value = '5.5'
-      if (idx > 1 && row.getCell(1).value === 'rounding_mode') row.getCell(2).value = 'final_only'
-    })
-    const changed = join(dir, 'config-changed.xlsx')
-    await wb.xlsx.writeFile(changed)
-
-    const config = await parseCourseConfig(changed)
-    expect(config.quyTac.nguong_dat_clo).toBe(5.5)
-    expect(config.quyTac.rounding_mode).toBe('final_only')
+  it('không đọc cấu hình điểm danh và quy tắc từ Excel', async () => {
+    const config = await parseCourseConfig(configPath)
+    expect(config.quyTac.nguong_dat_clo).toBe(4)
+    expect(config.quyTac.rounding_mode).toBe('chain')
   })
 })
 
@@ -242,9 +232,7 @@ describe('validator', () => {
     const file = { ...parsedFile, attendanceSessions: [] }
 
     const messages = validateRawGrades(config, file).map((issue) => issue.message)
-    expect(messages).toContain(
-      'Quy mô lớp N = 10 < 999: các chỉ số p, d, α kém tin cậy.'
-    )
+    expect(messages).toContain('Quy mô lớp N = 10 < 999: các chỉ số p, d, α kém tin cậy.')
     expect(messages).toContain(
       'File điểm thô không có cột điểm danh (Buổi 1..N). Điểm CC phải nhập tay.'
     )
@@ -259,8 +247,7 @@ describe('CONFIG_SHEET_COLUMNS', () => {
       'KE_HOACH_DANH_GIA',
       'CAU_HOI',
       'MA_TRAN_PLO',
-      'DIEM_DANH',
-      'QUY_TAC'
+      'MA_TRAN_PLO'
     ]) {
       expect(CONFIG_SHEET_COLUMNS[sheet]).toBeDefined()
     }

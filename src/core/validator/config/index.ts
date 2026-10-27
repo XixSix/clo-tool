@@ -14,8 +14,6 @@ import { validateCloList } from './cloListValidator'
 import { validateKeHoach } from './keHoachValidator'
 import { validateCauHoi } from './cauHoiValidator'
 import { validateMaTranPlo } from './maTranPloValidator'
-import { validateDiemDanh } from './diemDanhValidator'
-import { validateQuyTac } from './quyTacValidator'
 import { validateCrossSheet } from './crossSheetValidator'
 
 export function validateConfig(config: CourseConfig): ValidationIssue[] {
@@ -25,8 +23,6 @@ export function validateConfig(config: CourseConfig): ValidationIssue[] {
     ...validateKeHoach(config),
     ...validateCauHoi(config),
     ...validateMaTranPlo(config),
-    ...validateDiemDanh(config),
-    ...validateQuyTac(config),
     ...validateCrossSheet(config)
   ]
 }
