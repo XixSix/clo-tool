@@ -202,24 +202,30 @@ export const HUNG_COURSE_CONFIG: CourseConfig = {
  * Hàng điểm thô của SV Nguyễn Văn Hùng
  */
 export const HUNG_STUDENT_ROW: RawStudentRow = {
-  tt: 1,
-  maSv: 'HUNG01',
-  hoTen: 'Nguyễn Văn Hùng',
-  ngaySinh: '01/01/2004',
-  diemCacCot: {
-    CC: 10.0,
-    TH: 7.5,
-    'KT1_1.1': 7.5,
-    'KT1_1.2': 6.3,
-    'KT1_1.3': 7.3,
-    'KT2_1.4': 6.7,
-    'KT2_2.1': 5.0,
-    'KT2_2.2': 7.5,
-    'CK_1.1': 7.1,
-    'CK_1.2': 6.0,
-    'CK_1.3': 7.3,
-    'CK_1.4': 5.0,
-    'CK_2.1': 7.5,
-    'CK_2.2': 2.5
+  student: {
+    tt: 1,
+    maSv: 'HUNG01',
+    ho: 'Nguyễn Văn',
+    ten: 'Hùng',
+    hoTen: 'Nguyễn Văn Hùng',
+    ngaySinh: '01/01/2004'
+  },
+  scores: {
+    diemCacCot: {
+      CC: 10.0,
+      TH: 7.5,
+      'KT1_1.1': 7.5,
+      'KT1_1.2': 6.3,
+      'KT1_1.3': 7.3,
+      'KT2_1.4': 6.7,
+      'KT2_2.1': 5.0,
+      'KT2_2.2': 7.5,
+      'CK_1.1': 7.1,
+      'CK_1.2': 6.0,
+      'CK_1.3': 7.3,
+      'CK_1.4': 5.0,
+      'CK_2.1': 7.5,
+      'CK_2.2': 2.5
+    }
   }
 }

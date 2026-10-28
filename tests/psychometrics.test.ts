@@ -92,25 +92,25 @@ describe('Psychometrics Module', () => {
       // d(Q1) = (1 - 0.5) / 1 = 0.5 (Khớp Test T2)
       const students: RawStudentRow[] = [
         // Top 4 SV
-        { tt: 1, maSv: 'SV01', hoTen: 'A1', diemCacCot: { Q1: 1, Q2: 2 } },
-        { tt: 2, maSv: 'SV02', hoTen: 'A2', diemCacCot: { Q1: 1, Q2: 2 } },
-        { tt: 3, maSv: 'SV03', hoTen: 'A3', diemCacCot: { Q1: 1, Q2: 2 } },
-        { tt: 4, maSv: 'SV04', hoTen: 'A4', diemCacCot: { Q1: 1, Q2: 2 } },
+        { student: { tt: 1, maSv: 'SV01', ho: 'A', ten: '1', hoTen: 'A1' }, scores: { diemCacCot: { Q1: 1, Q2: 2 } } },
+        { student: { tt: 2, maSv: 'SV02', ho: 'A', ten: '2', hoTen: 'A2' }, scores: { diemCacCot: { Q1: 1, Q2: 2 } } },
+        { student: { tt: 3, maSv: 'SV03', ho: 'A', ten: '3', hoTen: 'A3' }, scores: { diemCacCot: { Q1: 1, Q2: 2 } } },
+        { student: { tt: 4, maSv: 'SV04', ho: 'A', ten: '4', hoTen: 'A4' }, scores: { diemCacCot: { Q1: 1, Q2: 2 } } },
         // Mid 7 SV
-        { tt: 5, maSv: 'SV05', hoTen: 'A5', diemCacCot: { Q1: 1, Q2: 1 } },
-        { tt: 6, maSv: 'SV06', hoTen: 'A6', diemCacCot: { Q1: 1, Q2: 1 } },
-        { tt: 7, maSv: 'SV07', hoTen: 'A7', diemCacCot: { Q1: 1, Q2: 1 } },
-        { tt: 8, maSv: 'SV08', hoTen: 'A8', diemCacCot: { Q1: 0, Q2: 1 } },
-        { tt: 9, maSv: 'SV09', hoTen: 'A9', diemCacCot: { Q1: 0, Q2: 1 } },
-        { tt: 10, maSv: 'SV10', hoTen: 'A10', diemCacCot: { Q1: 0, Q2: 1 } },
-        { tt: 11, maSv: 'SV11', hoTen: 'A11', diemCacCot: { Q1: 1, Q2: 0 } },
+        { student: { tt: 5, maSv: 'SV05', ho: 'A', ten: '5', hoTen: 'A5' }, scores: { diemCacCot: { Q1: 1, Q2: 1 } } },
+        { student: { tt: 6, maSv: 'SV06', ho: 'A', ten: '6', hoTen: 'A6' }, scores: { diemCacCot: { Q1: 1, Q2: 1 } } },
+        { student: { tt: 7, maSv: 'SV07', ho: 'A', ten: '7', hoTen: 'A7' }, scores: { diemCacCot: { Q1: 1, Q2: 1 } } },
+        { student: { tt: 8, maSv: 'SV08', ho: 'A', ten: '8', hoTen: 'A8' }, scores: { diemCacCot: { Q1: 0, Q2: 1 } } },
+        { student: { tt: 9, maSv: 'SV09', ho: 'A', ten: '9', hoTen: 'A9' }, scores: { diemCacCot: { Q1: 0, Q2: 1 } } },
+        { student: { tt: 10, maSv: 'SV10', ho: 'A', ten: '10', hoTen: 'A10' }, scores: { diemCacCot: { Q1: 0, Q2: 1 } } },
+        { student: { tt: 11, maSv: 'SV11', ho: 'A', ten: '11', hoTen: 'A11' }, scores: { diemCacCot: { Q1: 1, Q2: 0 } } },
         // Bottom 4 SV
-        { tt: 12, maSv: 'SV12', hoTen: 'A12', diemCacCot: { Q1: 1, Q2: 0 } },
-        { tt: 13, maSv: 'SV13', hoTen: 'A13', diemCacCot: { Q1: 1, Q2: 0 } },
-        { tt: 14, maSv: 'SV14', hoTen: 'A14', diemCacCot: { Q1: 0, Q2: 0 } },
-        { tt: 15, maSv: 'SV15', hoTen: 'A15', diemCacCot: { Q1: 0, Q2: 0 } },
+        { student: { tt: 12, maSv: 'SV12', ho: 'A', ten: '12', hoTen: 'A12' }, scores: { diemCacCot: { Q1: 1, Q2: 0 } } },
+        { student: { tt: 13, maSv: 'SV13', ho: 'A', ten: '13', hoTen: 'A13' }, scores: { diemCacCot: { Q1: 1, Q2: 0 } } },
+        { student: { tt: 14, maSv: 'SV14', ho: 'A', ten: '14', hoTen: 'A14' }, scores: { diemCacCot: { Q1: 0, Q2: 0 } } },
+        { student: { tt: 15, maSv: 'SV15', ho: 'A', ten: '15', hoTen: 'A15' }, scores: { diemCacCot: { Q1: 0, Q2: 0 } } },
         // 1 SV vắng thi -> phải bị loại khỏi mẫu tính p, d, alpha
-        { tt: 16, maSv: 'SV16', hoTen: 'A16', diemCacCot: { Q1: 'VT', Q2: 'VT' } }
+        { student: { tt: 16, maSv: 'SV16', ho: 'A', ten: '16', hoTen: 'A16' }, scores: { diemCacCot: { Q1: 'VT', Q2: 'VT' } } }
       ]
 
       const examResult = calculateExamPsychometrics('CK', 'ALL', questions, students, 0.27, 30)

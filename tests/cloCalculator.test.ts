@@ -75,24 +75,30 @@ describe('CLO Calculator Engine', () => {
   describe('Sinh viên vắng thi và các trường hợp đặc biệt', () => {
     it('SV vắng thi cuối kỳ (VT) phải bị điểm 0 cuối kỳ và đánh dấu vắng', () => {
       const absentStudent: RawStudentRow = {
-        tt: 2,
-        maSv: 'SV_ABSENT',
-        hoTen: 'Trần Văn Vắng',
-        diemCacCot: {
-          CC: 10,
-          TH: 10,
-          'KT1_1.1': 8,
-          'KT1_1.2': 8,
-          'KT1_1.3': 8,
-          'KT2_1.4': 8,
-          'KT2_2.1': 8,
-          'KT2_2.2': 8,
-          'CK_1.1': 'VT',
-          'CK_1.2': 'VT',
-          'CK_1.3': 'VT',
-          'CK_1.4': 'VT',
-          'CK_2.1': 'VT',
-          'CK_2.2': 'VT'
+        student: {
+          tt: 2,
+          maSv: 'SV_ABSENT',
+          ho: 'Trần Văn',
+          ten: 'Vắng',
+          hoTen: 'Trần Văn Vắng'
+        },
+        scores: {
+          diemCacCot: {
+            CC: 10,
+            TH: 10,
+            'KT1_1.1': 8,
+            'KT1_1.2': 8,
+            'KT1_1.3': 8,
+            'KT2_1.4': 8,
+            'KT2_2.1': 8,
+            'KT2_2.2': 8,
+            'CK_1.1': 'VT',
+            'CK_1.2': 'VT',
+            'CK_1.3': 'VT',
+            'CK_1.4': 'VT',
+            'CK_2.1': 'VT',
+            'CK_2.2': 'VT'
+          }
         }
       }
 

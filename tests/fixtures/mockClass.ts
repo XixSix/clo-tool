@@ -325,8 +325,8 @@ interface CuratedStudentSpec {
 }
 
 /** Sinh cột điểm đầy đủ của 1 SV mẫu từ đặc tả (CC tự tính từ điểm danh) */
-function buildCuratedColumns(spec: CuratedStudentSpec): RawStudentRow['diemCacCot'] {
-  const cols: RawStudentRow['diemCacCot'] = {}
+function buildCuratedColumns(spec: CuratedStudentSpec): RawStudentRow['scores']['diemCacCot'] {
+  const cols: RawStudentRow['scores']['diemCacCot'] = {}
 
   if (spec.tnTrong) {
     for (let c = 1; c <= 40; c++) cols[gktColumn(c)] = null
@@ -484,14 +484,23 @@ export function buildMockClass(studentCount = 10): MockClassData {
     // 10 SV đầu: dữ liệu cố định
     if (i < CURATED_STUDENTS.length) {
       const spec = CURATED_STUDENTS[i]
+      const nameParts = spec.hoTen.trim().split(/\s+/)
+      const ten = nameParts.pop() ?? ''
+      const ho = nameParts.join(' ')
       students.push({
-        tt: i + 1,
-        maSv: spec.maSv,
-        hoTen: spec.hoTen,
-        ngaySinh: spec.ngaySinh,
-        diemCacCot: buildCuratedColumns(spec),
-        maDe: 'ALL',
-        ghiChu: spec.ghiChu
+        student: {
+          tt: i + 1,
+          maSv: spec.maSv,
+          ho,
+          ten,
+          hoTen: spec.hoTen,
+          ngaySinh: spec.ngaySinh
+        },
+        scores: {
+          maDe: 'ALL',
+          diemCacCot: buildCuratedColumns(spec),
+          ghiChu: spec.ghiChu
+        }
       })
       attendance[maSv] = Object.fromEntries(
         MOCK_SESSION_LABELS.map((label, idx) => [label, spec.diemDanh[idx]])
@@ -500,7 +509,10 @@ export function buildMockClass(studentCount = 10): MockClassData {
     }
 
     // Các SV còn lại: sinh giả ngẫu nhiên, dữ liệu luôn đầy đủ
-    const hoTen = `${HO[i % HO.length]} ${TEN_DEM[i % TEN_DEM.length]} ${TEN[i % TEN.length]}`
+    const ho = HO[i % HO.length]
+    const tenDem = TEN_DEM[i % TEN_DEM.length]
+    const ten = TEN[i % TEN.length]
+    const hoTen = `${ho} ${tenDem} ${ten}`
     const ability = 3.5 + random() * 6 // 3.5 – 9.5
 
     // Điểm danh 12 buổi
@@ -517,7 +529,7 @@ export function buildMockClass(studentCount = 10): MockClassData {
     attendance[maSv] = symbols
 
     // Trắc nghiệm: mỗi câu binary 0/0,25 như chấm máy
-    const diemCacCot: RawStudentRow['diemCacCot'] = {}
+    const diemCacCot: RawStudentRow['scores']['diemCacCot'] = {}
     const prob = ability / 10
     for (let c = 1; c <= 40; c++) {
       diemCacCot[gktColumn(c)] = random() < prob ? 0.25 : 0
@@ -530,13 +542,19 @@ export function buildMockClass(studentCount = 10): MockClassData {
     })
 
     students.push({
-      tt: i + 1,
-      maSv,
-      hoTen,
-      ngaySinh: `${String((i % 28) + 1).padStart(2, '0')}/${String((i % 12) + 1).padStart(2, '0')}/2005`,
-      diemCacCot,
-      maDe: 'ALL',
-      ghiChu: undefined
+      student: {
+        tt: i + 1,
+        maSv,
+        ho: `${ho} ${tenDem}`,
+        ten,
+        hoTen,
+        ngaySinh: `${String((i % 28) + 1).padStart(2, '0')}/${String((i % 12) + 1).padStart(2, '0')}/2005`
+      },
+      scores: {
+        maDe: 'ALL',
+        diemCacCot,
+        ghiChu: undefined
+      }
     })
   }
 

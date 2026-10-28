@@ -109,48 +109,66 @@ export function buildMockMultiDeConfig(): CourseConfig {
 export function buildMockMultiDeStudents() {
   return [
     {
-      tt: 1,
-      maSv: 'SV001A',
-      hoTen: 'Sinh Viên A (làm đề D1)',
-      maDe: 'D1',
-      diemCacCot: {
-        CC: 8,
-        GK_D1_C1: 2,
-        GK_D1_C2: 2,
-        GK_D1_C3: 1,
-        GK_D1_C4: 2
-        // Câu đề D2 trống -> phải không được tính vào SV này
-      } as Record<string, number | 'VT' | null>
+      student: {
+        tt: 1,
+        maSv: 'SV001A',
+        ho: 'Sinh Viên',
+        ten: 'A',
+        hoTen: 'Sinh Viên A (làm đề D1)'
+      },
+      scores: {
+        maDe: 'D1',
+        diemCacCot: {
+          CC: 8,
+          GK_D1_C1: 2,
+          GK_D1_C2: 2,
+          GK_D1_C3: 1,
+          GK_D1_C4: 2
+          // Câu đề D2 trống -> phải không được tính vào SV này
+        } as Record<string, number | 'VT' | null>
+      }
     },
     {
-      tt: 2,
-      maSv: 'SV002B',
-      hoTen: 'Sinh Viên B (làm đề D2)',
-      maDe: 'D2',
-      diemCacCot: {
-        CC: 6,
-        GK_D2_C1: 2,
-        GK_D2_C2: 1,
-        GK_D2_C3: 2.5,
-        GK_D2_C4: 2
-      } as Record<string, number | 'VT' | null>
+      student: {
+        tt: 2,
+        maSv: 'SV002B',
+        ho: 'Sinh Viên',
+        ten: 'B',
+        hoTen: 'Sinh Viên B (làm đề D2)'
+      },
+      scores: {
+        maDe: 'D2',
+        diemCacCot: {
+          CC: 6,
+          GK_D2_C1: 2,
+          GK_D2_C2: 1,
+          GK_D2_C3: 2.5,
+          GK_D2_C4: 2
+        } as Record<string, number | 'VT' | null>
+      }
     },
     {
-      tt: 3,
-      maSv: 'SV003C',
-      hoTen: 'Sinh Viên C (làm mọi đề)',
-      //Không khai maDe => coi như ALL
-      diemCacCot: {
-        CC: 5,
-        GK_D1_C1: 2,
-        GK_D1_C2: 2,
-        GK_D1_C3: 2,
-        GK_D1_C4: 2,
-        GK_D2_C1: 2.5,
-        GK_D2_C2: 2.5,
-        GK_D2_C3: 2.5,
-        GK_D2_C4: 2.5
-      } as Record<string, number | 'VT' | null>
+      student: {
+        tt: 3,
+        maSv: 'SV003C',
+        ho: 'Sinh Viên',
+        ten: 'C',
+        hoTen: 'Sinh Viên C (làm mọi đề)'
+      },
+      scores: {
+        //Không khai maDe => coi như ALL
+        diemCacCot: {
+          CC: 5,
+          GK_D1_C1: 2,
+          GK_D1_C2: 2,
+          GK_D1_C3: 2,
+          GK_D1_C4: 2,
+          GK_D2_C1: 2.5,
+          GK_D2_C2: 2.5,
+          GK_D2_C3: 2.5,
+          GK_D2_C4: 2.5
+        } as Record<string, number | 'VT' | null>
+      }
     }
   ]
 }

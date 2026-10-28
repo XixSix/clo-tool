@@ -12,13 +12,13 @@
 
 import ExcelJS from 'exceljs'
 import { numberToWordsVi } from '../utils/numberToWordsVi'
-import { computeAttendanceScores } from '../calculator/attendanceCalculator'
+import { computeAttendanceScores } from '../calculator'
 import { roundHalfUp } from '../rules'
 import type {
   CourseConfig,
   EvaluationResult,
   ProcessedStudentResult,
-  RawGradesFile,
+  RawGrades,
   ValidationIssue
 } from '../types'
 import { renderBarChartPng } from './chartRenderer'
@@ -197,7 +197,7 @@ function buildCloGradeSheet(
     const tbc = tbcOfPhase(config, st, phase, activeCodes)
     row.getCell(tbcStart).value = tbc.value ?? ''
     row.getCell(tbcStart + 1).value = tbc.words ?? ''
-    row.getCell(tbcStart + 2).value = st.warnings.length > 0 ? 'Có cảnh báo' : ''
+    row.getCell(tbcStart + 2).value = st.issues.length > 0 ? 'Có cảnh báo' : ''
 
     for (let c = 1; c <= colCount; c++) {
       const cell = row.getCell(c)
@@ -234,7 +234,7 @@ function buildCourseGradeSheet(
   wb: ExcelJS.Workbook,
   config: CourseConfig,
   result: EvaluationResult,
-  rawFile: RawGradesFile | undefined,
+  rawFile: RawGrades | undefined,
   ctx: ReportContext
 ): void {
   const ws = wb.addWorksheet('BANG_DIEM_HOC_VU')
@@ -591,8 +591,8 @@ function buildWarningSheet(
     if (st.hasMissingData) {
       pushRow('warning', st.maSv, `SV ${st.hoTen} (${st.maSv}) còn ô điểm chưa nhập.`)
     }
-    for (const warning of st.warnings) {
-      pushRow('warning', st.maSv, `SV ${st.hoTen} (${st.maSv}): ${warning}`)
+    for (const issue of st.issues) {
+      pushRow('warning', st.maSv, `SV ${st.hoTen} (${st.maSv}): ${issue.message}`)
     }
     for (const [clo, score] of Object.entries(st.cloScores)) {
       if (score < config.quyTac.nguong_dat_clo) {
@@ -617,7 +617,7 @@ export function buildFinalGradesWorkbook(
   options: {
     phase?: Phase | 'both'
     context?: ReportContext
-    rawFile?: RawGradesFile
+    rawFile?: RawGrades
     issues?: ValidationIssue[]
   } = {}
 ): ExcelJS.Workbook {
@@ -649,7 +649,7 @@ export async function writeFinalGradesReport(
   options: {
     phase?: Phase | 'both'
     context?: ReportContext
-    rawFile?: RawGradesFile
+    rawFile?: RawGrades
     issues?: ValidationIssue[]
   } = {}
 ): Promise<void> {

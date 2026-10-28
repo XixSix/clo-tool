@@ -18,11 +18,11 @@ import {
   writeRawGradesTemplate
 } from '@core/index'
 import { buildMockClass, buildMockConfig, MOCK_SESSION_LABELS } from './fixtures/mockClass'
-import type { CourseConfig, EvaluationResult, RawGradesFile } from '@core/types'
+import type { CourseConfig, EvaluationResult, RawGrades } from '@core/types'
 
 let dir: string
 let config: CourseConfig
-let rawFile: RawGradesFile
+let rawFile: RawGrades
 let result: EvaluationResult
 
 beforeAll(async () => {
@@ -116,7 +116,7 @@ describe('Pipeline end-to-end: Config + Điểm thô → Kết quả', () => {
   it('SV thiếu dữ liệu được gắn cờ và có cảnh báo', () => {
     const st = result.students[6]
     expect(st.hasMissingData).toBe(true)
-    expect(st.warnings.length).toBeGreaterThan(0)
+    expect(st.issues.length).toBeGreaterThan(0)
   })
 
   it('câu trống = 0 điểm câu, ô vẫn được tính (Quyết định #9 cấp câu)', () => {
