@@ -16,14 +16,14 @@ import {
   classifyDiscrimination,
   classifyReliability,
   roundHalfUp
-} from '../rules'
+} from '../../rules'
 import type {
   CourseConfig,
   ExamPsychometrics,
   ItemPsychometrics,
   QuestionColumn,
   RawStudentRow
-} from '../types'
+} from '../../types'
 
 export interface QuestionAggregated {
   cau: string
@@ -78,7 +78,7 @@ export function extractValidStudentMatrix(
     for (const q of aggQuestions) {
       let qScore = new Decimal(0)
       for (const col of q.cotGoc) {
-        const raw = st.diemCacCot[col]
+        const raw = st.scores.diemCacCot[col]
         if (raw === 'VT' || raw === null || raw === undefined) {
           isAbsentOrInvalid = true
           break
@@ -94,7 +94,7 @@ export function extractValidStudentMatrix(
     } else {
       const total = scores.reduce((sum, s) => sum.add(s), new Decimal(0)).toNumber()
       validStudents.push({
-        maSv: st.maSv,
+        maSv: st.student.maSv,
         scores,
         totalScore: total
       })
@@ -236,7 +236,10 @@ export function calculateAllExamPsychometrics(
       maDe === 'ALL'
         ? students
         : students.filter(
-            (st) => (st.maDe ?? 'ALL') === maDe || st.maDe === undefined || st.maDe === 'ALL'
+            (st) =>
+              (st.scores.maDe ?? 'ALL') === maDe ||
+              st.scores.maDe === undefined ||
+              st.scores.maDe === 'ALL'
           )
 
     results.push(

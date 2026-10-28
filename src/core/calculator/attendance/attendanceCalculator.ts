@@ -8,15 +8,8 @@
  * - Ký hiệu lạ (không có trong sheet DIEM_DANH) → cảnh báo, tính hệ số 0.
  */
 
-import type {
-  AttendanceRecord,
-  AttendanceRule,
-  AttendanceScore,
-  CourseConfig,
-  RawGradesFile,
-  ValidationIssue
-} from '../types'
-import { roundHalfUp } from '../rules'
+import type { AttendanceRecord, AttendanceRule, AttendanceScore, ValidationIssue } from '../../types'
+import { roundHalfUp } from '../../rules'
 
 export interface AttendanceComputeResult {
   scores: AttendanceScore[]
@@ -77,45 +70,4 @@ export function computeAttendanceScores(
   }
 
   return { scores, byMaSv, issues }
-}
-
-export interface ApplyAttendanceResult {
-  file: RawGradesFile
-  issues: ValidationIssue[]
-}
-
-/**
- * Gắn điểm chuyên cần vừa tính vào cột điểm tương ứng của từng sinh viên.
- * Mặc định cột là "CC"; nếu file đã có điểm CC thủ công thì điểm tính từ điểm danh được ưu tiên
- * và lệch >= 0.1 sẽ sinh cảnh báo để giảng viên đối chiếu.
- */
-export function applyAttendance(
-  file: RawGradesFile,
-  config: CourseConfig,
-  columnCode = 'CC'
-): ApplyAttendanceResult {
-  const rules = config.diemDanh
-  if (!rules || rules.length === 0 || file.attendanceSessions.length === 0) {
-    return { file, issues: [] }
-  }
-
-  const { byMaSv, issues } = computeAttendanceScores(file.attendance, rules)
-  const students = file.students.map((st) => {
-    const score = byMaSv[st.maSv]
-    if (score === undefined) return st
-    const current = st.diemCacCot[columnCode]
-    if (typeof current === 'number' && Math.abs(current - score) >= 0.1) {
-      issues.push({
-        level: 'warning',
-        message: `SV ${st.maSv}: điểm ${columnCode} nhập tay (${current}) lệch với điểm danh tự tính (${score}).`,
-        suggestion: 'App dùng điểm tính từ điểm danh; kiểm tra lại nếu muốn giữ điểm nhập tay.'
-      })
-    }
-    return {
-      ...st,
-      diemCacCot: { ...st.diemCacCot, [columnCode]: score }
-    }
-  })
-
-  return { file: { ...file, students }, issues }
 }

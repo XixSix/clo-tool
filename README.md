@@ -130,11 +130,12 @@ src/
   core/               # Engine thuần TypeScript, không import Electron/React
     types/            # Kiểu dữ liệu theo miền (course, student, result, …)
     io/               # Đọc Config / điểm thô, sinh template Excel
-    calculator/       # Điểm ô → CLO → nhóm → điểm học phần, thống kê lớp
+    calculator/       # Bộ tính toán cốt lõi (attendance, clo, plo, psychometrics)
+      attendance/     # Điểm chuyên cần từ ký hiệu điểm danh
+      clo/            # Điểm ô → CLO → nhóm → điểm học phần, thống kê lớp
+      plo/            # Điểm thành phần và thống kê PLO
+      psychometrics/  # Kiểm định đề thi (p, d, Cronbach α)
     exporter/         # Xuất Excel + biểu đồ PNG
-    attendance.ts     # Điểm chuyên cần từ ký hiệu điểm danh
-    validator.ts      # Mục V – kiểm tra hợp lệ dữ liệu
-    psychometrics.ts  # p, d, α, α nếu bỏ câu
   main/               # Electron main + IPC xử lý file
   preload/            # Cầu nối an toàn ra window.api
   renderer/           # Giao diện React

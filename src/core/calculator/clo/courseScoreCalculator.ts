@@ -1,17 +1,16 @@
 /**
- * Module tính điểm học phần (C_hp) và điểm PLO thành phần
+ * Module tính điểm học phần (C_hp)
  * Hỗ trợ 2 phương pháp: QD450 và RAW_POINTS, đối soát cảnh báo chênh lệch
  */
 
 import Decimal from 'decimal.js'
-import { roundStep } from '../rules'
+import { roundStep } from '../../rules'
 import type {
   AssessmentGroup,
   CellScoreDetail,
   CourseConfig,
-  GroupScoreDetail,
-  PLOMapping
-} from '../types'
+  GroupScoreDetail
+} from '../../types'
 
 export interface CourseScoreCalculationResult {
   courseScore: number
@@ -81,43 +80,5 @@ export function calculateCourseScores(
   }
 }
 
-/**
- * Tính điểm PLO thành phần từ ma trận ánh xạ CLO -> PLO
- */
-export function calculatePloScores(
-  maTranPlo: PLOMapping[],
-  cloScores: Record<string, number>,
-  mode: 'chain' | 'final_only' = 'chain'
-): Record<string, number> {
-  const ploMap = new Map<string, string[]>()
-  for (const mRow of maTranPlo) {
-    const list = ploMap.get(mRow.plo) ?? []
-    if (!list.includes(mRow.clo)) {
-      list.push(mRow.clo)
-    }
-    ploMap.set(mRow.plo, list)
-  }
-
-  const ploScores: Record<string, number> = {}
-  for (const [ploCode, cloList] of ploMap.entries()) {
-    let sumPlo = new Decimal(0)
-    let countPlo = 0
-
-    for (const cloCode of cloList) {
-      const sc = cloScores[cloCode]
-      if (sc !== undefined) {
-        sumPlo = sumPlo.add(sc)
-        countPlo++
-      }
-    }
-
-    if (countPlo > 0) {
-      const rawPlo = sumPlo.div(countPlo).toNumber()
-      ploScores[ploCode] = roundStep(rawPlo, mode, 1)
-    } else {
-      ploScores[ploCode] = 0
-    }
-  }
-
-  return ploScores
-}
+// Re-export calculatePloScores cho tương thích ngược
+export { calculatePloScores } from '../plo'

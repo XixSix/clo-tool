@@ -4,12 +4,18 @@
  */
 
 import Decimal from 'decimal.js'
-import { roundStep } from '../rules'
-import type { CellScoreDetail, CourseConfig, QuestionColumn, RawStudentRow } from '../types'
+import { roundStep } from '../../rules'
+import type {
+  CellScoreDetail,
+  CourseConfig,
+  QuestionColumn,
+  RawStudentRow,
+  ValidationIssue
+} from '../../types'
 
 export interface CellCalculationContext {
   cellScores: Record<string, CellScoreDetail>
-  warnings: string[]
+  issues: ValidationIssue[]
   hasMissingData: boolean
   isAbsentFinal: boolean
 }
@@ -26,7 +32,7 @@ export function calculateCellScores(
   const mode = rules.rounding_mode ?? 'chain'
 
   const cellScores: Record<string, CellScoreDetail> = {}
-  const warnings: string[] = []
+  const issues: ValidationIssue[] = []
   let hasMissingData = false
   let isAbsentFinal = false
 
@@ -35,7 +41,7 @@ export function calculateCellScores(
     // Lọc câu hỏi theo mã đề của SV: câu maDe 'ALL' áp dụng cho mọi SV;
     // SV có mã đề riêng chỉ tính câu của đề đó; SV maDe 'ALL' (làm mọi đề)
     // được tính với mọi câu. Nhất quán với cách psychometrics lọc SV theo đề.
-    const studentDe = student.maDe ?? 'ALL'
+    const studentDe = student.scores.maDe ?? 'ALL'
     const questions = (cellQuestionsMap.get(cellKey) ?? []).filter((q) => {
       const qDe = q.maDe ?? 'ALL'
       return qDe === 'ALL' || studentDe === 'ALL' || qDe === studentDe
@@ -43,7 +49,7 @@ export function calculateCellScores(
 
     if (questions.length === 0) {
       // Cột điểm trực tiếp (ví dụ CC hoặc TH thang 10)
-      const rawVal = student.diemCacCot[p.maDauDiem]
+      const rawVal = student.scores.diemCacCot[p.maDauDiem]
       if (rawVal === 'VT') {
         if (p.nhom === 'CK') isAbsentFinal = true
         cellScores[cellKey] = {
@@ -60,7 +66,10 @@ export function calculateCellScores(
         // Quyết định #9: thiếu điểm coi như 0 nhưng vẫn giữ trọng số trong mẫu số
         // (nhất quán với mức điểm nhóm; vẫn gắn cờ + cảnh báo để QLCL soát)
         hasMissingData = true
-        warnings.push(`Chưa nhập điểm cho đầu điểm ${p.maDauDiem} (tính 0)`)
+        issues.push({
+          level: 'warning',
+          message: `Chưa nhập điểm cho đầu điểm ${p.maDauDiem} (tính 0)`
+        })
         cellScores[cellKey] = {
           maDauDiem: p.maDauDiem,
           maClo: p.clo,
@@ -99,7 +108,7 @@ export function calculateCellScores(
     for (const q of questions) {
       colCodes.push(q.maCotDiem)
       totalMaxDec = totalMaxDec.add(q.diemToiDa)
-      const rawScore = student.diemCacCot[q.maCotDiem]
+      const rawScore = student.scores.diemCacCot[q.maCotDiem]
 
       if (rawScore === 'VT') {
         cellHasVT = true
@@ -134,7 +143,10 @@ export function calculateCellScores(
       // vào trung bình ở trên; sẽ tính như bình thường bên dưới, chỉ thêm cờ +
       // cảnh báo để QLCL soát dữ liệu thiếu
       hasMissingData = true
-      warnings.push(`Thiếu dữ liệu ở một số câu của ${p.maDauDiem} (${p.clo}) — câu trống tính 0`)
+       issues.push({
+         level: 'warning',
+         message: `Thiếu dữ liệu ở một số câu của ${p.maDauDiem} (${p.clo}) — câu trống tính 0`
+       })
       let rawCalculatedScore = 0
       if (rules.clo_bo_phan === 'mean_of_ratios') {
         // QĐ450 Điều 9.3: s = (1/n) * sum(d_i / t_i) * 10
@@ -191,7 +203,7 @@ export function calculateCellScores(
 
   return {
     cellScores,
-    warnings,
+    issues,
     hasMissingData,
     isAbsentFinal
   }

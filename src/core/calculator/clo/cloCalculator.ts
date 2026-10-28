@@ -2,10 +2,11 @@
  * Orchestrator Điều phối Tính toán Điểm CLO, TBC CLO, Điểm Học phần và PLO
  * Quy chuẩn: Đại học Thành Đông (QĐ 450/QĐ-ĐHTĐ ngày 07/8/2024)
  *
- * File này đóng vai trò orchestrator, tập hợp các sub-calculators cùng thư mục:
+ * File này đóng vai trò orchestrator, tập hợp các sub-calculators:
  * - cellScoreCalculator: Tính điểm ô s(j,k)
  * - cloScoreCalculator: Tính CLO cả học phần, quá trình, cuối kỳ, TBC CLO, điểm nhóm
- * - courseScoreCalculator: Tính điểm học phần (QD450 & RAW_POINTS), PLO
+ * - courseScoreCalculator: Tính điểm học phần (QD450 & RAW_POINTS)
+ * - ploCalculator: Tính điểm và thống kê PLO
  * - studentCalculator: Đánh giá cho 1 sinh viên
  * - classSummaryCalculator: Thống kê tổng hợp toàn lớp
  */
@@ -17,7 +18,7 @@ import type {
   EvaluationResult,
   ProcessedStudentResult,
   RawStudentRow
-} from '../types'
+} from '../../types'
 
 /**
  * Tính toán toàn bộ điểm số học phần, CLO, TBC CLO và PLO cho danh sách sinh viên

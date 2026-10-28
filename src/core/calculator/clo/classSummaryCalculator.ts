@@ -3,14 +3,14 @@
  */
 
 import Decimal from 'decimal.js'
-import { roundHalfUp } from '../rules'
+import { roundHalfUp } from '../../rules'
+import { calculatePloStats } from '../plo'
 import type {
   ClassEvaluationSummary,
   CloStat,
   CourseConfig,
-  PloStat,
   ProcessedStudentResult
-} from '../types'
+} from '../../types'
 
 /**
  * Thống kê tỷ lệ Đạt/Không đạt, Min, Max, TB cho từng CLO, PLO và điểm HP toàn lớp
@@ -56,30 +56,8 @@ export function calculateClassSummary(
     }
   }
 
-  // Thống kê từng PLO
-  const ploSet = new Set(config.maTranPlo.map((p) => p.plo))
-  const ploStats: Record<string, PloStat> = {}
-  for (const ploCode of ploSet) {
-    const scores = students.map((s) => s.ploScores[ploCode] ?? 0)
-
-    const passedCount = scores.filter((s) => s >= rules.nguong_dat_plo).length
-    const failedCount = totalStudents - passedCount
-    const passedPercent =
-      totalStudents > 0 ? roundHalfUp((passedCount / totalStudents) * 100, 1) : 0
-    const failedPercent = totalStudents > 0 ? roundHalfUp(100 - passedPercent, 1) : 0
-
-    const sumScore = scores.reduce((acc, s) => acc.add(s), new Decimal(0))
-    const mean = totalStudents > 0 ? roundHalfUp(sumScore.div(totalStudents).toNumber(), 1) : 0
-
-    ploStats[ploCode] = {
-      plo: ploCode,
-      passedCount,
-      passedPercent,
-      failedCount,
-      failedPercent,
-      mean
-    }
-  }
+  // Thống kê từng PLO (uỷ nhiệm cho module plo)
+  const ploStats = calculatePloStats(config.maTranPlo, students, rules.nguong_dat_plo)
 
   // Thống kê Điểm học phần
   const courseScores = students.map((s) => s.courseScore)

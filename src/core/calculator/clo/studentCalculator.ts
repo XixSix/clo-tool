@@ -4,8 +4,14 @@
 
 import { calculateCellScores } from './cellScoreCalculator'
 import { calculateCloScores, calculateGroupScores, calculateTbcClo } from './cloScoreCalculator'
-import { calculateCourseScores, calculatePloScores } from './courseScoreCalculator'
-import type { CourseConfig, ProcessedStudentResult, QuestionColumn, RawStudentRow } from '../types'
+import { calculateCourseScores } from './courseScoreCalculator'
+import { calculatePloScores } from '../plo'
+import type {
+  CourseConfig,
+  ProcessedStudentResult,
+  QuestionColumn,
+  RawStudentRow
+} from '../../types'
 
 /**
  * Tính toán đầy đủ tất cả các chỉ số (cell scores, CLO, TBC CLO, điểm HP, PLO) cho 1 sinh viên
@@ -18,7 +24,7 @@ export function evaluateStudent(
   const mode = config.quyTac.rounding_mode ?? 'chain'
 
   // Bước 1: Tính s(j,k) cho từng ô
-  const { cellScores, warnings, hasMissingData, isAbsentFinal } = calculateCellScores(
+  const { cellScores, issues, hasMissingData, isAbsentFinal } = calculateCellScores(
     student,
     config,
     cellQuestionsMap
@@ -47,18 +53,18 @@ export function evaluateStudent(
   } = calculateCourseScores(config, cellScores, groupScores, sumWeightedClo, sumCloWeights)
 
   if (scoreDifferenceWarning) {
-    warnings.push(scoreDifferenceWarning)
+    issues.push({ level: 'warning', message: scoreDifferenceWarning })
   }
 
   // Bước 6: Tính điểm PLO thành phần
   const ploScores = calculatePloScores(config.maTranPlo, cloScores, mode)
 
   return {
-    tt: student.tt,
-    maSv: student.maSv,
-    hoTen: student.hoTen,
-    ngaySinh: student.ngaySinh,
-    maDe: student.maDe,
+    tt: student.student.tt,
+    maSv: student.student.maSv,
+    hoTen: student.student.hoTen,
+    ngaySinh: student.student.ngaySinh,
+    maDe: student.scores.maDe,
     cellScores,
     processCloScores,
     finalCloScores,
@@ -75,6 +81,6 @@ export function evaluateStudent(
     isPassedHp,
     isAbsentFinal,
     hasMissingData,
-    warnings
+    issues
   }
 }

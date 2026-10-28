@@ -4,8 +4,8 @@
  */
 
 import Decimal from 'decimal.js'
-import { numberToWordsVi } from '../utils/numberToWordsVi'
-import { roundStep } from '../rules'
+import { numberToWordsVi } from '../../utils/numberToWordsVi'
+import { roundStep } from '../../rules'
 import type {
   AssessmentGroup,
   CellScoreDetail,
@@ -13,7 +13,7 @@ import type {
   CourseConfig,
   EvaluationPlanItem,
   GroupScoreDetail
-} from '../types'
+} from '../../types'
 
 export interface CloCalculationResult {
   cloScores: Record<string, number>
