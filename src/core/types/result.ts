@@ -4,6 +4,7 @@
  */
 
 import type { AssessmentGroup, CourseConfig } from './course'
+import type { ValidationIssue } from './validation'
 
 // ==========================================
 // 1. ĐIỂM CHI TIẾT TỪNG Ô & NHÓM
@@ -70,7 +71,7 @@ export interface ProcessedStudentResult {
   isPassedHp: boolean
   isAbsentFinal: boolean
   hasMissingData: boolean
-  warnings: string[]
+  issues: ValidationIssue[]
 }
 
 // ==========================================
@@ -121,4 +122,15 @@ export interface EvaluationResult {
   students: ProcessedStudentResult[]
   summary: ClassEvaluationSummary
   config: CourseConfig
+}
+
+/** Kết quả tính điểm chuyên cần từ ký hiệu điểm danh */
+export interface AttendanceScore {
+  maSv: string
+  /** Điểm chuyên cần thang 10 */
+  score: number
+  soBuoi: number
+  soVangKhongPhep: number
+  soVangCoPhep: number
+  symbolsLa: string[]
 }
