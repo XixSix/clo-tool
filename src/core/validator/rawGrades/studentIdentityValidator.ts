@@ -2,15 +2,14 @@
  * Validate thông tin định danh của từng sinh viên trong file điểm thô.
  */
 
-import type { RawStudentRow, ValidationIssue } from '../../types'
+import type { StudentInfo, ValidationIssue } from '../../types'
 
 export function validateStudentIdentity(
-  student: RawStudentRow,
-  index: number,
+  student: StudentInfo,
+  row: number,
   seenMaSv: Set<string>
 ): ValidationIssue[] {
   const issues: ValidationIssue[] = []
-  const row = student.excelRow ?? index + 1
 
   if (!student.maSv || student.maSv.startsWith('__MISSING_')) {
     issues.push({ level: 'error', row, column: 'Mã SV', message: 'Thiếu Mã SV.' })

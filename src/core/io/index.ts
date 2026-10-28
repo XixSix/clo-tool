@@ -4,7 +4,7 @@
  * Tiện ích Excel thuần (đọc ô, mở workbook, dò tiêu đề) nằm ở `../utils/excel`.
  *
  * - configParser: parse Template_Config.xlsx → CourseConfig
- * - rawGradesParser: parse Template_DiemTho.xlsx → RawGradesFile
+ * - rawGradesParser: parse Template_DiemTho.xlsx → RawGrades
  * - configTemplateGenerator: sinh Template_Config.xlsx
  * - rawGradesTemplateGenerator: sinh Template_DiemTho.xlsx
  */

@@ -7,20 +7,21 @@
  * - classValidator: ngưỡng cỡ mẫu, cột điểm danh
  */
 
-import type { CourseConfig, RawGradesFile, ValidationIssue } from '../../types'
+import type { CourseConfig, RawGrades, ValidationIssue } from '../../types'
 import { validateRawClass } from './classValidator'
 import { buildMaxScoreByColumn, validateStudentScores } from './scoreCellValidator'
 import { validateStudentIdentity } from './studentIdentityValidator'
 
-export function validateRawGrades(config: CourseConfig, file: RawGradesFile): ValidationIssue[] {
+export function validateRawGrades(config: CourseConfig, file: RawGrades): ValidationIssue[] {
   const issues: ValidationIssue[] = []
   const maxScoreByColumn = buildMaxScoreByColumn(config)
   const seenMaSv = new Set<string>()
 
   // Giữ thứ tự issue cũ: từng SV check định danh trước, rồi mới check điểm
   file.students.forEach((student, index) => {
-    issues.push(...validateStudentIdentity(student, index, seenMaSv))
-    issues.push(...validateStudentScores(student, index, maxScoreByColumn))
+    const row = file.studentExcelRows?.[index] ?? student.student.tt ?? index + 1
+    issues.push(...validateStudentIdentity(student.student, row, seenMaSv))
+    issues.push(...validateStudentScores(student, row, maxScoreByColumn))
   })
 
   issues.push(...validateRawClass(config, file))

@@ -106,23 +106,22 @@ export function buildRawGradesWorkbook(
   let rowNumber = maxRow + 1
   for (const [idx, st] of students.entries()) {
     const row = ws.getRow(rowNumber)
-    const nameParts = st.hoTen.trim().split(/\s+/)
-    const ten = nameParts.pop() ?? ''
-    const ho = nameParts.join(' ')
+    const ho = st.student.ho || ''
+    const ten = st.student.ten || ''
 
-    row.getCell(1).value = st.tt || idx + 1
-    row.getCell(2).value = st.maSv
+    row.getCell(1).value = st.student.tt || idx + 1
+    row.getCell(2).value = st.student.maSv
     row.getCell(2).numFmt = '@'
     row.getCell(3).value = ho
     row.getCell(4).value = ten
-    row.getCell(5).value = st.ngaySinh ?? ''
+    row.getCell(5).value = st.student.ngaySinh ?? ''
 
-    const symbols = options.attendance?.[st.maSv] ?? {}
+    const symbols = options.attendance?.[st.student.maSv] ?? {}
     sessions.forEach((s, sIdx) => {
       row.getCell(6 + sIdx).value = symbols[s.label] ?? ''
     })
     scoreColumns.forEach((maCot, cIdx) => {
-      const value = st.diemCacCot[maCot]
+      const value = st.scores.diemCacCot[maCot]
       row.getCell(scoreStart + cIdx + 1).value = value === null || value === undefined ? '' : value
       row.getCell(scoreStart + cIdx + 1).fill = {
         type: 'pattern',
@@ -130,7 +129,7 @@ export function buildRawGradesWorkbook(
         fgColor: { argb: INPUT_FILL }
       }
     })
-    row.getCell(colCount).value = st.ghiChu ?? ''
+    row.getCell(colCount).value = st.scores.ghiChu ?? ''
 
     for (let c = 1; c <= colCount; c++) {
       const cell = row.getCell(c)

@@ -7,7 +7,7 @@ import {
   writeExamAnalysisReport,
   writeFinalGradesReport
 } from '@core/index'
-import type { EvaluationResult, RawGradesFile, ValidationIssue } from '@core/types'
+import type { EvaluationResult, RawGrades, ValidationIssue } from '@core/types'
 import type { CloStatDto, ExamSummaryDto, RunResultDto } from '../../shared/ipc'
 import { errorMessage, hasErrors, toIssueDto } from './common'
 import { loadConfig, loadRawGrades } from './loaders'
@@ -47,7 +47,7 @@ export function registerPipelineHandlers(): void {
 
       try {
         const raw = await loadRawGrades(loaded.config, rawPath)
-        const rawFile: RawGradesFile = raw.file
+        const rawFile: RawGrades = raw.file
         const issues: ValidationIssue[] = [...loaded.issues, ...raw.issues]
         if (hasErrors(issues)) {
           return {

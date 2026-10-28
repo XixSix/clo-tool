@@ -30,10 +30,10 @@ export function registerRawGradesHandlers(): void {
             .map((plan) => plan.maDauDiem)
         )
         const missingDataCount = raw.file.students.filter((student) =>
-          Object.values(student.diemCacCot).some((value) => value === null)
+          Object.values(student.scores.diemCacCot).some((value) => value === null)
         ).length
         const absentFinalCount = raw.file.students.filter((student) =>
-          Object.entries(student.diemCacCot).some(
+          Object.entries(student.scores.diemCacCot).some(
             ([code, value]) => ckCodes.has(code) && value === 'VT'
           )
         ).length

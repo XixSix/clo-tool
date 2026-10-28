@@ -1,5 +1,5 @@
 /**
- * Đọc file điểm thô của lớp (.xlsx) → RawGradesFile.
+ * Đọc file điểm thô của lớp (.xlsx) → RawGrades.
  *
  * Mỗi phần việc nằm trong một module riêng:
  * - metaParser: thông tin lớp
@@ -14,7 +14,7 @@
  * sẽ ném `RawGradesParseError` thay vì trả về issue cho validator.
  */
 
-import type { CourseConfig, RawGradesFile } from '../../types'
+import type { CourseConfig, RawGrades } from '../../types'
 import { findSheet, readWorkbook } from '../../utils/excel'
 import { parseAttendanceColumns } from './attendanceParser'
 import { RawGradesParseError } from './errors'
@@ -28,7 +28,7 @@ export * from './errors'
 export async function parseRawGrades(
   filePath: string,
   config: CourseConfig
-): Promise<RawGradesFile> {
+): Promise<RawGrades> {
   const wb = await readWorkbook(filePath)
   const ws = findSheet(wb, 'NHAP_LIEU') ?? findSheet(wb, 'NHAP_LIEU_GV') ?? wb.worksheets[0]
 
@@ -67,6 +67,7 @@ export async function parseRawGrades(
     students: rows.students,
     attendance: rows.attendance,
     attendanceSessions: sessions,
-    declaredMaxScores: maxScores.scores
+    declaredMaxScores: maxScores.scores,
+    studentExcelRows: rows.studentExcelRows
   }
 }

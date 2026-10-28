@@ -2,9 +2,9 @@
  * Validate các chỉ tiêu ở mức toàn lớp của file điểm thô.
  */
 
-import type { CourseConfig, RawGradesFile, ValidationIssue } from '../../types'
+import type { CourseConfig, RawGrades, ValidationIssue } from '../../types'
 
-export function validateRawClass(config: CourseConfig, file: RawGradesFile): ValidationIssue[] {
+export function validateRawClass(config: CourseConfig, file: RawGrades): ValidationIssue[] {
   const issues: ValidationIssue[] = []
 
   if (file.students.length < config.quyTac.nguong_co_mau_n) {

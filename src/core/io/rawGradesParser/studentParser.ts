@@ -26,6 +26,7 @@ export function parseStudentRows({
 }: ParseStudentRowsOptions): ParsedStudentRows {
   const students: RawStudentRow[] = []
   const attendance: AttendanceRecord[] = []
+  const studentExcelRows: number[] = []
 
   for (let r = firstStudentRow; r <= ws.rowCount; r++) {
     const row = ws.getRow(r)
@@ -34,13 +35,22 @@ export function parseStudentRows({
     const ho = cellText(columnCell(row, mapping, 'Ho')).trim()
     const ten = cellText(columnCell(row, mapping, 'Ten')).trim()
     const hoTenFull = cellText(columnCell(row, mapping, 'Ho_Ten')).trim()
-    const hoTen = hoTenFull || [ho, ten].filter(Boolean).join(' ')
+    let finalHo = ho
+    let finalTen = ten
+    let finalHoTen = hoTenFull
+    if (!finalHoTen) {
+      finalHoTen = [ho, ten].filter(Boolean).join(' ')
+    } else if (!finalTen) {
+      const parts = finalHoTen.split(/\s+/)
+      finalTen = parts.length > 1 ? parts.pop()! : finalHoTen
+      finalHo = parts.join(' ')
+    }
 
     // Dòng ghi chú/hướng dẫn thường là ô gộp: bỏ qua, không coi là sinh viên
     if (maSvCell?.isMerged) continue
-    if (!maSv && !hoTen) continue
+    if (!maSv && !finalHoTen) continue
 
-    const diemCacCot: RawStudentRow['diemCacCot'] = {}
+    const diemCacCot: RawStudentRow['scores']['diemCacCot'] = {}
     const invalidCells: { maCot: string; raw: string }[] = []
 
     for (const maCot of scoreColumns) {
@@ -78,20 +88,26 @@ export function parseStudentRows({
     }
 
     const studentMaSv = maSv || missingMaSv(r)
+    const ttParsed = parseNumber(
+      cellText(mapping.TT !== undefined ? row.getCell(mapping.TT + 1) : row.getCell(1))
+    )
 
     students.push({
-      tt:
-        parseNumber(
-          cellText(mapping.TT !== undefined ? row.getCell(mapping.TT + 1) : row.getCell(1))
-        ) ?? students.length + 1,
-      maSv: studentMaSv,
-      hoTen,
-      ngaySinh: cellText(columnCell(row, mapping, 'Ngay_Sinh')).trim() || undefined,
-      maDe: cellText(columnCell(row, mapping, 'Ma_De')).trim() || undefined,
-      diemCacCot,
-      ghiChu: cellText(columnCell(row, mapping, 'Ghi_Chu')).trim() || undefined,
-      excelRow: r
+      student: {
+        tt: ttParsed ?? students.length + 1,
+        maSv: studentMaSv,
+        ho: finalHo,
+        ten: finalTen,
+        hoTen: finalHoTen,
+        ngaySinh: cellText(columnCell(row, mapping, 'Ngay_Sinh')).trim() || undefined
+      },
+      scores: {
+        maDe: cellText(columnCell(row, mapping, 'Ma_De')).trim() || undefined,
+        diemCacCot,
+        ghiChu: cellText(columnCell(row, mapping, 'Ghi_Chu')).trim() || undefined
+      }
     })
+    studentExcelRows.push(r)
 
     if (attendanceColumns.length > 0) {
       const symbols: Record<string, string> = {}
@@ -102,5 +118,5 @@ export function parseStudentRows({
     }
   }
 
-  return { students, attendance }
+  return { students, attendance, studentExcelRows }
 }

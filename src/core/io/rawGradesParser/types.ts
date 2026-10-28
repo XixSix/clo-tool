@@ -22,6 +22,7 @@ export interface AttendanceColumn {
 export interface ParsedStudentRows {
   students: RawStudentRow[]
   attendance: AttendanceRecord[]
+  studentExcelRows: number[]
 }
 
 /** Kết quả đọc hàng "Điểm tối đa" */

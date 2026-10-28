@@ -3,7 +3,8 @@
  */
 
 import type { AttendanceSession } from '../../types'
-import { isAttendanceHeader } from './helpers'
+import { isAttendanceHeader, isInvalidAttendanceHeader } from './helpers'
+import { RawGradesParseError } from './errors'
 import type { AttendanceColumn } from './types'
 
 export interface AttendanceColumnsResult {
@@ -16,11 +17,17 @@ export function parseAttendanceColumns(headers: string[]): AttendanceColumnsResu
   const columns: AttendanceColumn[] = []
 
   headers.forEach((header, index) => {
-    if (!isAttendanceHeader(header)) return
+    const trimmed = header.trim()
+    if (!trimmed) return
 
-    const label = header.trim()
-    sessions.push({ column: label, label })
-    columns.push({ index, label })
+    if (isAttendanceHeader(trimmed)) {
+      sessions.push({ column: trimmed, label: trimmed })
+      columns.push({ index, label: trimmed })
+    } else if (isInvalidAttendanceHeader(trimmed)) {
+      throw new RawGradesParseError(
+        `Cột điểm danh "${trimmed}" không đúng định dạng. Chỉ chấp nhận 3 định dạng: "Buổi <số>" (ví dụ Buổi 1), "Buổi <số> (<ngày>/<tháng>)" (ví dụ Buổi 1 (28/10)), hoặc "<ngày>/<tháng>" (ví dụ 28/10).`
+      )
+    }
   })
 
   return { sessions, columns }

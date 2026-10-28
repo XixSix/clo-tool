@@ -5,7 +5,7 @@ import {
   validateConfig,
   validateRawGrades
 } from '@core/index'
-import type { CourseConfig, RawGradesFile, ValidationIssue } from '@core/types'
+import type { CourseConfig, RawGrades, ValidationIssue } from '@core/types'
 
 export interface LoadedConfig {
   config?: CourseConfig
@@ -26,7 +26,7 @@ export async function loadConfig(configPath: string): Promise<LoadedConfig> {
 }
 
 export interface LoadedRawGrades {
-  file: RawGradesFile
+  file: RawGrades
   issues: ValidationIssue[]
 }
 

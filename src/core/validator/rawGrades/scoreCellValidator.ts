@@ -18,13 +18,13 @@ export function buildMaxScoreByColumn(config: CourseConfig): Map<string, number>
 
 export function validateStudentScores(
   student: RawStudentRow,
-  index: number,
+  row: number,
   maxScoreByColumn: Map<string, number>
 ): ValidationIssue[] {
   const issues: ValidationIssue[] = []
-  const row = student.excelRow ?? index + 1
+  const maSv = student.student.maSv
 
-  for (const [maCot, value] of Object.entries(student.diemCacCot)) {
+  for (const [maCot, value] of Object.entries(student.scores.diemCacCot)) {
     const max = maxScoreByColumn.get(maCot)
     if (max === undefined) continue
 
@@ -33,7 +33,7 @@ export function validateStudentScores(
         level: 'warning',
         row,
         column: maCot,
-        message: `SV ${student.maSv}: chưa nhập điểm cột "${maCot}".`
+        message: `SV ${maSv}: chưa nhập điểm cột "${maCot}".`
       })
       continue
     }
@@ -45,14 +45,14 @@ export function validateStudentScores(
         level: 'error',
         row,
         column: maCot,
-        message: `SV ${student.maSv}: điểm ${value} < 0.`
+        message: `SV ${maSv}: điểm ${value} < 0.`
       })
     } else if (value > max) {
       issues.push({
         level: 'error',
         row,
         column: maCot,
-        message: `SV ${student.maSv}: điểm ${value} > điểm tối đa ${max}.`
+        message: `SV ${maSv}: điểm ${value} > điểm tối đa ${max}.`
       })
     }
 
@@ -62,7 +62,7 @@ export function validateStudentScores(
         level: 'warning',
         row,
         column: maCot,
-        message: `SV ${student.maSv}: điểm ${value} không phải bội của 0,25.`
+        message: `SV ${maSv}: điểm ${value} không phải bội của 0,25.`
       })
     }
   }
