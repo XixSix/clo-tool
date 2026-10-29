@@ -8,9 +8,14 @@ import {
   writeFinalGradesReport
 } from '@core/index'
 import type { EvaluationResult, RawGrades, ValidationIssue } from '@core/types'
-import type { CloStatDto, ExamSummaryDto, RunResultDto } from '../../shared/ipc'
+import type { CloStatDto, ExamSummaryDto, RunResultDto, RunSnapshotDto } from '../../shared/ipc'
 import { errorMessage, hasErrors, toIssueDto } from './common'
 import { loadConfig, loadRawGrades } from './loaders'
+import { saveRunSnapshot } from './runs'
+
+function newRunId(): string {
+  return `run-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+}
 
 const emptyResult = (outputDir: string): RunResultDto => ({
   ok: false,
@@ -33,7 +38,8 @@ export function registerPipelineHandlers(): void {
       _event,
       configPath: string,
       rawPath: string,
-      outputDir: string
+      outputDir: string,
+      sessionId?: string
     ): Promise<RunResultDto> => {
       const empty = emptyResult(outputDir)
       const loaded = await loadConfig(configPath)
@@ -75,6 +81,25 @@ export function registerPipelineHandlers(): void {
         })
         await writeExamAnalysisReport(examReportPath, loaded.config, exams, issues)
 
+        // Lưu snapshot chi tiết → màn Sinh viên/Báo cáo xem lại không cần chạy lại
+        const candidateRunId = newRunId()
+        let savedRunId: string | undefined
+        try {
+          const snapshot: RunSnapshotDto = {
+            runId: candidateRunId,
+            sessionId: sessionId ?? '',
+            ts: Date.now(),
+            config: loaded.config,
+            students: result.students,
+            summary: result.summary,
+            exams
+          }
+          await saveRunSnapshot(snapshot)
+          savedRunId = candidateRunId
+        } catch (snapshotError) {
+          console.error('Không lưu được snapshot kết quả:', snapshotError)
+        }
+
         const cloStats: CloStatDto[] = loaded.config.cloList.map((clo) => {
           const stat = result.summary.cloStats[clo.maClo]
           return {
@@ -96,6 +121,7 @@ export function registerPipelineHandlers(): void {
         return {
           ok: true,
           outputDir,
+          runId: savedRunId,
           finalReportPath,
           examReportPath,
           studentCount: result.summary.totalStudents,

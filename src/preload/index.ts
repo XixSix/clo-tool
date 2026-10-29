@@ -7,10 +7,15 @@ const api: CloApi = {
   pickDirectory: () => ipcRenderer.invoke('dialog:pick-directory'),
   parseConfig: (configPath) => ipcRenderer.invoke('config:parse', configPath),
   parseRawGrades: (configPath, rawPath) => ipcRenderer.invoke('raw:parse', configPath, rawPath),
-  runPipeline: (configPath, rawPath, outputDir) =>
-    ipcRenderer.invoke('pipeline:run', configPath, rawPath, outputDir),
+  runPipeline: (configPath, rawPath, outputDir, sessionId) =>
+    ipcRenderer.invoke('pipeline:run', configPath, rawPath, outputDir, sessionId),
+  getRunSnapshot: (runId) => ipcRenderer.invoke('runs:get', runId),
+  deleteRunSnapshot: (runId) => ipcRenderer.invoke('runs:delete', runId),
+  exportPdf: (defaultName) => ipcRenderer.invoke('export:pdf', defaultName),
   createSamples: (outputDir) => ipcRenderer.invoke('samples:create', outputDir),
-  openPath: (path) => ipcRenderer.invoke('shell:open-path', path)
+  openPath: (path) => ipcRenderer.invoke('shell:open-path', path),
+  loadWorkspace: () => ipcRenderer.invoke('workspace:load'),
+  saveWorkspace: (ws) => ipcRenderer.invoke('workspace:save', ws)
 }
 
 if (process.contextIsolated) {
