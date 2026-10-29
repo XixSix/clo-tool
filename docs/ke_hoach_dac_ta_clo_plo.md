@@ -378,7 +378,7 @@ Những chỗ văn bản chưa nói rõ đã được chọn như sau. Tất c�
 | Khung dự án & build       | **electron-vite**                                      | Dựng sẵn cấu trúc main/preload/renderer, chạy thử nhanh                                |
 | Giao diện                 | **React**                                              | Các màn hình, bảng, form                                                               |
 | Bảng dữ liệu có sửa ô     | **AG Grid Community**                                  | Bảng preview điểm, sửa ô lỗi tại chỗ                                                   |
-| Biểu đồ                   | **@napi-rs/canvas** (vẽ PNG), Chart.js dự phòng cho UI | Biểu đồ trong app; xuất PNG để chèn vào Excel                                          |
+| Biểu đồ                   | **@napi-rs/canvas** (vẽ PNG), UI dùng recharts qua shadcn `chart` | Biểu đồ trong app; xuất PNG để chèn vào Excel                                          |
 | Đọc/ghi Excel             | **ExcelJS**                                            | Đọc Config và điểm thô; ghi file kết quả đúng mẫu (định dạng, tô màu, ô gộp, chèn ảnh) |
 | Làm tròn, tính toán số    | **decimal.js**                                         | Làm tròn half-up chính xác theo QĐ450                                                  |
 | Kiểm tra cấu trúc dữ liệu | **zod**                                                | Kiểm tra Config đọc vào đúng cấu trúc trước khi tính                                   |
