@@ -11,6 +11,7 @@ import { registerSampleHandlers } from './ipc/samples'
 import { registerShellHandlers } from './ipc/shell'
 import { registerWorkspaceHandlers } from './ipc/workspace'
 
+// This is a comment
 export function registerIpcHandlers(getWindow: () => BrowserWindow | null): void {
   registerDialogHandlers(getWindow)
   registerConfigHandlers()
