@@ -1,6 +1,6 @@
 import React from 'react'
 import { formatDateTime, formatPercent, formatScore } from '@renderer/lib/format'
-import type { RunHistoryEntryDto, RunSnapshotDto, SessionDto } from '../../../shared/ipc'
+import type { RunHistoryEntryDto, RunSnapshotDto, SessionDto } from '../../../../shared/ipc'
 
 function SectionTitle({ children }: { children: React.ReactNode }): React.ReactElement {
   return (

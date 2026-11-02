@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger
 } from '@renderer/components/ui/dropdown-menu'
 import { formatDateTime, formatPercent, formatScore } from '@renderer/lib/format'
-import type { RunHistoryEntryDto, SessionDto } from '../../../shared/ipc'
+import type { RunHistoryEntryDto, SessionDto } from '../../../../shared/ipc'
 
 /** Chọn lần chạy đã lưu snapshot chi tiết của môn hiện tại */
 export function RunSelector({

@@ -11,24 +11,16 @@ import {
   TableRow
 } from '@renderer/components/ui/table'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@renderer/components/ui/empty'
-import { useWorkspace } from '@renderer/lib/workspace'
-import type { RunHistoryEntryDto, SessionDto } from '../../../../shared/ipc'
-
-function timeStamp(ts: number): string {
-  return new Date(ts).toLocaleString('vi-VN', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
+import { useWorkspace } from '@renderer/hooks/workspace'
+import { formatDateTime } from '@renderer/lib/format'
+import type { RunHistoryEntryDto, SessionDto } from '../../../shared/ipc'
 
 interface MergedRow {
   session: SessionDto
   run: RunHistoryEntryDto
 }
 
+/** Bảng lịch sử chạy — dùng ở tab "Lịch sử chạy" của Báo cáo và trang chi tiết môn. */
 export function LichSu({ sessionId }: { sessionId?: string }): React.ReactElement {
   const { ws } = useWorkspace()
 
@@ -67,7 +59,9 @@ export function LichSu({ sessionId }: { sessionId?: string }): React.ReactElemen
         <TableBody>
           {rows.map(({ session, run }) => (
             <TableRow key={`${session.id}-${run.ts}`}>
-              <TableCell className="text-xs text-muted-foreground">{timeStamp(run.ts)}</TableCell>
+              <TableCell className="text-xs text-muted-foreground">
+                {formatDateTime(run.ts)}
+              </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
                   <span className="font-mono text-[13px] font-semibold">{session.maHp}</span>

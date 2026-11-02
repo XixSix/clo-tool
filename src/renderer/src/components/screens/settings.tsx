@@ -10,17 +10,9 @@ import {
 import { Button } from '@renderer/components/ui/button'
 import { Badge } from '@renderer/components/ui/badge'
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '@renderer/components/ui/field'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from '@renderer/components/ui/dialog'
-import { Separator } from '@renderer/components/ui/separator'
+import { ConfirmDialog } from '@renderer/components/confirm-dialog'
 import { useTheme } from '@renderer/lib/theme'
-import { useWorkspace } from '@renderer/lib/workspace'
+import { useWorkspace } from '@renderer/hooks/workspace'
 
 export function CaiDat(): React.ReactElement {
   const { theme, setTheme } = useTheme()
@@ -91,32 +83,19 @@ export function CaiDat(): React.ReactElement {
         </CardContent>
       </Card>
 
-      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Xoá toàn bộ môn học?</DialogTitle>
-            <DialogDescription>
-              Hành động này xóa {ws?.sessions.length ?? 0} môn cùng toàn bộ lịch sử chạy. Không thể
-              hoàn tác.
-            </DialogDescription>
-          </DialogHeader>
-          <Separator />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setConfirmOpen(false)}>
-              Giữ lại
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                ws?.sessions.forEach((s) => removeSession(s.id))
-                setConfirmOpen(false)
-              }}
-            >
-              Xoá tất cả
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Xoá toàn bộ môn học?"
+        description={
+          <>
+            Hành động này xóa {ws?.sessions.length ?? 0} môn cùng toàn bộ lịch sử chạy. Không thể
+            hoàn tác.
+          </>
+        }
+        confirmLabel="Xoá tất cả"
+        onConfirm={() => ws?.sessions.forEach((s) => removeSession(s.id))}
+      />
     </div>
   )
 }
