@@ -12,7 +12,7 @@
 
 ## Phát hành
 
-- `main` chỉ nhận merge `--ff-only` từ nhánh `release/x.y.z`; công việc hằng ngày đi vào `develop`.
+- `main` chỉ nhận **PR từ nhánh `release/x.y.z`** (ruleset `protect-main` + workflow `guard-main.yml`), không push thẳng; công việc hằng ngày đi vào `develop`.
 - Tag `vX.Y.Z` (khớp `version` trong `package.json`) kích hoạt `.github/workflows/release.yml`: chạy test, build và publish GitHub Release. Tự cập nhật trong app đọc `latest.yml` từ Release đó.
 - Auto-update chỉ chạy với bản cài `setup.exe` (`app.isPackaged`); bản `portable.exe` phải tải lại tay. Build chưa ký số nên SmartScreen có thể cảnh báo.
 - `electron-updater` là CommonJS: trong main (ESM) **phải dùng default import** (`import electronUpdater from 'electron-updater'`) rồi destructure — named import làm app crash ngay khi khởi động.

@@ -192,7 +192,9 @@ Mỗi phiên bản là **một tag `vX.Y.Z`** — tag chính là "hợp đồng"
 4. Push tag kích hoạt `.github/workflows/release.yml`: chạy test, build và đính kèm
    `CLO_PLO_Evaluator-<version>-setup.exe` (có tự cập nhật), `-portable.exe` (tải tay),
    `latest.yml` + `.blockmap` vào GitHub Release.
-5. Gộp `release/x.y.z` vào `develop` và `main` (chỉ `--ff-only`) rồi push.
+5. Gộp `release/x.y.z` vào `develop` (fast-forward), rồi mở **PR `release/x.y.z` → `main`**:
+   check `guard` phải xanh (chỉ nhận nhánh `release/x.y.z`), chọn **Rebase and merge**.
+   `main` có ruleset `protect-main` nên **không push thẳng** được.
 
 Lưu ý:
 
