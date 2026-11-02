@@ -1,0 +1,25 @@
+name: Guard main
+
+# Chặn merge vào main từ bất kỳ nhánh nào không phải release/x.y.z.
+# Kết quả job `guard` được dùng làm required status check trong ruleset protect-main.
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kiểm tra nhánh nguồn
+        shell: bash
+        run: |
+          head="${{ github.head_ref }}"
+          if [[ ! "$head" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Chỉ được merge vào main từ nhánh release/x.y.z (nhận: $head)"
+            exit 1
+          fi
+          echo "Nhánh nguồn hợp lệ: $head"
