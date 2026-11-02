@@ -184,6 +184,16 @@ export interface FilePickKind {
   kind: 'config' | 'raw'
 }
 
+/** Trạng thái tự cập nhật do main process đẩy xuống renderer */
+export interface UpdateStatusDto {
+  state: 'checking' | 'available' | 'downloading' | 'downloaded' | 'latest' | 'error'
+  /** Phiên bản tìm thấy (khi có bản mới hoặc đã tải xong) */
+  version?: string
+  /** Phần trăm đã tải (0–100) */
+  percent?: number
+  message?: string
+}
+
 /** API mà preload expose ra window.api */
 export interface CloApi {
   pickFile: (kind: FilePickKind['kind']) => Promise<string | null>
@@ -206,4 +216,12 @@ export interface CloApi {
   openPath: (path: string) => Promise<void>
   loadWorkspace: () => Promise<WorkspaceDto>
   saveWorkspace: (ws: WorkspaceDto) => Promise<void>
+  /** Phiên bản app đang chạy (đọc từ package.json) */
+  getAppVersion: () => Promise<string>
+  /** Kích hoạt kiểm tra bản cập nhật */
+  checkForUpdates: () => Promise<void>
+  /** Khởi động lại và cài bản đã tải xong */
+  installUpdate: () => Promise<void>
+  /** Đăng ký nhận trạng thái cập nhật; trả về hàm huỷ đăng ký */
+  onUpdateStatus: (listener: (status: UpdateStatusDto) => void) => () => void
 }

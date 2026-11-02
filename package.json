@@ -28,6 +28,7 @@
     "clsx": "^2.1.1",
     "cn": "^0.5.0",
     "decimal.js": "^10.4.3",
+    "electron-updater": "^6.8.11",
     "exceljs": "^4.4.0",
     "lucide-react": "^0.474.0",
     "radix-ui": "^1.8.1",

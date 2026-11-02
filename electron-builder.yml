@@ -6,6 +6,12 @@ directories:
 files:
   - out/**/*
   - resources/templates/**/*
+publish:
+  provider: github
+  owner: XixSix
+  repo: clo-tool
+  # 'release' để auto-update thấy bản mới ngay; đổi thành 'draft' nếu muốn duyệt tay
+  releaseType: release
 win:
   target:
     - target: portable

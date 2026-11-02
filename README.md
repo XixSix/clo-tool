@@ -164,4 +164,38 @@ docs/                 # Đặc tả & kế hoạch
   và chưa có thanh tab (dự kiến Tuần 3).
 - Biểu đồ trong Excel là **ảnh PNG** (ExcelJS không tạo chart gốc); số liệu nguồn vẫn nằm
   trong bảng cạnh biểu đồ.
-- Chưa đóng gói `.exe` (Tuần 4). Chạy bằng `npm run dev` hoặc `npm run build`.
+- Bản cài đặt `.exe` được build tự động trên GitHub Actions, xem mục 9.
+
+---
+
+## 9. Phát hành bản mới
+
+Mỗi phiên bản là **một tag `vX.Y.Z`** — tag chính là "hợp đồng" phát hành, không build tay.
+
+1. Làm việc trên `develop`, chạy đủ `npm run typecheck && npm run lint && npm test`.
+2. Cập nhật `CHANGELOG.md`, rồi tăng version:
+
+   ```bash
+   npm version 1.0.2 --no-git-tag-version
+   ```
+
+3. Tạo nhánh phát hành từ `develop`, commit và gắn tag:
+
+   ```bash
+   git switch -c release/1.0.2
+   git commit -am "chore(release): v1.0.2"
+   git tag -a v1.0.2 -m "CLO/PLO Evaluator v1.0.2"
+   git push -u origin release/1.0.2
+   git push origin v1.0.2
+   ```
+
+4. Push tag kích hoạt `.github/workflows/release.yml`: chạy test, build và đính kèm
+   `CLO_PLO_Evaluator-<version>-setup.exe` (có tự cập nhật), `-portable.exe` (tải tay),
+   `latest.yml` + `.blockmap` vào GitHub Release.
+5. Gộp `release/x.y.z` vào `develop` và `main` (chỉ `--ff-only`) rồi push.
+
+Lưu ý:
+
+- Tự cập nhật chỉ áp dụng cho bản **cài đặt** (`setup.exe`); bản `portable.exe` phải tải lại.
+- Build chưa ký số nên Windows SmartScreen có thể cảnh báo lần chạy đầu.
+- Workflow kiểm tra `version` trong `package.json` phải khớp tên tag, trước khi build.

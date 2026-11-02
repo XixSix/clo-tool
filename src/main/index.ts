@@ -1,11 +1,12 @@
 import { app, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { registerIpcHandlers } from './ipc'
+import { initUpdater } from './updater'
 
 let mainWindow: BrowserWindow | null = null
 
-function createWindow(): void {
-  mainWindow = new BrowserWindow({
+function createWindow(): BrowserWindow {
+  const win = new BrowserWindow({
     width: 1280,
     height: 860,
     minWidth: 1024,
@@ -20,36 +21,39 @@ function createWindow(): void {
       nodeIntegration: false
     }
   })
+  mainWindow = win
 
-  mainWindow.on('ready-to-show', () => {
-    mainWindow?.show()
+  win.on('ready-to-show', () => {
+    win.show()
   })
 
-  mainWindow.on('closed', () => {
+  win.on('closed', () => {
     mainWindow = null
   })
 
-  mainWindow.webContents.setWindowOpenHandler((details) => {
+  win.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }
   })
 
   // Load URL in dev mode or local file in prod mode
   if (process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+    win.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    win.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  return win
 }
 
 app.whenReady().then(() => {
   app.setAppUserModelId('vn.thanhdong.clo-evaluator')
   registerIpcHandlers(() => mainWindow)
 
-  createWindow()
+  initUpdater(createWindow())
 
   app.on('activate', function () {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    if (BrowserWindow.getAllWindows().length === 0) initUpdater(createWindow())
   })
 })
 

@@ -10,6 +10,13 @@
 - `npm run demo` và `npm run gen:templates` **bắt buộc chạy qua `vite.demo.config.ts`** (vite-node) vì cần alias `@core` — dùng đúng npm script, không gọi `node scripts/...` trực tiếp (script là TS + import alias).
 - Windows/PowerShell; demo in nhiều dòng debug `check ...` từ console.log còn sót trong `src/core` — bỏ qua khi đọc output.
 
+## Phát hành
+
+- `main` chỉ nhận merge `--ff-only` từ nhánh `release/x.y.z`; công việc hằng ngày đi vào `develop`.
+- Tag `vX.Y.Z` (khớp `version` trong `package.json`) kích hoạt `.github/workflows/release.yml`: chạy test, build và publish GitHub Release. Tự cập nhật trong app đọc `latest.yml` từ Release đó.
+- Auto-update chỉ chạy với bản cài `setup.exe` (`app.isPackaged`); bản `portable.exe` phải tải lại tay. Build chưa ký số nên SmartScreen có thể cảnh báo.
+- `electron-updater` là CommonJS: trong main (ESM) **phải dùng default import** (`import electronUpdater from 'electron-updater'`) rồi destructure — named import làm app crash ngay khi khởi động.
+
 ## Kiến trúc & ràng buộc cốt lõi
 
 - `src/core` là engine **thuần TypeScript, KHÔNG import Electron/React** — core phải chạy được độc lập dưới vitest / vite-node. Alias `@core` = `src/core` (đặt trong `vitest.config.ts` VÀ `vite.demo.config.ts`).

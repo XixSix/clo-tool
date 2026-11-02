@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { Moon, Sun, Trash2 } from 'lucide-react'
+import React from 'react'
+import { Moon, Sun } from 'lucide-react'
 import {
   Card,
   CardContent,
@@ -10,14 +10,14 @@ import {
 import { Button } from '@renderer/components/ui/button'
 import { Badge } from '@renderer/components/ui/badge'
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '@renderer/components/ui/field'
-import { ConfirmDialog } from '@renderer/components/confirm-dialog'
 import { useTheme } from '@renderer/lib/theme'
-import { useWorkspace } from '@renderer/hooks/workspace'
+import { useAppVersion } from '@renderer/hooks/use-app-version'
+import { DangerZone } from '@renderer/components/screens/settings/danger-zone'
+import { UpdateCard } from '@renderer/components/screens/settings/update-card'
 
 export function CaiDat(): React.ReactElement {
   const { theme, setTheme } = useTheme()
-  const { ws, removeSession } = useWorkspace()
-  const [confirmOpen, setConfirmOpen] = useState(false)
+  const version = useAppVersion()
 
   const optionRef = (next: 'light' | 'dark') => () => setTheme(next)
 
@@ -63,39 +63,16 @@ export function CaiDat(): React.ReactElement {
             Đo lường &amp; đánh giá chuẩn đầu ra học phần theo QĐ 450/QĐ-ĐHTĐ (07/8/2024)
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex items-center gap-2">
+        <CardContent className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary">Offline 100%</Badge>
-          <Badge variant="secondary">v1.0.0</Badge>
+          <Badge variant="secondary">{version ? `v${version}` : '—'}</Badge>
           <Badge variant="secondary">Đại học Thành Đông</Badge>
         </CardContent>
       </Card>
 
-      <Card className="border-destructive/40">
-        <CardHeader>
-          <CardTitle className="text-sm text-destructive">Vùng nguy hiểm</CardTitle>
-          <CardDescription>Xoá toàn bộ dữ liệu môn học đã lưu trong máy</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button variant="destructive" onClick={() => setConfirmOpen(true)}>
-            <Trash2 data-icon="inline-start" />
-            Xoá toàn bộ môn học
-          </Button>
-        </CardContent>
-      </Card>
+      <UpdateCard version={version} />
 
-      <ConfirmDialog
-        open={confirmOpen}
-        onOpenChange={setConfirmOpen}
-        title="Xoá toàn bộ môn học?"
-        description={
-          <>
-            Hành động này xóa {ws?.sessions.length ?? 0} môn cùng toàn bộ lịch sử chạy. Không thể
-            hoàn tác.
-          </>
-        }
-        confirmLabel="Xoá tất cả"
-        onConfirm={() => ws?.sessions.forEach((s) => removeSession(s.id))}
-      />
+      <DangerZone />
     </div>
   )
 }

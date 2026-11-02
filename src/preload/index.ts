@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { CloApi } from '../shared/ipc'
+import type { CloApi, UpdateStatusDto } from '../shared/ipc'
 
 // Cầu nối bảo mật an toàn giữa Main Process và Renderer
 const api: CloApi = {
@@ -15,7 +15,17 @@ const api: CloApi = {
   createSamples: (outputDir) => ipcRenderer.invoke('samples:create', outputDir),
   openPath: (path) => ipcRenderer.invoke('shell:open-path', path),
   loadWorkspace: () => ipcRenderer.invoke('workspace:load'),
-  saveWorkspace: (ws) => ipcRenderer.invoke('workspace:save', ws)
+  saveWorkspace: (ws) => ipcRenderer.invoke('workspace:save', ws),
+  getAppVersion: () => ipcRenderer.invoke('app:version'),
+  checkForUpdates: () => ipcRenderer.invoke('updater:check'),
+  installUpdate: () => ipcRenderer.invoke('updater:install'),
+  onUpdateStatus: (listener) => {
+    const handler = (_event: unknown, status: UpdateStatusDto): void => listener(status)
+    ipcRenderer.on('updater:status', handler)
+    return () => {
+      ipcRenderer.removeListener('updater:status', handler)
+    }
+  }
 }
 
 if (process.contextIsolated) {
