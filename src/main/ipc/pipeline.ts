@@ -8,6 +8,7 @@ import {
   writeFinalGradesReport
 } from '@core/index'
 import type { EvaluationResult, RawGrades, ValidationIssue } from '@core/types'
+import type { CourseConfig } from '@core/types/course'
 import type { CloStatDto, ExamSummaryDto, RunResultDto, RunSnapshotDto } from '../../shared/ipc'
 import { errorMessage, hasErrors, toIssueDto } from './common'
 import { loadConfig, loadRawGrades } from './loaders'
@@ -36,18 +37,18 @@ export function registerPipelineHandlers(): void {
     'pipeline:run',
     async (
       _event,
-      configPath: string,
+      configSource: string | CourseConfig,
       rawPath: string,
       outputDir: string,
       sessionId?: string
     ): Promise<RunResultDto> => {
       const empty = emptyResult(outputDir)
-      const loaded = await loadConfig(configPath)
+      const loaded = await loadConfig(configSource)
       if (!loaded.config || hasErrors(loaded.issues)) {
         return {
           ...empty,
           issues: loaded.issues.map(toIssueDto),
-          error: 'File Config còn lỗi. Vui lòng sửa các mục báo đỏ trước khi tính.'
+          error: 'Cấu hình môn học còn lỗi. Vui lòng sửa các mục báo đỏ trước khi tính.'
         }
       }
 

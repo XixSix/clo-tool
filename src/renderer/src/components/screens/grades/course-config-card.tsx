@@ -1,5 +1,6 @@
 import React from 'react'
-import { CheckCircle, AlertCircle, FileCog } from 'lucide-react'
+import { CheckCircle, AlertCircle, FileCog, Download } from 'lucide-react'
+import { Button } from '@renderer/components/ui/button'
 import {
   Card,
   CardHeader,
@@ -147,6 +148,26 @@ export function CourseConfigCard({ config }: CourseConfigCardProps): React.React
             </div>
           </div>
         )}
+
+        <div className="border-border/50 flex justify-end border-t pt-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              if (window.api?.exportRawGradesTemplate) {
+                const res = await window.api.exportRawGradesTemplate(config)
+                if (res.ok && res.path) {
+                  alert(`Đã xuất file Template điểm thô:\n${res.path}`)
+                } else if (res.error) {
+                  alert(`Lỗi xuất file: ${res.error}`)
+                }
+              }
+            }}
+          >
+            <Download className="mr-1 size-3.5" />
+            Tải mẫu điểm thô (.xlsx)
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )

@@ -194,14 +194,33 @@ export interface UpdateStatusDto {
   message?: string
 }
 
+export interface CourseMetaInput {
+  lop?: string
+  giangVien?: string
+}
+
+export interface StoredCourseConfig {
+  config: CourseConfig
+  meta?: CourseMetaInput
+}
+
 /** API mà preload expose ra window.api */
 export interface CloApi {
   pickFile: (kind: FilePickKind['kind']) => Promise<string | null>
   pickDirectory: () => Promise<string | null>
   parseConfig: (configPath: string) => Promise<ConfigSummaryDto>
-  parseRawGrades: (configPath: string, rawPath: string) => Promise<RawSummaryDto>
+  getCourseConfig: (sessionId: string) => Promise<StoredCourseConfig | null>
+  saveCourseConfig: (sessionId: string, data: StoredCourseConfig) => Promise<void>
+  exportRawGradesTemplate: (
+    config: CourseConfig,
+    defaultFileName?: string
+  ) => Promise<{ ok: boolean; path?: string; error?: string }>
+  parseRawGrades: (
+    configSource: string | CourseConfig,
+    rawPath: string
+  ) => Promise<RawSummaryDto>
   runPipeline: (
-    configPath: string,
+    configSource: string | CourseConfig,
     rawPath: string,
     outputDir: string,
     sessionId?: string

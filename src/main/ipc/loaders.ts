@@ -13,9 +13,14 @@ export interface LoadedConfig {
   error?: string
 }
 
-export async function loadConfig(configPath: string): Promise<LoadedConfig> {
+export async function loadConfig(
+  configSource: string | CourseConfig
+): Promise<LoadedConfig> {
+  if (typeof configSource !== 'string') {
+    return { config: configSource, issues: validateConfig(configSource) }
+  }
   try {
-    const config = await parseCourseConfig(configPath)
+    const config = await parseCourseConfig(configSource)
     return { config, issues: validateConfig(config) }
   } catch (error) {
     return {

@@ -15,7 +15,7 @@ import { registerUpdaterHandlers } from './ipc/updater'
 // This is a comment
 export function registerIpcHandlers(getWindow: () => BrowserWindow | null): void {
   registerDialogHandlers(getWindow)
-  registerConfigHandlers()
+  registerConfigHandlers(getWindow)
   registerRawGradesHandlers()
   registerPipelineHandlers()
   registerRunHandlers()

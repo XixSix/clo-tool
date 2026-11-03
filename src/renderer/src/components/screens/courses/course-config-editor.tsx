@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@renderer/components/ui/tabs'
 import { Button } from '@renderer/components/ui/button'
 import { Input } from '@renderer/components/ui/input'
@@ -26,7 +26,16 @@ import {
   CardContent
 } from '@renderer/components/ui/card'
 import { Alert, AlertDescription } from '@renderer/components/ui/alert'
-import { AlertCircle, CheckCircle, Plus, Trash2, Download, Upload, Save } from 'lucide-react'
+import {
+  AlertCircle,
+  CheckCircle,
+  Download,
+  FileSpreadsheet,
+  Plus,
+  Save,
+  Trash2,
+  Upload
+} from 'lucide-react'
 import { cn } from 'cn'
 import type {
   CourseConfig,
@@ -231,6 +240,25 @@ export function CourseConfigEditor({
     giangVien: stored?.meta?.giangVien ?? session.giangVien
   }))
 
+  useEffect(() => {
+    let active = true
+    if (window.api?.getCourseConfig) {
+      window.api.getCourseConfig(session.id).then((saved) => {
+        if (!active || !saved?.config) return
+        setConfig(withIds(saved.config))
+        if (saved.meta) {
+          setMeta({
+            lop: saved.meta.lop ?? session.lop,
+            giangVien: saved.meta.giangVien ?? session.giangVien
+          })
+        }
+      })
+    }
+    return () => {
+      active = false
+    }
+  }, [session.id, session.lop, session.giangVien])
+
   const [activeTab, setActiveTab] = useState('info-clo')
   const [saving, setSaving] = useState(false)
 
@@ -271,6 +299,9 @@ export function CourseConfigEditor({
     setSaving(true)
     try {
       const serialized = toCourseConfig(config)
+      if (window.api?.saveCourseConfig) {
+        await window.api.saveCourseConfig(session.id, { config: serialized, meta })
+      }
       sessionStorage.setItem(
         courseConfigKey(session.id),
         JSON.stringify({ config: serialized, meta })
@@ -278,6 +309,18 @@ export function CourseConfigEditor({
       onSave(serialized, meta)
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleExportRawTemplate = async (): Promise<void> => {
+    const serialized = toCourseConfig(config)
+    if (window.api?.exportRawGradesTemplate) {
+      const res = await window.api.exportRawGradesTemplate(serialized)
+      if (res.ok && res.path) {
+        alert(`Đã xuất file Template điểm thô:\n${res.path}`)
+      } else if (res.error) {
+        alert(`Lỗi xuất file: ${res.error}`)
+      }
     }
   }
 
@@ -1259,6 +1302,15 @@ export function CourseConfigEditor({
           >
             <Save className="mr-1 size-4" />
             {saving ? 'Đang lưu...' : 'Lưu cấu hình'}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleExportRawTemplate}
+            disabled={!isValid}
+            title={isValid ? 'Xuất file Excel mẫu để giảng viên nhập điểm' : 'Cần sửa các lỗi cấu hình trước khi xuất mẫu'}
+          >
+            <FileSpreadsheet className="mr-1 size-4" />
+            Xuất mẫu điểm thô (.xlsx)
           </Button>
           <Button variant="outline" onClick={handleExportJson}>
             <Download className="mr-1 size-4" />

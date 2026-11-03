@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useWorkspace } from '@renderer/hooks/workspace'
 import type { RawSummaryDto, RunResultDto, SessionDto } from '../../../shared/ipc'
 import type { CourseConfig } from '@core/types/course'
@@ -29,32 +29,51 @@ export interface ImportPipeline {
   reset: () => void
 }
 
+function loadLocalConfig(sessionId: string): CourseConfig | null {
+  const key = `course-config-${sessionId}`
+  const saved = sessionStorage.getItem(key)
+  if (!saved) return null
+  try {
+    const parsed = JSON.parse(saved) as CourseConfig | { config: CourseConfig }
+    return 'config' in parsed ? parsed.config : parsed
+  } catch {
+    return null
+  }
+}
+
 /**
  * Toàn bộ state + thao tác của luồng "Nhập điểm": chọn điểm thô → chọn thư mục → chạy.
- * Cấu hình môn học đã được nhập qua CourseConfigEditor và lưu trong sessionStorage.
- * Phase 2 sẽ chuyển sang lưu qua IPC.
+ * Cấu hình môn học được lưu trữ bền vững qua IPC userData/configs/${sessionId}.json.
  */
 export function useImportPipeline(active: SessionDto | null, bridgeReady: boolean): ImportPipeline {
   const { archiveRun, patchSession } = useWorkspace()
 
-  // Read course config from sessionStorage synchronously (derived state)
-  // This avoids useEffect + setState cascading renders
-  const getCourseConfig = (): CourseConfig | null => {
-    if (!active) return null
-    const key = `course-config-${active.id}`
-    const saved = sessionStorage.getItem(key)
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved) as CourseConfig | { config: CourseConfig }
-        return 'config' in parsed ? parsed.config : parsed
-      } catch {
-        return null
-      }
-    }
-    return null
-  }
+  const [loadedConfig, setLoadedConfig] = useState<{
+    sessionId: string
+    config: CourseConfig | null
+  } | null>(null)
 
-  const courseConfig = getCourseConfig()
+  useEffect(() => {
+    let canceled = false
+    if (!active) return
+
+    window.api?.getCourseConfig?.(active.id).then((saved) => {
+      if (canceled) return
+      const cfg = saved?.config ?? loadLocalConfig(active.id)
+      setLoadedConfig({ sessionId: active.id, config: cfg })
+    })
+
+    return () => {
+      canceled = true
+    }
+  }, [active])
+
+  const courseConfig = active
+    ? loadedConfig?.sessionId === active.id
+      ? loadedConfig.config
+      : loadLocalConfig(active.id)
+    : null
+
   const [rawPath, setRawPath] = useState(active?.rawPath ?? '')
   const [raw, setRaw] = useState<RawSummaryDto | null>(null)
   const [outDir, setOutDir] = useState(active?.outDir ?? '')
@@ -70,18 +89,11 @@ export function useImportPipeline(active: SessionDto | null, bridgeReady: boolea
     setError('')
     setBusy('raw')
     try {
-      // For Phase 1, we still need a config file path for the IPC.
-      // Use the session's configPath if available, otherwise we'll need to generate one in Phase 2.
-      const configPath = active?.configPath
-      if (!configPath) {
-        setError('Chưa có file Config. Phase 2 sẽ cho phép chạy trực tiếp từ cấu hình ứng dụng.')
-        return
-      }
       const p = await window.api.pickFile('raw')
       if (!p) return
       setRawPath(p)
       setResult(null)
-      setRaw(await window.api.parseRawGrades(configPath, p))
+      setRaw(await window.api.parseRawGrades(courseConfig, p))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Không đọc được file điểm.')
     } finally {
@@ -104,11 +116,6 @@ export function useImportPipeline(active: SessionDto | null, bridgeReady: boolea
       setError('Môn học chưa có cấu hình. Hãy vào chi tiết môn để cấu hình CLO/PLO.')
       return
     }
-    const configPath = active?.configPath
-    if (!configPath) {
-      setError('Chưa có file Config. Phase 2 sẽ cho phép chạy trực tiếp từ cấu hình ứng dụng.')
-      return
-    }
     if (!rawPath || !outDir) {
       setError('Cần chọn đủ: file điểm thô và thư mục lưu báo cáo.')
       return
@@ -117,13 +124,13 @@ export function useImportPipeline(active: SessionDto | null, bridgeReady: boolea
     setBusy('run')
     setResult(null)
     try {
-      const res = await window.api.runPipeline(configPath, rawPath, outDir, active?.id)
+      const res = await window.api.runPipeline(courseConfig, rawPath, outDir, active?.id)
       setResult(res)
       if (res.ok) {
         archiveRun({
           runId: res.runId,
           ts: Date.now(),
-          configPath,
+          configPath: active?.configPath || `[In-App] ${courseConfig.courseInfo.maHp}`,
           rawPath,
           outputDir: outDir,
           finalReportPath: res.finalReportPath,

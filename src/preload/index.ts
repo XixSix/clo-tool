@@ -6,9 +6,14 @@ const api: CloApi = {
   pickFile: (kind) => ipcRenderer.invoke('dialog:pick-file', kind),
   pickDirectory: () => ipcRenderer.invoke('dialog:pick-directory'),
   parseConfig: (configPath) => ipcRenderer.invoke('config:parse', configPath),
-  parseRawGrades: (configPath, rawPath) => ipcRenderer.invoke('raw:parse', configPath, rawPath),
-  runPipeline: (configPath, rawPath, outputDir, sessionId) =>
-    ipcRenderer.invoke('pipeline:run', configPath, rawPath, outputDir, sessionId),
+  getCourseConfig: (sessionId) => ipcRenderer.invoke('config:get', sessionId),
+  saveCourseConfig: (sessionId, data) => ipcRenderer.invoke('config:save', sessionId, data),
+  exportRawGradesTemplate: (config, defaultFileName) =>
+    ipcRenderer.invoke('config:export-template', config, defaultFileName),
+  parseRawGrades: (configSource, rawPath) =>
+    ipcRenderer.invoke('raw:parse', configSource, rawPath),
+  runPipeline: (configSource, rawPath, outputDir, sessionId) =>
+    ipcRenderer.invoke('pipeline:run', configSource, rawPath, outputDir, sessionId),
   getRunSnapshot: (runId) => ipcRenderer.invoke('runs:get', runId),
   deleteRunSnapshot: (runId) => ipcRenderer.invoke('runs:delete', runId),
   exportPdf: (defaultName) => ipcRenderer.invoke('export:pdf', defaultName),

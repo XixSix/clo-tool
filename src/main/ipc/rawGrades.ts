@@ -1,13 +1,18 @@
 import { ipcMain } from 'electron'
 import type { RawSummaryDto } from '../../shared/ipc'
+import type { CourseConfig } from '@core/types/course'
 import { errorMessage, hasErrors, toIssueDto } from './common'
 import { loadConfig, loadRawGrades } from './loaders'
 
 export function registerRawGradesHandlers(): void {
   ipcMain.handle(
     'raw:parse',
-    async (_event, configPath: string, rawPath: string): Promise<RawSummaryDto> => {
-      const loaded = await loadConfig(configPath)
+    async (
+      _event,
+      configSource: string | CourseConfig,
+      rawPath: string
+    ): Promise<RawSummaryDto> => {
+      const loaded = await loadConfig(configSource)
       if (!loaded.config) {
         return {
           ok: false,
