@@ -13,6 +13,12 @@ function createWindow(): BrowserWindow {
     minHeight: 700,
     show: false,
     autoHideMenuBar: true,
+    titleBarStyle: 'hidden',
+    titleBarOverlay: {
+      color: '#ffffff',
+      symbolColor: '#525252',
+      height: 36
+    },
     title: 'Phần mềm Đánh giá CLO/PLO - Đại học Thành Đông',
     webPreferences: {
       preload: join(__dirname, '../preload/index.mjs'),

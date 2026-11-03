@@ -206,6 +206,7 @@ export interface StoredCourseConfig {
 
 /** API mà preload expose ra window.api */
 export interface CloApi {
+  setTitleBarTheme: (theme: 'light' | 'dark') => Promise<void>
   pickFile: (kind: FilePickKind['kind']) => Promise<string | null>
   pickDirectory: () => Promise<string | null>
   parseConfig: (configPath: string) => Promise<ConfigSummaryDto>

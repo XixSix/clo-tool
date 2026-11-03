@@ -11,6 +11,7 @@ import { registerSampleHandlers } from './ipc/samples'
 import { registerShellHandlers } from './ipc/shell'
 import { registerWorkspaceHandlers } from './ipc/workspace'
 import { registerUpdaterHandlers } from './ipc/updater'
+import { registerWindowHandlers } from './ipc/window'
 
 // This is a comment
 export function registerIpcHandlers(getWindow: () => BrowserWindow | null): void {
@@ -24,4 +25,5 @@ export function registerIpcHandlers(getWindow: () => BrowserWindow | null): void
   registerWorkspaceHandlers()
   registerExportPdfHandler(getWindow)
   registerUpdaterHandlers()
+  registerWindowHandlers(getWindow)
 }

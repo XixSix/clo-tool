@@ -24,6 +24,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }): Reac
 
   useEffect(() => {
     window.document.documentElement.classList.toggle('dark', theme === 'dark')
+    void window.api?.setTitleBarTheme?.(theme)
     try {
       window.localStorage.setItem(STORAGE_KEY, theme)
     } catch {

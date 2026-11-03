@@ -143,11 +143,11 @@ export function AppTopbar({
 }): React.ReactElement {
   const bridgeReady = hasBridge()
   return (
-    <header className="border-border/60 flex items-center gap-4 border-b px-6 pt-5 pb-4">
+    <header className="border-border/60 flex items-center gap-4 border-b px-6 pt-9 pb-4 [-webkit-app-region:drag]">
       {/* Nút đóng/mở sidebar — trên topbar, mọi kích thước màn hình */}
-      <SidebarTrigger className="bg-card text-muted-foreground ring-border/70 hover:bg-secondary hover:text-foreground size-9 shrink-0 rounded-full shadow-sm ring-1" />
+      <SidebarTrigger className="bg-card text-muted-foreground ring-border/70 hover:bg-secondary hover:text-foreground size-9 shrink-0 rounded-full shadow-sm ring-1 [-webkit-app-region:no-drag]" />
 
-      <div className="min-w-0">
+      <div className="min-w-0 [-webkit-app-region:no-drag]">
         <div className="flex items-center gap-2">
           <h1 className="text-foreground truncate text-2xl font-bold tracking-tight">
             {SCREEN_TITLES[screen]}
@@ -160,7 +160,7 @@ export function AppTopbar({
       <div className="flex-1" />
 
       {/* Search pill — chỉ giao diện, placeholder */}
-      <div className="bg-card ring-border/70 focus-within:ring-primary/40 hidden h-11 w-72 items-center gap-2.5 rounded-full px-4 shadow-sm ring-1 transition focus-within:ring-2 min-[900px]:flex">
+      <div className="bg-card ring-border/70 focus-within:ring-primary/40 hidden h-11 w-72 items-center gap-2.5 rounded-full px-4 shadow-sm ring-1 transition focus-within:ring-2 min-[900px]:flex [-webkit-app-region:no-drag]">
         <Search className="text-muted-foreground size-4 shrink-0" />
         <Input
           aria-label="Tìm kiếm"
@@ -169,15 +169,16 @@ export function AppTopbar({
         />
       </div>
 
-      {!bridgeReady ? (
-        <span className="bg-warning/15 text-warning hidden rounded-full px-2.5 py-1 text-[11px] font-medium xl:block">
-          Web preview
-        </span>
-      ) : null}
-
-      <ThemeToggle />
-      <NotificationBell />
-      <ProfileBadge onScreen={onScreen} />
+      <div className="flex items-center gap-2 [-webkit-app-region:no-drag]">
+        {!bridgeReady ? (
+          <span className="bg-warning/15 text-warning hidden rounded-full px-2.5 py-1 text-[11px] font-medium xl:block">
+            Web preview
+          </span>
+        ) : null}
+        <ThemeToggle />
+        <NotificationBell />
+        <ProfileBadge onScreen={onScreen} />
+      </div>
     </header>
   )
 }
