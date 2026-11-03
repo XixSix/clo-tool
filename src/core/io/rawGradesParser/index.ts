@@ -25,10 +25,7 @@ import { parseStudentRows } from './studentParser'
 
 export * from './errors'
 
-export async function parseRawGrades(
-  filePath: string,
-  config: CourseConfig
-): Promise<RawGrades> {
+export async function parseRawGrades(filePath: string, config: CourseConfig): Promise<RawGrades> {
   const wb = await readWorkbook(filePath)
   const ws = findSheet(wb, 'NHAP_LIEU') ?? findSheet(wb, 'NHAP_LIEU_GV') ?? wb.worksheets[0]
 

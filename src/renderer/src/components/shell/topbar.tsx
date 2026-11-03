@@ -23,16 +23,16 @@ function NotificationBell(): React.ReactElement {
         <button
           type="button"
           aria-label="Thông báo"
-          className="relative flex size-11 shrink-0 items-center justify-center rounded-full bg-card text-muted-foreground shadow-sm ring-1 ring-border/70 transition hover:text-foreground"
+          className="bg-card text-muted-foreground ring-border/70 hover:text-foreground relative flex size-11 shrink-0 items-center justify-center rounded-full shadow-sm ring-1 transition"
         >
           <Bell className="size-4.5" />
-          <span className="absolute right-2 top-2 size-2 rounded-full bg-destructive ring-2 ring-background" />
+          <span className="bg-destructive ring-background absolute top-2 right-2 size-2 rounded-full ring-2" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>Thông báo</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <p className="px-2 pb-2 pt-1 text-xs text-muted-foreground">Chưa có thông báo mới</p>
+        <p className="text-muted-foreground px-2 pt-1 pb-2 text-xs">Chưa có thông báo mới</p>
       </DropdownMenuContent>
     </DropdownMenu>
   )
@@ -46,16 +46,16 @@ function ProfileBadge({ onScreen }: { onScreen: (s: ScreenId) => void }): React.
         <button
           type="button"
           aria-label="Tài khoản"
-          className="flex h-11 shrink-0 items-center gap-2.5 rounded-full bg-card py-1.5 pr-3 pl-1.5 shadow-sm ring-1 ring-border/70 transition hover:bg-secondary"
+          className="bg-card ring-border/70 hover:bg-secondary flex h-11 shrink-0 items-center gap-2.5 rounded-full py-1.5 pr-3 pl-1.5 shadow-sm ring-1 transition"
         >
-          <span className="flex size-8 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">
+          <span className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-full text-[11px] font-bold">
             ĐTĐ
           </span>
           <span className="hidden min-w-0 flex-col items-start leading-tight lg:flex">
             <span className="truncate text-[13px] font-semibold">Đại học Thành Đông</span>
-            <span className="text-[11px] text-muted-foreground">Quản lý học phần</span>
+            <span className="text-muted-foreground text-[11px]">Quản lý học phần</span>
           </span>
-          <ChevronsUpDown className="size-3.5 text-muted-foreground" />
+          <ChevronsUpDown className="text-muted-foreground size-3.5" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
@@ -85,7 +85,11 @@ function formatToday(): string {
 }
 
 /** Chip đổi "môn học hiện tại" — đặt cạnh tiêu đề ở các màn gắn với môn */
-function CourseSwitcher({ onScreen }: { onScreen: (s: ScreenId) => void }): React.ReactElement | null {
+function CourseSwitcher({
+  onScreen
+}: {
+  onScreen: (s: ScreenId) => void
+}): React.ReactElement | null {
   const { ws, active, setActiveSession } = useWorkspace()
   if (!active) return null
 
@@ -94,11 +98,11 @@ function CourseSwitcher({ onScreen }: { onScreen: (s: ScreenId) => void }): Reac
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex h-7 shrink-0 items-center gap-1.5 rounded-full bg-secondary px-2.5 text-[12px] font-medium text-secondary-foreground transition hover:bg-muted"
+          className="bg-secondary text-secondary-foreground hover:bg-muted flex h-7 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-medium transition"
           title="Đổi môn học hiện tại"
         >
           <span className="max-w-40 truncate font-mono">{active.maHp}</span>
-          <ChevronsUpDown className="size-3 text-muted-foreground" />
+          <ChevronsUpDown className="text-muted-foreground size-3" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-72">
@@ -113,11 +117,11 @@ function CourseSwitcher({ onScreen }: { onScreen: (s: ScreenId) => void }): Reac
               {s.maHp}
               {s.lop ? ` · ${s.lop}` : ''}
             </span>
-            <span className="line-clamp-1 text-xs text-muted-foreground">{s.courseName}</span>
+            <span className="text-muted-foreground line-clamp-1 text-xs">{s.courseName}</span>
           </DropdownMenuItem>
         ))}
         {(ws?.sessions.length ?? 0) === 0 ? (
-          <p className="px-2 py-1.5 text-xs text-muted-foreground">Chưa có môn học nào</p>
+          <p className="text-muted-foreground px-2 py-1.5 text-xs">Chưa có môn học nào</p>
         ) : null}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => onScreen('courses')}>
@@ -139,25 +143,25 @@ export function AppTopbar({
 }): React.ReactElement {
   const bridgeReady = hasBridge()
   return (
-    <header className="flex items-center gap-4 border-b border-border/60 px-6 pt-5 pb-4">
+    <header className="border-border/60 flex items-center gap-4 border-b px-6 pt-5 pb-4">
       {/* Nút đóng/mở sidebar — trên topbar, mọi kích thước màn hình */}
-      <SidebarTrigger className="size-9 shrink-0 rounded-full bg-card text-muted-foreground shadow-sm ring-1 ring-border/70 hover:bg-secondary hover:text-foreground" />
+      <SidebarTrigger className="bg-card text-muted-foreground ring-border/70 hover:bg-secondary hover:text-foreground size-9 shrink-0 rounded-full shadow-sm ring-1" />
 
       <div className="min-w-0">
         <div className="flex items-center gap-2">
-          <h1 className="truncate text-2xl font-bold tracking-tight text-foreground">
+          <h1 className="text-foreground truncate text-2xl font-bold tracking-tight">
             {SCREEN_TITLES[screen]}
           </h1>
           {COURSE_SCOPED.includes(screen) ? <CourseSwitcher onScreen={onScreen} /> : null}
         </div>
-        <p className="mt-0.5 text-[13px] text-muted-foreground">{formatToday()}</p>
+        <p className="text-muted-foreground mt-0.5 text-[13px]">{formatToday()}</p>
       </div>
 
       <div className="flex-1" />
 
       {/* Search pill — chỉ giao diện, placeholder */}
-      <div className="hidden h-11 w-72 items-center gap-2.5 rounded-full bg-card px-4 shadow-sm ring-1 ring-border/70 transition focus-within:ring-2 focus-within:ring-primary/40 min-[900px]:flex">
-        <Search className="size-4 shrink-0 text-muted-foreground" />
+      <div className="bg-card ring-border/70 focus-within:ring-primary/40 hidden h-11 w-72 items-center gap-2.5 rounded-full px-4 shadow-sm ring-1 transition focus-within:ring-2 min-[900px]:flex">
+        <Search className="text-muted-foreground size-4 shrink-0" />
         <Input
           aria-label="Tìm kiếm"
           placeholder="Tìm môn học, báo cáo…"
@@ -166,7 +170,7 @@ export function AppTopbar({
       </div>
 
       {!bridgeReady ? (
-        <span className="hidden rounded-full bg-warning/15 px-2.5 py-1 text-[11px] font-medium text-warning xl:block">
+        <span className="bg-warning/15 text-warning hidden rounded-full px-2.5 py-1 text-[11px] font-medium xl:block">
           Web preview
         </span>
       ) : null}

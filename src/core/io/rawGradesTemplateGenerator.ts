@@ -161,4 +161,3 @@ export function buildRawGradesWorkbook(
   ws.views = [{ state: 'frozen', xSplit: 4, ySplit: headerRow }]
   return wb
 }
-

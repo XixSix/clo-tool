@@ -57,27 +57,27 @@ export function CourseCloCard({
             </div>
 
             <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-3">
-              <div className="rounded-lg bg-muted p-3">
+              <div className="bg-muted rounded-lg p-3">
                 <p className="text-muted-foreground">Đầu điểm</p>
                 <p className="mt-1 text-lg font-semibold">
                   {snapshot.config.keHoachDanhGia.length}
                 </p>
               </div>
-              <div className="rounded-lg bg-muted p-3">
+              <div className="bg-muted rounded-lg p-3">
                 <p className="text-muted-foreground">Câu hỏi</p>
                 <p className="mt-1 text-lg font-semibold">{snapshot.config.cauHoi.length}</p>
               </div>
-              <div className="rounded-lg bg-muted p-3">
+              <div className="bg-muted rounded-lg p-3">
                 <p className="text-muted-foreground">Ánh xạ PLO</p>
                 <p className="mt-1 text-lg font-semibold">{snapshot.config.maTranPlo.length}</p>
               </div>
             </div>
 
-            <div className="overflow-hidden rounded-lg ring-1 ring-foreground/10">
+            <div className="ring-foreground/10 overflow-hidden rounded-lg ring-1">
               {snapshot.config.keHoachDanhGia.map((item) => (
                 <div
                   key={`${item.nhom}-${item.maDauDiem}-${item.clo}`}
-                  className="flex items-center gap-2 border-b border-border/60 px-3 py-2 text-xs last:border-0"
+                  className="border-border/60 flex items-center gap-2 border-b px-3 py-2 text-xs last:border-0"
                 >
                   <Badge variant="outline" className="font-mono">
                     {item.maDauDiem}
@@ -89,7 +89,7 @@ export function CourseCloCard({
               ))}
             </div>
 
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               Ngưỡng đạt: CLO {snapshot.config.quyTac.nguong_dat_clo} · PLO{' '}
               {snapshot.config.quyTac.nguong_dat_plo} · Học phần{' '}
               {snapshot.config.quyTac.nguong_dat_hp} · Phương thức{' '}

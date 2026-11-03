@@ -63,11 +63,7 @@ export function AddCourseDialog({
           </Field>
           <Field>
             <FieldLabel htmlFor="course-name">Tên môn học *</FieldLabel>
-            <Input
-              id="course-name"
-              placeholder="VD: Kỹ thuật lập trình"
-              {...field('courseName')}
-            />
+            <Input id="course-name" placeholder="VD: Kỹ thuật lập trình" {...field('courseName')} />
           </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field>
@@ -91,7 +87,12 @@ export function AddCourseDialog({
           />
           <Field>
             <FieldLabel>File Config</FieldLabel>
-            <Button type="button" variant="outline" onClick={pickConfig} disabled={busy || !bridgeReady}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={pickConfig}
+              disabled={busy || !bridgeReady}
+            >
               {form.configPath ? 'Chọn file khác…' : 'Chọn file Template_Config.xlsx…'}
             </Button>
             <FieldDescription>
@@ -100,9 +101,9 @@ export function AddCourseDialog({
                 : form.configPath || 'Tùy chọn — chỉ dùng đọc trước thông tin môn'}
             </FieldDescription>
           </Field>
-          {error ? <p className="text-xs text-destructive">{error}</p> : null}
+          {error ? <p className="text-destructive text-xs">{error}</p> : null}
           {config?.ok ? (
-            <p className="text-xs text-success">
+            <p className="text-success text-xs">
               Đã đọc: {config.cloList.length} CLO · {config.planCount} đầu điểm
             </p>
           ) : null}

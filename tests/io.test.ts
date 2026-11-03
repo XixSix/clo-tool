@@ -232,7 +232,9 @@ describe('validator', () => {
     file.students[0].scores.diemCacCot.GTX_C1 = 0.3
 
     const messages = validateRawGrades(config, file).map((issue) => issue.message)
-    expect(messages).toContain(`SV ${file.students[0].student.maSv}: điểm 0.3 không phải bội của 0,25.`)
+    expect(messages).toContain(
+      `SV ${file.students[0].student.maSv}: điểm 0.3 không phải bội của 0,25.`
+    )
   })
 
   it('cảnh báo cỡ mẫu nhỏ và thiếu cột điểm danh', async () => {

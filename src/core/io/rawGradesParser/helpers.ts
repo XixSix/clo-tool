@@ -28,7 +28,8 @@ export function scoreColumnsFromConfig(config: CourseConfig): string[] {
  * 2. "Buổi 1 (28/10)"...
  * 3. "28/10"...
  */
-export const VALID_ATTENDANCE_HEADER = /^(buổi\s+\d+(\s*\(\d{1,2}\/\d{1,2}\))?|buoi\s+\d+(\s*\(\d{1,2}\/\d{1,2}\))?|\d{1,2}\/\d{1,2})$/i
+export const VALID_ATTENDANCE_HEADER =
+  /^(buổi\s+\d+(\s*\(\d{1,2}\/\d{1,2}\))?|buoi\s+\d+(\s*\(\d{1,2}\/\d{1,2}\))?|\d{1,2}\/\d{1,2})$/i
 
 export function isAttendanceHeader(header: string): boolean {
   return VALID_ATTENDANCE_HEADER.test(header.trim())

@@ -23,7 +23,7 @@ export function RecentActivity({
         <button
           type="button"
           onClick={onViewAll}
-          className="text-xs font-medium text-primary hover:underline"
+          className="text-primary text-xs font-medium hover:underline"
         >
           Xem tất cả
         </button>
@@ -35,19 +35,17 @@ export function RecentActivity({
           <Skeleton className="h-14 rounded-xl" />
         </>
       ) : activities.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border px-4 py-8 text-center">
-          <Trash2 className="mx-auto size-4 text-muted-foreground/40" />
+        <div className="border-border rounded-xl border border-dashed px-4 py-8 text-center">
+          <Trash2 className="text-muted-foreground/40 mx-auto size-4" />
           <p className="mt-2 text-[13px] font-medium">Chưa có hoạt động nào</p>
-          <p className="text-xs text-muted-foreground/70">
+          <p className="text-muted-foreground/70 text-xs">
             Thêm môn học hoặc tạo bộ file mẫu để thử nghiệm
           </p>
         </div>
       ) : (
         activities.map((s) => {
           const run = s.history[s.history.length - 1]
-          return (
-            <ActivityRow key={s.id} session={s} ts={run.ts} onOpen={() => onOpen(s)} />
-          )
+          return <ActivityRow key={s.id} session={s} ts={run.ts} onOpen={() => onOpen(s)} />
         })
       )}
     </div>

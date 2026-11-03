@@ -17,8 +17,6 @@ import { ReadyItem, StatBox } from '@renderer/components/screens/grades/stat-box
 
 /** Bước 3 — kiểm tra đủ nguồn, chọn thư mục và chạy tính toán. */
 export function StepRunCard({
-  configPath,
-  rawPath,
   outDir,
   result,
   busy,
@@ -28,8 +26,6 @@ export function StepRunCard({
   onRun,
   onScreen
 }: {
-  configPath: string
-  rawPath: string
   outDir: string
   result: RunResultDto | null
   busy: string | null
@@ -45,7 +41,7 @@ export function StepRunCard({
         <div className="flex items-center gap-3">
           <StepBadge number={3} done={Boolean(result?.ok)} />
           <div className="min-w-0 flex-1">
-            <CardTitle className="text-sm">Tính toán &amp; xuất báo cáo</CardTitle>
+            <CardTitle className="text-sm">Tính toán & xuất báo cáo</CardTitle>
             <CardDescription>
               Sinh 2 file Excel: bảng điểm CLO/PLO và phân tích đề thi
             </CardDescription>
@@ -54,9 +50,8 @@ export function StepRunCard({
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          <ReadyItem ok={Boolean(configPath)} label="File Config" value={fileName(configPath)} />
-          <ReadyItem ok={Boolean(rawPath)} label="File điểm thô" value={fileName(rawPath)} />
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <ReadyItem ok={true} label="Cấu hình môn" value="Đã nhập trong ứng dụng" />
           <ReadyItem ok={Boolean(outDir)} label="Thư mục lưu" value={fileName(outDir)} />
         </div>
 
@@ -75,7 +70,7 @@ export function StepRunCard({
             {busy === 'run' ? (
               <>
                 <Loader2 data-icon="inline-start" className="animate-spin" />
-                Đang tính &amp; xuất…
+                Đang tính & xuất…
               </>
             ) : (
               <>
@@ -87,11 +82,11 @@ export function StepRunCard({
         </div>
 
         {!canRun && missing.length > 0 ? (
-          <p className="text-xs text-muted-foreground">Còn thiếu: {missing.join(', ')}.</p>
+          <p className="text-muted-foreground text-xs">Còn thiếu: {missing.join(', ')}.</p>
         ) : null}
 
         {result?.ok ? (
-          <div className="flex flex-col gap-3 rounded-xl bg-muted/50 p-3 ring-1 ring-foreground/10">
+          <div className="bg-muted/50 ring-foreground/10 flex flex-col gap-3 rounded-xl p-3 ring-1">
             <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
               <StatBox value={result.studentCount} label="Sinh viên" />
               <StatBox value={`${result.passedPercent}%`} label="Đạt học phần" tone="success" />
@@ -104,7 +99,7 @@ export function StepRunCard({
             </div>
 
             {!result.runId ? (
-              <p className="flex items-start gap-1.5 text-xs text-warning">
+              <p className="text-warning flex items-start gap-1.5 text-xs">
                 <TriangleAlert className="mt-0.5 size-3.5 shrink-0" />
                 Không lưu được snapshot chi tiết — màn Sinh viên/Báo cáo sẽ chưa có dữ liệu của lần
                 chạy này.
@@ -145,7 +140,7 @@ export function StepRunCard({
             </div>
           </div>
         ) : (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             Sau khi chạy, phần biểu đồ CLO/PLO và phân tích đề thi chi tiết nằm ở màn Báo cáo.
           </p>
         )}

@@ -8,7 +8,12 @@
  * - Ký hiệu lạ (không có trong sheet DIEM_DANH) → cảnh báo, tính hệ số 0.
  */
 
-import type { AttendanceRecord, AttendanceRule, AttendanceScore, ValidationIssue } from '../../types'
+import type {
+  AttendanceRecord,
+  AttendanceRule,
+  AttendanceScore,
+  ValidationIssue
+} from '../../types'
 import { roundHalfUp } from '../../rules'
 
 export interface AttendanceComputeResult {

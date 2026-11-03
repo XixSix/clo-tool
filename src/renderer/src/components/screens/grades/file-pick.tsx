@@ -30,7 +30,7 @@ export function FilePick({
         disabled && 'cursor-not-allowed opacity-60',
         path
           ? 'border-border bg-muted text-foreground'
-          : 'border-border bg-transparent text-muted-foreground',
+          : 'border-border text-muted-foreground bg-transparent',
         !disabled && !path && 'hover:border-primary hover:bg-accent/50'
       )}
       title={path || label}

@@ -6,7 +6,7 @@ import type { IssueDto } from '../../../../../shared/ipc'
 /** Tóm tắt lỗi/cảnh báo đọc file: đếm theo mức + liệt kê tối đa 6 mục. */
 export function IssueList({ issues }: { issues: IssueDto[] }): React.ReactElement | null {
   if (issues.length === 0) {
-    return <p className="text-xs font-medium text-success">Không có lỗi hay cảnh báo dữ liệu.</p>
+    return <p className="text-success text-xs font-medium">Không có lỗi hay cảnh báo dữ liệu.</p>
   }
   const errors = issues.filter((i) => i.level === 'error').length
   const warnings = issues.filter((i) => i.level === 'warning').length
@@ -16,7 +16,7 @@ export function IssueList({ issues }: { issues: IssueDto[] }): React.ReactElemen
         <Badge variant={errors > 0 ? 'destructive' : 'secondary'}>{errors} lỗi</Badge>
         <Badge variant={warnings > 0 ? 'outline' : 'secondary'}>{warnings} cảnh báo</Badge>
       </div>
-      <ul className="max-h-40 overflow-auto rounded-lg bg-muted p-2.5 text-xs">
+      <ul className="bg-muted max-h-40 overflow-auto rounded-lg p-2.5 text-xs">
         {issues.slice(0, 6).map((issue, idx) => (
           <li key={`${issue.message}-${idx}`} className="flex gap-1.5 py-0.5">
             <span
@@ -27,7 +27,7 @@ export function IssueList({ issues }: { issues: IssueDto[] }): React.ReactElemen
             />
             <span className="text-muted-foreground">
               {issue.sheet ? (
-                <span className="font-medium text-foreground">
+                <span className="text-foreground font-medium">
                   [{issue.sheet}
                   {issue.row ? ` dòng ${issue.row}` : ''}]{' '}
                 </span>
@@ -37,7 +37,7 @@ export function IssueList({ issues }: { issues: IssueDto[] }): React.ReactElemen
           </li>
         ))}
         {issues.length > 6 ? (
-          <li className="py-0.5 text-xs text-muted-foreground/60">
+          <li className="text-muted-foreground/60 py-0.5 text-xs">
             … và {issues.length - 6} mục khác
           </li>
         ) : null}

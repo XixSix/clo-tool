@@ -32,7 +32,7 @@ export function ExamsTab({ snapshot }: { snapshot: RunSnapshotDto }): React.Reac
 
   if (!selected) {
     return (
-      <Empty className="rounded-xl border border-dashed border-border">
+      <Empty className="border-border rounded-xl border border-dashed">
         <EmptyHeader>
           <FileSpreadsheet className="text-muted-foreground/40" />
           <EmptyTitle>Không có dữ liệu phân tích đề thi</EmptyTitle>
@@ -65,11 +65,11 @@ export function ExamsTab({ snapshot }: { snapshot: RunSnapshotDto }): React.Reac
           α {formatScore(selected.cronbachAlpha)} · {selected.mucDoTinCay}
         </Badge>
         {selected.canhBaoCoMauN ? (
-          <span className="text-xs text-warning">{selected.canhBaoCoMauN}</span>
+          <span className="text-warning text-xs">{selected.canhBaoCoMauN}</span>
         ) : null}
       </div>
 
-      <div className="overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10">
+      <div className="bg-card ring-foreground/10 overflow-hidden rounded-xl ring-1">
         <Table>
           <TableHeader>
             <TableRow>
@@ -105,7 +105,7 @@ export function ExamsTab({ snapshot }: { snapshot: RunSnapshotDto }): React.Reac
                 <TableCell className="text-right font-mono text-xs">
                   {formatScore(item.alphaNeuBoCau)}
                 </TableCell>
-                <TableCell className="text-xs text-destructive">{item.canhBao ?? ''}</TableCell>
+                <TableCell className="text-destructive text-xs">{item.canhBao ?? ''}</TableCell>
               </TableRow>
             ))}
           </TableBody>

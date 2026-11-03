@@ -371,21 +371,21 @@ Những chỗ văn bản chưa nói rõ đã được chọn như sau. Tất c�
 
 ### 2. Công nghệ (techstack)
 
-| Thành phần                | Lựa chọn                                               | Dùng để làm gì                                                                         |
-| :------------------------ | :----------------------------------------------------- | :------------------------------------------------------------------------------------- |
-| Khung ứng dụng desktop    | **Electron** (Node.js LTS)                             | Chạy app trên máy giảng viên, mở hộp thoại chọn file, đọc/ghi file                     |
-| Ngôn ngữ                  | **TypeScript**                                         | Bắt lỗi kiểu dữ liệu sớm, quan trọng khi tính điểm                                     |
-| Khung dự án & build       | **electron-vite**                                      | Dựng sẵn cấu trúc main/preload/renderer, chạy thử nhanh                                |
-| Giao diện                 | **React**                                              | Các màn hình, bảng, form                                                               |
-| Bảng dữ liệu có sửa ô     | **AG Grid Community**                                  | Bảng preview điểm, sửa ô lỗi tại chỗ                                                   |
+| Thành phần                | Lựa chọn                                                          | Dùng để làm gì                                                                         |
+| :------------------------ | :---------------------------------------------------------------- | :------------------------------------------------------------------------------------- |
+| Khung ứng dụng desktop    | **Electron** (Node.js LTS)                                        | Chạy app trên máy giảng viên, mở hộp thoại chọn file, đọc/ghi file                     |
+| Ngôn ngữ                  | **TypeScript**                                                    | Bắt lỗi kiểu dữ liệu sớm, quan trọng khi tính điểm                                     |
+| Khung dự án & build       | **electron-vite**                                                 | Dựng sẵn cấu trúc main/preload/renderer, chạy thử nhanh                                |
+| Giao diện                 | **React**                                                         | Các màn hình, bảng, form                                                               |
+| Bảng dữ liệu có sửa ô     | **AG Grid Community**                                             | Bảng preview điểm, sửa ô lỗi tại chỗ                                                   |
 | Biểu đồ                   | **@napi-rs/canvas** (vẽ PNG), UI dùng recharts qua shadcn `chart` | Biểu đồ trong app; xuất PNG để chèn vào Excel                                          |
-| Đọc/ghi Excel             | **ExcelJS**                                            | Đọc Config và điểm thô; ghi file kết quả đúng mẫu (định dạng, tô màu, ô gộp, chèn ảnh) |
-| Làm tròn, tính toán số    | **decimal.js**                                         | Làm tròn half-up chính xác theo QĐ450                                                  |
-| Kiểm tra cấu trúc dữ liệu | **zod**                                                | Kiểm tra Config đọc vào đúng cấu trúc trước khi tính                                   |
-| Kiểm thử                  | **Vitest**                                             | Chạy bộ test chuẩn T1–T12                                                              |
-| Đóng gói                  | **electron-builder**                                   | Tạo file cài đặt/`.exe` cho Windows                                                    |
-| Xuất PDF `[v1.1]`         | `printToPDF` có sẵn của Electron                       | In trang báo cáo HTML ra PDF                                                           |
-| Lưu cài đặt nhỏ           | File JSON trong thư mục dữ liệu người dùng của app     | Nhớ thư mục/file lần trước, không cần database                                         |
+| Đọc/ghi Excel             | **ExcelJS**                                                       | Đọc Config và điểm thô; ghi file kết quả đúng mẫu (định dạng, tô màu, ô gộp, chèn ảnh) |
+| Làm tròn, tính toán số    | **decimal.js**                                                    | Làm tròn half-up chính xác theo QĐ450                                                  |
+| Kiểm tra cấu trúc dữ liệu | **zod**                                                           | Kiểm tra Config đọc vào đúng cấu trúc trước khi tính                                   |
+| Kiểm thử                  | **Vitest**                                                        | Chạy bộ test chuẩn T1–T12                                                              |
+| Đóng gói                  | **electron-builder**                                              | Tạo file cài đặt/`.exe` cho Windows                                                    |
+| Xuất PDF `[v1.1]`         | `printToPDF` có sẵn của Electron                                  | In trang báo cáo HTML ra PDF                                                           |
+| Lưu cài đặt nhỏ           | File JSON trong thư mục dữ liệu người dùng của app                | Nhớ thư mục/file lần trước, không cần database                                         |
 
 **Không cần backend.** Electron gồm hai phần chạy trong cùng một app:
 

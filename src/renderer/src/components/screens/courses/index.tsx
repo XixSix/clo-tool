@@ -6,6 +6,7 @@ import { Skeleton } from '@renderer/components/ui/skeleton'
 import { useWorkspace } from '@renderer/hooks/workspace'
 import { useOpenCourseScreen } from '@renderer/hooks/use-open-course-screen'
 import type { ScreenId } from '@renderer/lib/navigation'
+import type { SessionDto } from '../../../../../shared/ipc'
 import { AddCourseDialog } from '@renderer/components/screens/courses/add-course-dialog'
 import { CourseCard } from '@renderer/components/screens/courses/course-card'
 import { CourseDetail } from '@renderer/components/screens/courses/course-detail'
@@ -14,12 +15,25 @@ export function MonHoc({ onScreen }: { onScreen: (s: ScreenId) => void }): React
   const { ws, loading, active, upsertSession } = useWorkspace()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [detailId, setDetailId] = useState<string | null>(null)
+  const [detailTab, setDetailTab] = useState<'info' | 'config' | 'runs'>('info')
   const openCourse = useOpenCourseScreen(onScreen)
 
   const detail = (ws?.sessions ?? []).find((s) => s.id === detailId) ?? null
 
   if (detail) {
-    return <CourseDetail session={detail} onBack={() => setDetailId(null)} onScreen={onScreen} />
+    return (
+      <CourseDetail
+        session={detail}
+        defaultTab={detailTab}
+        onBack={() => setDetailId(null)}
+        onScreen={onScreen}
+      />
+    )
+  }
+
+  function openDetail(session: SessionDto, tab: 'info' | 'config' | 'runs' = 'info'): void {
+    setDetailTab(tab)
+    setDetailId(session.id)
   }
 
   return (
@@ -27,7 +41,7 @@ export function MonHoc({ onScreen }: { onScreen: (s: ScreenId) => void }): React
       <div className="flex items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold">Danh sách môn học</h2>
-          <p className="text-[13px] text-muted-foreground/80">
+          <p className="text-muted-foreground/80 text-[13px]">
             {ws?.sessions.length ?? 0} môn đã quản lý
           </p>
         </div>
@@ -44,7 +58,7 @@ export function MonHoc({ onScreen }: { onScreen: (s: ScreenId) => void }): React
           <Skeleton className="h-48 rounded-xl" />
         </div>
       ) : (ws?.sessions.length ?? 0) === 0 ? (
-        <Empty className="rounded-xl border border-dashed border-border">
+        <Empty className="border-border rounded-xl border border-dashed">
           <EmptyHeader>
             <LibraryBig />
             <EmptyTitle>Chưa có môn học nào</EmptyTitle>
@@ -64,7 +78,7 @@ export function MonHoc({ onScreen }: { onScreen: (s: ScreenId) => void }): React
               key={s.id}
               session={s}
               isActive={active?.id === s.id}
-              onDetail={(session) => setDetailId(session.id)}
+              onDetail={(session, tab) => openDetail(session, tab)}
               onOpen={(session, screen) => openCourse(session, screen)}
             />
           ))}

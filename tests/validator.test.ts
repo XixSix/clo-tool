@@ -363,7 +363,6 @@ describe('validateMaTranPlo - sheet MA_TRAN_PLO', () => {
   })
 })
 
-
 describe('validateCrossSheet - check chéo được giữ nguyên', () => {
   it('CLO không tồn tại / không được đo / cặp lệch 2 chiều -> lỗi với thông báo cũ', () => {
     const config = mock()

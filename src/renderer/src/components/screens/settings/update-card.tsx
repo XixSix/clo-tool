@@ -78,7 +78,7 @@ export function UpdateCard({ version }: { version: string }): React.ReactElement
             {info.text}
           </p>
         ) : (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             Bản portable không tự cập nhật — tải lại file mới từ trang Releases khi cần.
           </p>
         )}

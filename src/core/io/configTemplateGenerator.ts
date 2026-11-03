@@ -180,4 +180,3 @@ export function buildConfigWorkbook(config: CourseConfig): ExcelJS.Workbook {
 
   return wb
 }
-

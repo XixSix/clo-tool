@@ -9,16 +9,15 @@ import { useWorkspace } from '@renderer/hooks/workspace'
 import { useImportPipeline } from '@renderer/hooks/use-import-pipeline'
 import type { ScreenId } from '@renderer/lib/navigation'
 import { Stepper } from '@renderer/components/screens/grades/stepper'
-import { StepConfigCard } from '@renderer/components/screens/grades/step-config-card'
 import { StepRawCard } from '@renderer/components/screens/grades/step-raw-card'
 import { StepRunCard } from '@renderer/components/screens/grades/step-run-card'
+import { CourseConfigCard } from '@renderer/components/screens/grades/course-config-card'
 
 export function NhapDiem({ onScreen }: { onScreen: (s: ScreenId) => void }): React.ReactElement {
   const { active } = useWorkspace()
   const bridgeReady = hasBridge()
   const {
-    configPath,
-    config,
+    courseConfig,
     rawPath,
     raw,
     outDir,
@@ -29,7 +28,6 @@ export function NhapDiem({ onScreen }: { onScreen: (s: ScreenId) => void }): Rea
     missing,
     steps,
     activeIndex,
-    pickConfig,
     pickRaw,
     pickOutput,
     run,
@@ -38,22 +36,22 @@ export function NhapDiem({ onScreen }: { onScreen: (s: ScreenId) => void }): Rea
 
   if (!active) {
     return (
-      <Empty className="rounded-xl border border-dashed border-border">
+      <Empty className="border-border rounded-xl border border-dashed">
         <EmptyHeader>
           <BookOpen className="text-muted-foreground/40" />
           <EmptyTitle>Chưa chọn môn học</EmptyTitle>
           <EmptyDescription>
-            Thêm hoặc chọn một môn học trước khi nhập file Config và file điểm thô.
+            Thêm hoặc chọn một môn học, sau đó vào chi tiết môn để cấu hình CLO/PLO.
           </EmptyDescription>
         </EmptyHeader>
-        <Button onClick={() => onScreen('courses')}>Thêm môn học</Button>
+        <Button onClick={() => onScreen('courses')}>Quản lý môn học</Button>
       </Empty>
     )
   }
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-card px-4 py-3 ring-1 ring-foreground/10">
+      <div className="bg-card ring-foreground/10 flex flex-wrap items-center justify-between gap-3 rounded-xl px-4 py-3 ring-1">
         <p className="min-w-0 text-[13px]">
           <span className="font-mono font-semibold">{active.maHp}</span>
           <span className="text-muted-foreground">
@@ -69,7 +67,7 @@ export function NhapDiem({ onScreen }: { onScreen: (s: ScreenId) => void }): Rea
             variant="ghost"
             size="sm"
             onClick={reset}
-            disabled={Boolean(busy) || (!configPath && !rawPath && !result)}
+            disabled={Boolean(busy) || (!rawPath && !result)}
           >
             Đặt lại
           </Button>
@@ -87,26 +85,18 @@ export function NhapDiem({ onScreen }: { onScreen: (s: ScreenId) => void }): Rea
       ) : null}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <StepConfigCard
-          configPath={configPath}
-          config={config}
-          busy={busy}
-          bridgeReady={bridgeReady}
-          onPick={pickConfig}
-        />
+        <CourseConfigCard config={courseConfig} />
         <StepRawCard
           rawPath={rawPath}
           raw={raw}
-          configPath={configPath}
           busy={busy}
           bridgeReady={bridgeReady}
           onPick={pickRaw}
+          hasConfig={Boolean(courseConfig)}
         />
       </div>
 
       <StepRunCard
-        configPath={configPath}
-        rawPath={rawPath}
         outDir={outDir}
         result={result}
         busy={busy}

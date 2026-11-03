@@ -143,10 +143,10 @@ export function calculateCellScores(
       // vào trung bình ở trên; sẽ tính như bình thường bên dưới, chỉ thêm cờ +
       // cảnh báo để QLCL soát dữ liệu thiếu
       hasMissingData = true
-       issues.push({
-         level: 'warning',
-         message: `Thiếu dữ liệu ở một số câu của ${p.maDauDiem} (${p.clo}) — câu trống tính 0`
-       })
+      issues.push({
+        level: 'warning',
+        message: `Thiếu dữ liệu ở một số câu của ${p.maDauDiem} (${p.clo}) — câu trống tính 0`
+      })
       let rawCalculatedScore = 0
       if (rules.clo_bo_phan === 'mean_of_ratios') {
         // QĐ450 Điều 9.3: s = (1/n) * sum(d_i / t_i) * 10

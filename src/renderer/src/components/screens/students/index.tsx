@@ -5,14 +5,21 @@ import { Input } from '@renderer/components/ui/input'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@renderer/components/ui/empty'
 import { useWorkspace } from '@renderer/hooks/workspace'
 import { useRunSnapshot } from '@renderer/hooks/use-run-snapshot'
-import { FILTER_LABELS, useStudentFilters, type FilterId } from '@renderer/hooks/use-student-filters'
+import {
+  FILTER_LABELS,
+  useStudentFilters,
+  type FilterId
+} from '@renderer/hooks/use-student-filters'
 import { RunSelector } from '@renderer/components/report/run-selector'
 import { downloadCsv } from '@renderer/lib/csv'
 import { latestDetailedRun } from '@renderer/lib/format'
 import type { ScreenId } from '@renderer/lib/navigation'
 import { StudentTable } from '@renderer/components/screens/students/student-table'
 import { StudentDetailSheet } from '@renderer/components/screens/students/student-detail-sheet'
-import { buildStudentCsvRows, studentCsvFileName } from '@renderer/components/screens/students/export-csv'
+import {
+  buildStudentCsvRows,
+  studentCsvFileName
+} from '@renderer/components/screens/students/export-csv'
 import type { ProcessedStudentResult } from '@core/types'
 
 export function SinhVien({ onScreen }: { onScreen: (s: ScreenId) => void }): React.ReactElement {
@@ -30,7 +37,7 @@ export function SinhVien({ onScreen }: { onScreen: (s: ScreenId) => void }): Rea
 
   if (!active) {
     return (
-      <Empty className="rounded-xl border border-dashed border-border">
+      <Empty className="border-border rounded-xl border border-dashed">
         <EmptyHeader>
           <Users className="text-muted-foreground/40" />
           <EmptyTitle>Chưa có môn học</EmptyTitle>
@@ -45,11 +52,13 @@ export function SinhVien({ onScreen }: { onScreen: (s: ScreenId) => void }): Rea
 
   if (!latest) {
     return (
-      <Empty className="rounded-xl border border-dashed border-border">
+      <Empty className="border-border rounded-xl border border-dashed">
         <EmptyHeader>
           <Users className="text-muted-foreground/40" />
           <EmptyTitle>
-            {active.history.length > 0 ? 'Lần chạy cũ chưa lưu chi tiết' : 'Chưa có kết quả học phần'}
+            {active.history.length > 0
+              ? 'Lần chạy cũ chưa lưu chi tiết'
+              : 'Chưa có kết quả học phần'}
           </EmptyTitle>
           <EmptyDescription>
             {active.history.length > 0
@@ -71,7 +80,7 @@ export function SinhVien({ onScreen }: { onScreen: (s: ScreenId) => void }): Rea
         <div className="flex flex-wrap items-center gap-2">
           <RunSelector session={active} runId={runId} onSelect={setRunId} />
           {snapshot ? (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               {active.courseName}
               {active.lop ? ` · Lớp ${active.lop}` : ''} · {snapshot.students.length} sinh viên
             </p>
@@ -104,12 +113,12 @@ export function SinhVien({ onScreen }: { onScreen: (s: ScreenId) => void }): Rea
             onClick={() => setFilter(id)}
           >
             {FILTER_LABELS[id]}
-            <span className="ml-1 text-xs text-muted-foreground">{counts[id]}</span>
+            <span className="text-muted-foreground ml-1 text-xs">{counts[id]}</span>
           </Button>
         ))}
         <span className="flex-1" />
         <div className="relative w-full max-w-xs">
-          <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="text-muted-foreground absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
           <Input
             aria-label="Tìm sinh viên"
             placeholder="Tìm mã SV hoặc họ tên…"
@@ -121,7 +130,7 @@ export function SinhVien({ onScreen }: { onScreen: (s: ScreenId) => void }): Rea
       </div>
 
       {error ? (
-        <div className="flex items-center gap-2 rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
+        <div className="bg-destructive/10 text-destructive flex items-center gap-2 rounded-lg px-3 py-2 text-xs">
           <TriangleAlert className="size-4" />
           {error}
         </div>
@@ -129,13 +138,17 @@ export function SinhVien({ onScreen }: { onScreen: (s: ScreenId) => void }): Rea
 
       <StudentTable rows={visible} loading={loading} onSelect={setSelected} />
 
-      <p className="text-xs text-muted-foreground">
+      <p className="text-muted-foreground text-xs">
         Hiển thị {visible.length}/{rows.length} sinh viên. Nhấn vào một dòng để xem chi tiết và vết
         tính điểm.
       </p>
 
       {snapshot ? (
-        <StudentDetailSheet student={selected} snapshot={snapshot} onClose={() => setSelected(null)} />
+        <StudentDetailSheet
+          student={selected}
+          snapshot={snapshot}
+          onClose={() => setSelected(null)}
+        />
       ) : null}
     </div>
   )

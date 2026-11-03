@@ -20,7 +20,7 @@ export function DangerZone(): React.ReactElement {
     <>
       <Card className="border-destructive/40">
         <CardHeader>
-          <CardTitle className="text-sm text-destructive">Vùng nguy hiểm</CardTitle>
+          <CardTitle className="text-destructive text-sm">Vùng nguy hiểm</CardTitle>
           <CardDescription>Xoá toàn bộ dữ liệu môn học đã lưu trong máy</CardDescription>
         </CardHeader>
         <CardContent>

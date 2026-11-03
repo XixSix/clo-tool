@@ -22,7 +22,7 @@ export const CONFIG_SHEET_COLUMNS: Record<string, string[]> = {
     'Hinh_Thuc'
   ],
   CAU_HOI: ['Ma_Cot_Diem', 'Ma_Dau_Diem', 'Cau', 'CLO', 'Diem_Toi_Da', 'Ma_De', 'Loai'],
-  MA_TRAN_PLO: ['PLO', 'PI', 'CLO'],
+  MA_TRAN_PLO: ['PLO', 'PI', 'CLO']
 }
 
 /** Đọc giá trị 1 ô theo tên cột đã dò được; thiếu cột → chuỗi rỗng */

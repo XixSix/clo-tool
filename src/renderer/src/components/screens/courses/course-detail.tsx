@@ -1,5 +1,13 @@
 import React, { useState } from 'react'
-import { ArrowLeft, ChartColumn, FileSpreadsheet, FolderOpen, Trash2, Upload, Users } from 'lucide-react'
+import {
+  ArrowLeft,
+  ChartColumn,
+  FileSpreadsheet,
+  FolderOpen,
+  Trash2,
+  Upload,
+  Users
+} from 'lucide-react'
 import {
   Card,
   CardContent,
@@ -19,11 +27,12 @@ import type { ScreenId } from '@renderer/lib/navigation'
 import type { SessionDto } from '../../../../../shared/ipc'
 import { CourseCloCard } from '@renderer/components/screens/courses/course-clo-card'
 import { DeleteCourseDialog } from '@renderer/components/screens/courses/delete-course-dialog'
+import { CourseConfigEditor } from '@renderer/components/screens/courses/course-config-editor'
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }): React.ReactElement {
   return (
-    <div className="flex items-start justify-between gap-4 border-b border-border/60 py-2 text-sm last:border-0">
-      <span className="shrink-0 text-muted-foreground">{label}</span>
+    <div className="border-border/60 flex items-start justify-between gap-4 border-b py-2 text-sm last:border-0">
+      <span className="text-muted-foreground shrink-0">{label}</span>
       <span className="text-right font-medium">{value}</span>
     </div>
   )
@@ -32,15 +41,17 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }): R
 /** Trang chi tiết một môn: thông tin, tệp đang dùng, cấu hình CLO và lịch sử chạy. */
 export function CourseDetail({
   session,
+  defaultTab = 'info',
   onBack,
   onScreen
 }: {
   session: SessionDto
+  defaultTab?: 'info' | 'config' | 'runs'
   onBack: () => void
   onScreen: (s: ScreenId) => void
 }): React.ReactElement {
   const open = useOpenCourseScreen(onScreen)
-  const { removeSession } = useWorkspace()
+  const { removeSession, patchSession } = useWorkspace()
   const [confirmDelete, setConfirmDelete] = useState(false)
   const lastRun = latestDetailedRun(session)
   const { snapshot, loading } = useRunSnapshot(lastRun?.runId)
@@ -67,7 +78,7 @@ export function CourseDetail({
                 {session.maHp}
               </Badge>
             </div>
-            <p className="mt-0.5 text-[13px] text-muted-foreground">
+            <p className="text-muted-foreground mt-0.5 text-[13px]">
               {meta.length > 0 ? meta.join(' · ') : 'Chưa có thông tin lớp / học kỳ'}
             </p>
           </div>
@@ -97,10 +108,11 @@ export function CourseDetail({
         </div>
       </div>
 
-      <Tabs defaultValue="info" className="gap-4">
+      <Tabs defaultValue={defaultTab} className="gap-4">
         <TabsList>
-          <TabsTrigger value="info">Thông tin &amp; cấu hình</TabsTrigger>
-          <TabsTrigger value="runs">Lần chạy ({session.history.length})</TabsTrigger>
+          <TabsTrigger value="info">Thông tin</TabsTrigger>
+          <TabsTrigger value="config">Cấu hình CLO/PLO</TabsTrigger>
+          <TabsTrigger value="runs">Lịch sử ({session.history.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="info" className="flex flex-col gap-4">
@@ -111,7 +123,10 @@ export function CourseDetail({
                 <CardDescription>Dùng để nhận diện môn trong toàn bộ ứng dụng</CardDescription>
               </CardHeader>
               <CardContent>
-                <InfoRow label="Mã học phần" value={<span className="font-mono">{session.maHp}</span>} />
+                <InfoRow
+                  label="Mã học phần"
+                  value={<span className="font-mono">{session.maHp}</span>}
+                />
                 <InfoRow label="Tên môn học" value={session.courseName} />
                 <InfoRow label="Lớp" value={session.lop ?? '—'} />
                 <InfoRow label="Số tín chỉ" value={session.soTinChi} />
@@ -133,10 +148,13 @@ export function CourseDetail({
                   { label: 'File điểm thô', path: session.rawPath },
                   { label: 'Thư mục báo cáo', path: session.outDir }
                 ].map((item) => (
-                  <div key={item.label} className="flex items-center gap-2 rounded-lg bg-muted px-3 py-2">
-                    <FileSpreadsheet className="size-4 shrink-0 text-muted-foreground" />
+                  <div
+                    key={item.label}
+                    className="bg-muted flex items-center gap-2 rounded-lg px-3 py-2"
+                  >
+                    <FileSpreadsheet className="text-muted-foreground size-4 shrink-0" />
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs text-muted-foreground">{item.label}</p>
+                      <p className="text-muted-foreground text-xs">{item.label}</p>
                       <p className="truncate text-[13px]" title={item.path}>
                         {item.path ? item.path.split(/[\\/]/).pop() : 'Chưa chọn'}
                       </p>
@@ -159,6 +177,23 @@ export function CourseDetail({
           </div>
 
           <CourseCloCard snapshot={snapshot} loading={loading} />
+        </TabsContent>
+
+        <TabsContent value="config">
+          <CourseConfigEditor
+            session={session}
+            onSave={(config, meta) => {
+              patchSession(session.id, {
+                maHp: config.courseInfo.maHp,
+                courseName: config.courseInfo.tenHp,
+                soTinChi: config.courseInfo.soTinChi,
+                lop: meta.lop?.trim() || undefined,
+                giangVien: meta.giangVien?.trim() || undefined,
+                cloCount: config.cloList.length
+              })
+              alert('Đã lưu cấu hình môn học.')
+            }}
+          />
         </TabsContent>
 
         <TabsContent value="runs">

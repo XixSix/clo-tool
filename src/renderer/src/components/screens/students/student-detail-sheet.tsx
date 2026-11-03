@@ -68,32 +68,34 @@ export function StudentDetailSheet({
 
             <div className="flex flex-col gap-5 px-4 pb-4">
               <div className="grid grid-cols-3 gap-2 text-center">
-                <div className="rounded-lg bg-muted p-3">
+                <div className="bg-muted rounded-lg p-3">
                   <p className="text-xl font-bold">{formatScore(student.courseScore)}</p>
-                  <p className="text-[11px] text-muted-foreground">Điểm học phần</p>
+                  <p className="text-muted-foreground text-[11px]">Điểm học phần</p>
                 </div>
-                <div className="rounded-lg bg-muted p-3">
+                <div className="bg-muted rounded-lg p-3">
                   <p className="text-xl font-bold">{formatScore(student.tbcClo)}</p>
-                  <p className="text-[11px] text-muted-foreground">TBC CLO</p>
+                  <p className="text-muted-foreground text-[11px]">TBC CLO</p>
                 </div>
-                <div className="rounded-lg bg-muted p-3">
+                <div className="bg-muted rounded-lg p-3">
                   <p className="text-xl font-bold">{formatScore(student.tbQuaTrinh)}</p>
-                  <p className="text-[11px] text-muted-foreground">TB quá trình</p>
+                  <p className="text-muted-foreground text-[11px]">TB quá trình</p>
                 </div>
               </div>
 
               <div>
-                <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <h3 className="text-muted-foreground mb-2 text-xs font-semibold tracking-wide uppercase">
                   Điểm theo nhóm
                 </h3>
                 <div className="grid grid-cols-3 gap-2">
                   {(['CC', 'GK', 'CK'] as const).map((group) => {
                     const detail = student.groupScores[group]
                     return (
-                      <div key={group} className="rounded-lg px-3 py-2 ring-1 ring-foreground/10">
-                        <p className="text-[11px] text-muted-foreground">{group}</p>
-                        <p className="font-mono text-base font-semibold">{formatScore(detail?.score)}</p>
-                        <p className="truncate text-[10px] text-muted-foreground">
+                      <div key={group} className="ring-foreground/10 rounded-lg px-3 py-2 ring-1">
+                        <p className="text-muted-foreground text-[11px]">{group}</p>
+                        <p className="font-mono text-base font-semibold">
+                          {formatScore(detail?.score)}
+                        </p>
+                        <p className="text-muted-foreground truncate text-[10px]">
                           {detail?.cloCodes.join(', ') || '—'}
                         </p>
                       </div>
@@ -103,7 +105,7 @@ export function StudentDetailSheet({
               </div>
 
               <div>
-                <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <h3 className="text-muted-foreground mb-2 text-xs font-semibold tracking-wide uppercase">
                   Kết quả CLO (ngưỡng {threshold})
                 </h3>
                 <div className="flex flex-col gap-2">
@@ -117,12 +119,14 @@ export function StudentDetailSheet({
                           value={Math.max(0, Math.min(100, score * 10))}
                           className={
                             passed
-                              ? 'h-2 [&_[data-slot=progress-indicator]]:bg-success'
-                              : 'h-2 [&_[data-slot=progress-indicator]]:bg-destructive'
+                              ? '[&_[data-slot=progress-indicator]]:bg-success h-2'
+                              : '[&_[data-slot=progress-indicator]]:bg-destructive h-2'
                           }
                         />
-                        <span className="w-10 text-right font-mono text-xs">{formatScore(score)}</span>
-                        <span className="w-16 shrink-0 text-right text-[11px] text-muted-foreground">
+                        <span className="w-10 text-right font-mono text-xs">
+                          {formatScore(score)}
+                        </span>
+                        <span className="text-muted-foreground w-16 shrink-0 text-right text-[11px]">
                           {passed ? 'Đạt' : 'Không đạt'}
                         </span>
                       </div>
@@ -133,7 +137,7 @@ export function StudentDetailSheet({
 
               {Object.keys(student.ploScores).length > 0 ? (
                 <div>
-                  <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <h3 className="text-muted-foreground mb-2 text-xs font-semibold tracking-wide uppercase">
                     PLO
                   </h3>
                   <div className="flex flex-wrap gap-1.5">
@@ -147,10 +151,10 @@ export function StudentDetailSheet({
               ) : null}
 
               <div>
-                <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <h3 className="text-muted-foreground mb-2 text-xs font-semibold tracking-wide uppercase">
                   Vết tính điểm ({cellEntries.length} ô)
                 </h3>
-                <div className="max-h-64 overflow-auto rounded-lg ring-1 ring-foreground/10">
+                <div className="ring-foreground/10 max-h-64 overflow-auto rounded-lg ring-1">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -168,7 +172,7 @@ export function StudentDetailSheet({
                           <TableCell className="text-right font-mono text-xs">
                             {formatScore(cell.score)}
                           </TableCell>
-                          <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                          <TableCell className="text-muted-foreground text-right font-mono text-xs">
                             {formatScore(cell.totalEarned)}/{formatScore(cell.totalMax)}
                           </TableCell>
                         </TableRow>
@@ -180,17 +184,17 @@ export function StudentDetailSheet({
 
               {student.issues.length > 0 ? (
                 <div>
-                  <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <h3 className="text-muted-foreground mb-2 text-xs font-semibold tracking-wide uppercase">
                     Cảnh báo
                   </h3>
-                  <ul className="flex flex-col gap-1.5 rounded-lg bg-muted p-3 text-xs">
+                  <ul className="bg-muted flex flex-col gap-1.5 rounded-lg p-3 text-xs">
                     {student.issues.map((issue, idx) => (
                       <li key={`${issue.message}-${idx}`} className="flex gap-1.5">
                         <span
                           className={
                             issue.level === 'error'
-                              ? 'mt-1 size-1.5 shrink-0 rounded-full bg-destructive'
-                              : 'mt-1 size-1.5 shrink-0 rounded-full bg-warning'
+                              ? 'bg-destructive mt-1 size-1.5 shrink-0 rounded-full'
+                              : 'bg-warning mt-1 size-1.5 shrink-0 rounded-full'
                           }
                         />
                         <span className="text-muted-foreground">{issue.message}</span>
@@ -202,21 +206,11 @@ export function StudentDetailSheet({
             </div>
 
             <SheetFooter className="flex-row flex-wrap gap-2 border-t">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled
-                title="Xuất phiếu điểm sẽ bổ sung sau"
-              >
+              <Button variant="outline" size="sm" disabled title="Xuất phiếu điểm sẽ bổ sung sau">
                 <FileText data-icon="inline-start" />
                 In phiếu điểm
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled
-                title="Mở file điểm gốc sẽ bổ sung sau"
-              >
+              <Button variant="outline" size="sm" disabled title="Mở file điểm gốc sẽ bổ sung sau">
                 Mở file điểm gốc
               </Button>
             </SheetFooter>

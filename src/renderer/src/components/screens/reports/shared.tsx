@@ -20,9 +20,9 @@ export function Kpi({
   return (
     <Card size="sm">
       <CardContent>
-        <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
+        <p className="text-muted-foreground text-[11px] tracking-wide uppercase">{label}</p>
         <p className="mt-1 text-xl font-bold tabular-nums">{value}</p>
-        {hint ? <p className="mt-0.5 text-[11px] text-muted-foreground">{hint}</p> : null}
+        {hint ? <p className="text-muted-foreground mt-0.5 text-[11px]">{hint}</p> : null}
       </CardContent>
     </Card>
   )

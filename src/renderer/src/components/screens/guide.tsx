@@ -1,10 +1,5 @@
 import React from 'react'
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from '@renderer/components/ui/card'
+import { Card, CardDescription, CardHeader, CardTitle } from '@renderer/components/ui/card'
 import { Separator } from '@renderer/components/ui/separator'
 import { Badge } from '@renderer/components/ui/badge'
 
@@ -39,7 +34,7 @@ export function HuongDan(): React.ReactElement {
     <div className="max-w-3xl">
       <div className="mb-5">
         <h2 className="text-xl font-bold">Hướng dẫn nhanh</h2>
-        <p className="mt-1 text-[13px] text-muted-foreground/80">
+        <p className="text-muted-foreground/80 mt-1 text-[13px]">
           Quy trình 4 bước để tạo báo cáo đánh giá CLO/PLO cho một học phần.
         </p>
       </div>
@@ -48,14 +43,14 @@ export function HuongDan(): React.ReactElement {
         {STEPS.map((step) => (
           <Card key={step.title}>
             <CardHeader>
-              <CardTitle className="text-sm font-semibold text-primary">{step.title}</CardTitle>
+              <CardTitle className="text-primary text-sm font-semibold">{step.title}</CardTitle>
               <CardDescription className="text-[13px] leading-relaxed">{step.desc}</CardDescription>
             </CardHeader>
           </Card>
         ))}
       </div>
 
-      <h3 className="mb-2 mt-5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      <h3 className="text-muted-foreground mt-5 mb-2 text-xs font-semibold tracking-wide uppercase">
         Quy ước dữ liệu
       </h3>
       <div className="flex flex-wrap gap-2">
@@ -67,7 +62,7 @@ export function HuongDan(): React.ReactElement {
       </div>
 
       <Separator className="my-5" />
-      <p className="text-xs text-muted-foreground/70">
+      <p className="text-muted-foreground/70 text-xs">
         Chi tiết đặc tả business: <span className="font-mono">docs/ke_hoach_dac_ta_clo_plo.md</span>{' '}
         trong thư mục dự án.
       </p>

@@ -28,9 +28,7 @@ export function initUpdater(window: BrowserWindow): void {
   autoUpdater.autoInstallOnAppQuit = true
 
   autoUpdater.on('checking-for-update', () => send({ state: 'checking' }))
-  autoUpdater.on('update-available', (info) =>
-    send({ state: 'available', version: info.version })
-  )
+  autoUpdater.on('update-available', (info) => send({ state: 'available', version: info.version }))
   autoUpdater.on('update-not-available', () => send({ state: 'latest' }))
   autoUpdater.on('download-progress', (progress) =>
     send({ state: 'downloading', percent: Math.round(progress.percent) })

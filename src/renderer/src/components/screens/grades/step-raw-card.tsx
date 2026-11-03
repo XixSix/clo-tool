@@ -17,17 +17,17 @@ import { StatBox } from '@renderer/components/screens/grades/stat-box'
 export function StepRawCard({
   rawPath,
   raw,
-  configPath,
   busy,
   bridgeReady,
-  onPick
+  onPick,
+  hasConfig
 }: {
   rawPath: string
   raw: RawSummaryDto | null
-  configPath: string
   busy: string | null
   bridgeReady: boolean
   onPick: () => void
+  hasConfig: boolean
 }): React.ReactElement {
   return (
     <Card>
@@ -42,13 +42,13 @@ export function StepRawCard({
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <FilePick
-          label={configPath ? 'Chọn file Template_DiemTho.xlsx…' : 'Chọn file Config trước…'}
+          label={hasConfig ? 'Chọn file Template_DiemTho.xlsx…' : 'Cần cấu hình môn học trước…'}
           path={rawPath}
           onClick={onPick}
-          disabled={!bridgeReady || Boolean(busy) || !configPath}
+          disabled={!bridgeReady || Boolean(busy) || !hasConfig}
         />
         {busy === 'raw' ? (
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
             <Loader2 className="size-3 animate-spin" /> Đang đọc điểm thô…
           </p>
         ) : null}
@@ -62,7 +62,7 @@ export function StepRawCard({
               <StatBox value={raw.missingDataCount} label="SV thiếu điểm" tone="warning" />
             </div>
             <IssueList issues={raw.issues} />
-            {raw.error ? <p className="text-xs text-destructive">{raw.error}</p> : null}
+            {raw.error ? <p className="text-destructive text-xs">{raw.error}</p> : null}
           </div>
         ) : null}
       </CardContent>

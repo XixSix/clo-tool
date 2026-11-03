@@ -20,11 +20,7 @@ const WorkspaceContext = createContext<WorkspaceContextValue | null>(null)
 const EMPTY_WS: WorkspaceDto = { activeId: null, sessions: [] }
 
 /** Provider lưu workspace (danh sách môn + lịch sử chạy) qua IPC tại userData */
-export function WorkspaceProvider({
-  children
-}: {
-  children: React.ReactNode
-}): React.ReactElement {
+export function WorkspaceProvider({ children }: { children: React.ReactNode }): React.ReactElement {
   const [ws, setWs] = useState<WorkspaceDto | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -160,7 +156,16 @@ export function WorkspaceProvider({
 
   return (
     <WorkspaceContext.Provider
-      value={{ ws, loading, active, setActiveSession, upsertSession, patchSession, removeSession, archiveRun }}
+      value={{
+        ws,
+        loading,
+        active,
+        setActiveSession,
+        upsertSession,
+        patchSession,
+        removeSession,
+        archiveRun
+      }}
     >
       {children}
     </WorkspaceContext.Provider>

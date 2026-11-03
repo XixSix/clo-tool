@@ -1,13 +1,6 @@
 /** Điều hướng màn hình dùng chung — tách khỏi app-shell để screens không import ngược lên shell. */
 
-export type ScreenId =
-  | 'home'
-  | 'courses'
-  | 'students'
-  | 'reports'
-  | 'import'
-  | 'settings'
-  | 'guide'
+export type ScreenId = 'home' | 'courses' | 'students' | 'reports' | 'import' | 'settings' | 'guide'
 
 export const SCREEN_TITLES: Record<ScreenId, string> = {
   home: 'Trang chủ',

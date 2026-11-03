@@ -47,18 +47,18 @@ export function StepConfigCard({
           disabled={!bridgeReady || Boolean(busy)}
         />
         {busy === 'config' ? (
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
             <Loader2 className="size-3 animate-spin" /> Đang đọc file Config…
           </p>
         ) : null}
 
         {config ? (
-          <div className="flex flex-col gap-2 rounded-lg bg-muted p-3 text-sm">
+          <div className="bg-muted flex flex-col gap-2 rounded-lg p-3 text-sm">
             <div className="font-semibold">
               {config.courseName || '(chưa có tên)'}{' '}
-              <span className="font-normal text-muted-foreground">— {config.maHp}</span>
+              <span className="text-muted-foreground font-normal">— {config.maHp}</span>
             </div>
-            <div className="text-xs text-muted-foreground">
+            <div className="text-muted-foreground text-xs">
               {config.soTinChi} tín chỉ · {config.hinhThucThi} · {config.cloList.length} CLO ·{' '}
               {config.planCount} đầu điểm · {config.ploCount} PLO
             </div>
@@ -79,13 +79,13 @@ export function StepConfigCard({
               {Math.abs(config.totalWeight - 100) < 0.01 ? '✓' : '(phải bằng 100%)'}
             </div>
             {config.rules ? (
-              <div className="text-xs text-muted-foreground">
+              <div className="text-muted-foreground text-xs">
                 Ngưỡng đạt: CLO {config.rules.nguongDatClo} · PLO {config.rules.nguongDatPlo} · HP{' '}
                 {config.rules.nguongDatHp} · {config.rules.hpMethod}
               </div>
             ) : null}
             <IssueList issues={config.issues} />
-            {config.error ? <p className="text-xs text-destructive">{config.error}</p> : null}
+            {config.error ? <p className="text-destructive text-xs">{config.error}</p> : null}
           </div>
         ) : null}
       </CardContent>

@@ -24,7 +24,7 @@ export function BaoCao({ onScreen }: { onScreen: (s: ScreenId) => void }): React
 
   if (!active) {
     return (
-      <Empty className="rounded-xl border border-dashed border-border">
+      <Empty className="border-border rounded-xl border border-dashed">
         <EmptyHeader>
           <FileSpreadsheet className="text-muted-foreground/40" />
           <EmptyTitle>Chưa có môn học</EmptyTitle>
@@ -39,7 +39,7 @@ export function BaoCao({ onScreen }: { onScreen: (s: ScreenId) => void }): React
 
   if (!latest) {
     return (
-      <Empty className="rounded-xl border border-dashed border-border">
+      <Empty className="border-border rounded-xl border border-dashed">
         <EmptyHeader>
           <FileSpreadsheet className="text-muted-foreground/40" />
           <EmptyTitle>
@@ -67,7 +67,7 @@ export function BaoCao({ onScreen }: { onScreen: (s: ScreenId) => void }): React
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <RunSelector session={active} runId={runId} onSelect={setRunId} />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               {active.courseName}
               {active.lop ? ` · Lớp ${active.lop}` : ''}
               {snapshot ? ` · ${snapshot.students.length} sinh viên` : ''}
@@ -86,7 +86,7 @@ export function BaoCao({ onScreen }: { onScreen: (s: ScreenId) => void }): React
         </div>
 
         {error ? (
-          <div className="flex items-center gap-2 rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
+          <div className="bg-destructive/10 text-destructive flex items-center gap-2 rounded-lg px-3 py-2 text-xs">
             <TriangleAlert className="size-4" />
             {error}
           </div>
@@ -140,9 +140,7 @@ export function BaoCao({ onScreen }: { onScreen: (s: ScreenId) => void }): React
         </Tabs>
       </div>
 
-      {snapshot ? (
-        <PrintReport snapshot={snapshot} session={active} run={currentRun} />
-      ) : null}
+      {snapshot ? <PrintReport snapshot={snapshot} session={active} run={currentRun} /> : null}
     </>
   )
 }

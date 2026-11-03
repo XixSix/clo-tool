@@ -9,7 +9,7 @@ export function ThemeToggle(): React.ReactElement {
 
   return (
     <div
-      className="flex items-center rounded-full bg-card p-1 shadow-sm ring-1 ring-border/70"
+      className="bg-card ring-border/70 flex items-center rounded-full p-1 shadow-sm ring-1"
       role="group"
       aria-label="Chọn chủ đề"
     >
@@ -20,7 +20,7 @@ export function ThemeToggle(): React.ReactElement {
         className={cn(
           'flex size-8 items-center justify-center rounded-full transition',
           theme === 'light'
-            ? 'bg-secondary text-foreground ring-1 ring-border/60'
+            ? 'bg-secondary text-foreground ring-border/60 ring-1'
             : 'text-muted-foreground hover:text-foreground'
         )}
       >
@@ -33,7 +33,7 @@ export function ThemeToggle(): React.ReactElement {
         className={cn(
           'flex size-8 items-center justify-center rounded-full transition',
           theme === 'dark'
-            ? 'bg-secondary text-foreground ring-1 ring-border/60'
+            ? 'bg-secondary text-foreground ring-border/60 ring-1'
             : 'text-muted-foreground hover:text-foreground'
         )}
       >

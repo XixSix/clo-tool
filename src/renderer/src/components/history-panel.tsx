@@ -31,10 +31,12 @@ export function LichSu({ sessionId }: { sessionId?: string }): React.ReactElemen
 
   if (rows.length === 0) {
     return (
-      <Empty className="rounded-xl border border-dashed border-border">
+      <Empty className="border-border rounded-xl border border-dashed">
         <EmptyHeader>
           <History className="text-muted-foreground/40" />
-          <EmptyTitle>{sessionId ? 'Môn này chưa có lần chạy nào' : 'Chưa có lần chạy nào'}</EmptyTitle>
+          <EmptyTitle>
+            {sessionId ? 'Môn này chưa có lần chạy nào' : 'Chưa có lần chạy nào'}
+          </EmptyTitle>
           <EmptyDescription>
             Lịch sử nằm tại đây sau khi bạn nhập điểm và xuất báo cáo.
           </EmptyDescription>
@@ -44,7 +46,7 @@ export function LichSu({ sessionId }: { sessionId?: string }): React.ReactElemen
   }
 
   return (
-    <div className="overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10">
+    <div className="bg-card ring-foreground/10 overflow-hidden rounded-xl ring-1">
       <Table>
         <TableHeader>
           <TableRow>
@@ -59,7 +61,7 @@ export function LichSu({ sessionId }: { sessionId?: string }): React.ReactElemen
         <TableBody>
           {rows.map(({ session, run }) => (
             <TableRow key={`${session.id}-${run.ts}`}>
-              <TableCell className="text-xs text-muted-foreground">
+              <TableCell className="text-muted-foreground text-xs">
                 {formatDateTime(run.ts)}
               </TableCell>
               <TableCell>
@@ -67,7 +69,7 @@ export function LichSu({ sessionId }: { sessionId?: string }): React.ReactElemen
                   <span className="font-mono text-[13px] font-semibold">{session.maHp}</span>
                   {session.lop ? <Badge variant="outline">{session.lop}</Badge> : null}
                 </div>
-                <p className="text-xs text-muted-foreground">{session.courseName}</p>
+                <p className="text-muted-foreground text-xs">{session.courseName}</p>
               </TableCell>
               <TableCell className="text-right font-mono text-[13px]">{run.studentCount}</TableCell>
               <TableCell className="text-right font-mono text-[13px]">

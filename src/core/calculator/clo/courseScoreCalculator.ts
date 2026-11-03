@@ -5,12 +5,7 @@
 
 import Decimal from 'decimal.js'
 import { roundStep } from '../../rules'
-import type {
-  AssessmentGroup,
-  CellScoreDetail,
-  CourseConfig,
-  GroupScoreDetail
-} from '../../types'
+import type { AssessmentGroup, CellScoreDetail, CourseConfig, GroupScoreDetail } from '../../types'
 
 export interface CourseScoreCalculationResult {
   courseScore: number
