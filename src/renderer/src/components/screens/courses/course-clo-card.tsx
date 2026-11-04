@@ -51,7 +51,9 @@ export function CourseCloCard({
               {snapshot.config.cloList.map((clo) => (
                 <Badge key={clo.maClo} variant="secondary" title={clo.noiDung}>
                   {clo.maClo}
-                  {clo.trongSoClo && clo.trongSoClo !== 1 ? ` · HS ${clo.trongSoClo}` : ''}
+                  {snapshot.config.courseInfo.loaiHp === 'thuc_hanh' && clo.trongSoClo
+                    ? ` · ${clo.trongSoClo}%`
+                    : ''}
                 </Badge>
               ))}
             </div>

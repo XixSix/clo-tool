@@ -33,12 +33,8 @@ export function evaluateStudent(
   // Bước 2: Tính CLO cả học phần, quá trình, cuối kỳ
   const { cloScores, processCloScores, finalCloScores } = calculateCloScores(config, cellScores)
 
-  // Bước 3: Tính TBC CLO
-  const { tbcClo, tbcCloInWords, sumWeightedClo, sumCloWeights } = calculateTbcClo(
-    config.cloList,
-    cloScores,
-    mode
-  )
+  // Bước 3: Tính TBC CLO (trung bình cộng thuần)
+  const { tbcClo, tbcCloInWords } = calculateTbcClo(config.cloList, cloScores, mode)
 
   // Bước 4: Tính điểm nhóm C_cc, C_gk, C_ck và TB quá trình
   const { groupScores, tbQuaTrinh } = calculateGroupScores(config.keHoachDanhGia, cellScores, mode)
@@ -50,7 +46,7 @@ export function evaluateStudent(
     courseScoreRawPoints,
     scoreDifferenceWarning,
     isPassedHp
-  } = calculateCourseScores(config, cellScores, groupScores, sumWeightedClo, sumCloWeights)
+  } = calculateCourseScores(config, cellScores, groupScores, cloScores)
 
   if (scoreDifferenceWarning) {
     issues.push({ level: 'warning', message: scoreDifferenceWarning })

@@ -2,6 +2,7 @@
  * Validate sheet CLO_LIST — danh mục chuẩn đầu ra (CLO).
  */
 
+import { roundHalfUp } from '../../rules'
 import type { CourseConfig, ValidationIssue } from '../../types'
 
 // Chấp nhận cả dạng phân cấp CLOx.y (ví dụ CLO1.1) theo QĐ450
@@ -94,7 +95,8 @@ export function validateCloList(config: CourseConfig): ValidationIssue[] {
       }
     }
 
-    // Validate Trong_So_CLO
+    // Validate Trong_So_CLO — chỉ có nghĩa với học phần thực hành/đồ án/thực tập/
+    // khóa luận. Nếu có khai báo thì luôn phải nằm trong (0..100].
     if (
       clo.trongSoClo !== undefined &&
       (!Number.isFinite(clo.trongSoClo) || clo.trongSoClo <= 0 || clo.trongSoClo > 100)
@@ -105,6 +107,32 @@ export function validateCloList(config: CourseConfig): ValidationIssue[] {
         column: 'Trong_So_CLO',
         message: `Trọng số CLO của "${clo.maClo}" phải thuộc (0..100].`
       })
+    }
+  }
+
+  // Học phần thực hành (QĐ450 Điều 9.3): C_hp = Σ CLO_k × trọng số CLO_k,
+  // bắt buộc mọi CLO có trọng số và tổng đúng 100% (không chuẩn hóa chia lại).
+  if (config.courseInfo.loaiHp === 'thuc_hanh' && cloList.length > 0) {
+    const missing = cloList.filter((c) => c.trongSoClo === undefined)
+    if (missing.length > 0) {
+      issues.push({
+        level: 'error',
+        sheet: 'CLO_LIST',
+        column: 'Trong_So_CLO',
+        message: `Học phần thực hành yêu cầu khai báo Trọng số CLO cho mọi CLO (thiếu: ${missing
+          .map((c) => c.maClo)
+          .join(', ')}).`
+      })
+    } else {
+      const total = cloList.reduce((sum, c) => sum + (c.trongSoClo ?? 0), 0)
+      if (roundHalfUp(total, 2) !== 100) {
+        issues.push({
+          level: 'error',
+          sheet: 'CLO_LIST',
+          column: 'Trong_So_CLO',
+          message: `Học phần thực hành yêu cầu tổng Trọng số CLO = 100% (hiện ${roundHalfUp(total, 2)}%).`
+        })
+      }
     }
   }
 

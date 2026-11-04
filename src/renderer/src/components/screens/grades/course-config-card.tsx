@@ -37,6 +37,7 @@ export function CourseConfigCard({ config }: CourseConfigCardProps): React.React
     )
   }
 
+  const isThucHanh = config.courseInfo.loaiHp === 'thuc_hanh'
   const totalCloWeight = config.cloList.reduce((sum, c) => sum + (c.trongSoClo || 1), 0)
   const totalPlanWeight = config.keHoachDanhGia.reduce((sum, p) => sum + p.trongSoPhanTram, 0)
   const cloWeightOk = Math.abs(totalCloWeight - 100) < 0.01
@@ -80,16 +81,18 @@ export function CourseConfigCard({ config }: CourseConfigCardProps): React.React
           </div>
         </div>
 
-        {/* CLO weights */}
-        <div
-          className={cn(
-            'flex items-center gap-2 text-xs',
-            cloWeightOk ? 'text-success' : 'text-destructive'
-          )}
-        >
-          {cloWeightOk ? <CheckCircle className="size-4" /> : <AlertCircle className="size-4" />}
-          <span>Tổng trọng số CLO: {totalCloWeight.toFixed(2)}%</span>
-        </div>
+        {/* CLO weights — chỉ áp dụng cho học phần thực hành */}
+        {isThucHanh && (
+          <div
+            className={cn(
+              'flex items-center gap-2 text-xs',
+              cloWeightOk ? 'text-success' : 'text-destructive'
+            )}
+          >
+            {cloWeightOk ? <CheckCircle className="size-4" /> : <AlertCircle className="size-4" />}
+            <span>Tổng trọng số CLO: {totalCloWeight.toFixed(2)}%</span>
+          </div>
+        )}
 
         {/* Plan weights */}
         <div
@@ -142,7 +145,8 @@ export function CourseConfigCard({ config }: CourseConfigCardProps): React.React
             <div className="flex flex-wrap gap-1.5">
               {config.cloList.map((clo) => (
                 <Badge key={clo.maClo} variant="secondary" className="text-[10px]">
-                  {clo.maClo} ({clo.trongSoClo || 1}%)
+                  {clo.maClo}
+                  {isThucHanh ? ` (${clo.trongSoClo || 0}%)` : ''}
                 </Badge>
               ))}
             </div>

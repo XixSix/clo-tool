@@ -111,19 +111,26 @@ describe('CLO Calculator Engine', () => {
       expect(st.courseScore).toBe(4.4)
     })
 
-    it('Học phần thực hành tính điểm theo trọng số CLO', () => {
+    it('Học phần thực hành: C_hp = Σ CLO × trọng số CLO (tổng 100%)', () => {
+      // Trọng số CLO: 20/10/10/10/20/10/20 (%) — tổng = 100
+      const weights = [20, 10, 10, 10, 20, 10, 20]
       const thucHanhConfig: CourseConfig = {
         ...HUNG_COURSE_CONFIG,
         courseInfo: {
           ...HUNG_COURSE_CONFIG.courseInfo,
           loaiHp: 'thuc_hanh'
-        }
+        },
+        cloList: HUNG_COURSE_CONFIG.cloList.map((clo, i) => ({
+          ...clo,
+          trongSoClo: weights[i]
+        }))
       }
 
       const res = calculateEvaluation(thucHanhConfig, [HUNG_STUDENT_ROW])
       const st = res.students[0]
-      // Học phần thực hành lấy điểm HP bằng TBC có trọng số của các CLO
-      expect(st.courseScore).toBe(st.tbcClo)
+      // CLO = 7.3/6.1/7.3/5.6/6.6/4.4/8.8
+      // C_hp = 0.2*7.3 + 0.1*6.1 + 0.1*7.3 + 0.1*5.6 + 0.2*6.6 + 0.1*4.4 + 0.2*8.8 = 6.9
+      expect(st.courseScore).toBe(6.9)
     })
   })
 })

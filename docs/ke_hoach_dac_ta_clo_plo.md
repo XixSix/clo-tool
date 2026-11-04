@@ -110,9 +110,9 @@ $$\text{CLO}_k = \frac{\sum_{j} w_{j,k}\, s_{j,k}}{\sum_{j} w_{j,k}}$$
 
 #### C. TBC CLO
 
-$$\text{TBC CLO} = \frac{\sum_{k=1}^{n} v_k\,\text{CLO}_k}{\sum_{k=1}^{n} v_k}$$
+$$\text{TBC CLO} = \frac{1}{n}\sum_{k=1}^{n} \text{CLO}_k$$
 
-$v_k$ là cột `Trọng số CLO` trong `CLO_LIST` (bỏ trống = 1, tức trung bình cộng thuần như Phụ lục 3 ghi "Trung bình cộng các CLO"). Ví dụ Hùng: TBC CLO = 6,6.
+**Trung bình cộng thuần** các CLO (Phụ lục 3 ghi "Trung bình cộng các CLO"; ví dụ Hùng: TBC CLO = 6,6). Cột `Trọng số CLO` trong `CLO_LIST` **không** tham gia TBC CLO — trường đó chỉ có nghĩa với học phần thực hành (xem mục D).
 
 #### D. Điểm học phần (điểm học vụ)
 
@@ -124,14 +124,13 @@ $$C_{hp} = 0{,}2\,C_{cc} + 0{,}3\,C_{gk} + 0{,}5\,C_{ck}$$
 - Ví dụ SV Hùng (QĐ450 tr.32): $C_{cc} = 8{,}8$; $C_{gk} = 6{,}7$ (TB 6 CLO của hai bài kiểm tra); $C_{ck} = 5{,}9$ (TB 6 CLO của đề thi cuối kỳ) → $C_{hp} = 0{,}2\times 8{,}8 + 0{,}3\times 6{,}7 + 0{,}5\times 5{,}9 = \mathbf{6{,}7}$, đúng như QĐ ghi ("Điểm tổng kết học vụ").
 - **Đừng nhầm hai đại lượng cùng xuất hiện ở tr.32–33:** "Tổng kết học vụ" (**6,7**, tính như trên, là điểm học phần) và "Tổng kết CLO" (**6,6**, là TBC của 7 CLO sau khi tính lẻ từng CLO theo công thức B, là số điền vào Phụ lục 3). Chúng gần nhau nhưng là hai đại lượng riêng.
 - Số 7,8 (TB của 8,8 và 6,7) có in trong bảng ở tr.32 nhưng không dùng ở bước nào sau đó; app không cần tính.
-- Học phần thực hành, thực tế chuyên môn, đồ án, thực tập tốt nghiệp, khóa luận (QĐ450 Điều 9.3): $C_{hp} = \sum_k \text{CLO}_k \times \text{trọng số CLO}_k$. Chọn bằng `Loai_HP = thuc_hanh` trong Config; dùng cột `Trọng số CLO` (tổng phải bằng 100%).
+- Học phần thực hành, thực tế chuyên môn, đồ án, thực tập tốt nghiệp, khóa luận (QĐ450 Điều 9.3): $C_{hp} = \sum_k \text{CLO}_k \times (\text{trọng số CLO}_k/100)$. Chọn bằng `Loai_HP = thuc_hanh` trong Config; dùng cột `Trọng số CLO` và validator **bắt buộc mọi CLO có trọng số, tổng đúng 100%** (không chuẩn hóa chia lại) **[Quyết định #13]**. Học phần thường bỏ qua cột này.
 
 _Phương án dự phòng:_ nếu P.QLCL cho biết trường vẫn nhập điểm học vụ bằng cách **cộng điểm thô** theo trọng số 20/30/50 (không qua trung bình CLO), đổi `hp_method` thành `RAW_POINTS`. Với dữ liệu của Hùng, cách này cho khoảng 6,9 (số tự tính, không có trong QĐ450). Mặc định là `QD450`.
 
 #### E. PI và PLO thành phần của một học phần
 
-- **[Căn cứ: QĐ450 Điều 9.5, 9.6; ví dụ PLO3 ở tr.33]** PI và PLO thành phần đều là **trung bình cộng trực tiếp các CLO** được ánh xạ tới chúng trong `MA_TRAN_PLO`. Ví dụ Hùng: PLO3 = (CLO1.1 + CLO1.2 + CLO1.3 + CLO1.4)/4 = 6,6.
-- Có thể gia quyền bằng `Trọng số CLO` (QĐ450 tr.32–33 cho phép "nếu có hệ số quan trọng hoặc mức năng lực").
+- **[Căn cứ: QĐ450 Điều 9.5, 9.6; ví dụ PLO3 ở tr.33]** PI và PLO thành phần đều là **trung bình cộng trực tiếp các CLO** được ánh xạ tới chúng trong `MA_TRAN_PLO`. Ví dụ Hùng: PLO3 = (CLO1.1 + CLO1.2 + CLO1.3 + CLO1.4)/4 = 6,6. Không gia quyền bằng `Trọng số CLO` (trường đó chỉ dùng cho học phần thực hành).
 - Điểm CĐR của CTĐT (trung bình các PLO thành phần, Điều 9.7) chỉ tính được khi có dữ liệu nhiều học phần, nên thuộc `[v2]`. v1 chỉ xuất điểm PI/PLO của học phần đang xử lý.
 
 #### F. Điều kiện Đạt và cảnh báo
@@ -182,7 +181,7 @@ Làm một lần cho mỗi học phần. Gồm 7 sheet:
 | Sheet               | Nội dung                                                   | Cột chính                                                                                                                     |
 | :------------------ | :--------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------- |
 | `HOC_PHAN`          | Thông tin chung                                            | Mã HP, Tên HP, Số tín chỉ, Hình thức thi, `Loai_HP` (`thuong` / `thuc_hanh`)                                                  |
-| `CLO_LIST`          | Danh sách CLO                                              | Mã CLO, Nội dung, Bậc năng lực dạng `bậc/thang` (ví dụ `3/6`, `3/5`), `Trọng số CLO` (tùy chọn)                               |
+| `CLO_LIST`          | Danh sách CLO                                              | Mã CLO, Nội dung, Bậc năng lực dạng `bậc/thang` (ví dụ `3/6`, `3/5`), `Trọng số CLO` (chỉ dùng cho học phần thực hành; tổng = 100%) |
 | `KE_HOACH_DANH_GIA` | Kế hoạch đánh giá (Bảng 3/4 trong QĐ450 và Mẫu Excel 2026) | Nhóm (`CC`/`GK`/`CK`), Thành phần, **Mã đầu điểm**, CLO, **Trọng số %**, Hình thức. **Một dòng cho mỗi cặp (đầu điểm, CLO).** |
 | `CAU_HOI`           | Ma trận cột điểm ↔ CLO                                     | **Mã cột điểm**, Mã đầu điểm, Câu (để gộp ý), CLO, Điểm tối đa, Mã đề (tùy chọn, mặc định `ALL`), Loại (`TL`/`TN`)            |
 | `MA_TRAN_PLO`       | Ánh xạ CLO → PI → PLO (Bảng 2 trong QĐ450)                 | PLO, PI, CLO                                                                                                                  |
@@ -324,6 +323,7 @@ Những chỗ văn bản chưa nói rõ đã được chọn như sau. Tất c�
 | 10  | Cùng một đầu điểm có nhiều mã đề                  | Câu được khai `maDe` cụ thể chỉ tính cho SV cùng đề; câu `maDe = ALL` tính cho mọi SV; SV không khai mã đề (~ `ALL`) tính với mọi câu. Điểm ô $s(j,k)$ luôn bỏ câu của đề SV không làm (khác với cảnh báo "chưa nhập điểm" từ validator)         | Nhất quán với psychometrics (mỗi đề chỉ thống kê SV làm đề đó); fixture `mockMultiDe` bẫy regression |
 | 11  | Điểm thô còn lỗi (mức error)                      | `pipeline:run` chặn cứng — không xuất báo cáo khi có điểm âm/vượt cận, mã SV trùng/thiếu; cảnh báo (warning) không chặn                                                                                                                          | UI vẫn hiển thị danh sách lỗi ngay tại bước đọc điểm thô                                             |
 | 12  | Mọi cặp (đầu điểm, CLO) phải khai trong `CAU_HOI` | Kể cả cột điểm trực tiếp thang 10 (CC, TD): khai như một câu hỏi `diemToiDa = 10, maDe = ALL`. Nhánh "cột điểm trực tiếp" trong `calculateCellScores` chỉ giữ làm fallback an toàn, validator ghi đè cấu hình                                    | Chốt tạm thời; muốn cho phép cột trực tiếp thuần thì gỡ check cặp trong `crossSheetValidator`        |
+| 13  | Vai trò cột `Trọng số CLO` (`trongSoClo`)         | **Chỉ** dùng cho học phần thực hành/đồ án/thực tập/khóa luận: $C_{hp} = \sum_k \text{CLO}_k \times (\text{trọng số CLO}_k/100)$, bắt buộc mọi CLO có trọng số và tổng = 100% (không chia chuẩn hóa). Học phần thường: TBC CLO và PLO/PI đều là **trung bình cộng thuần**, bỏ qua trường này | Khớp ví dụ Hùng (TBC CLO = 6,6; PLO3 = 6,6) và Điều 9.3/9.5/9.6; validator `cloListValidator` chặn khi thiếu/tổng ≠ 100% |
 
 ---
 

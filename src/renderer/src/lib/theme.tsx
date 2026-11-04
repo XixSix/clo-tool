@@ -7,12 +7,11 @@ const STORAGE_KEY = 'clo-theme'
 interface ThemeContextValue {
   theme: Theme
   setTheme: (t: Theme) => void
-  toggle: () => void
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
-/** Provider đổi theme Light/Dark — lớp .dark trên <html>, nhớ trong localStorage */
+/** Provider đổi theme Light/Dark */
 export function ThemeProvider({ children }: { children: React.ReactNode }): React.ReactElement {
   const [theme, setThemeState] = useState<Theme>(() => {
     try {
@@ -33,11 +32,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }): Reac
   }, [theme])
 
   const setTheme = (t: Theme): void => setThemeState(t)
-  const toggle = (): void => setThemeState(theme === 'dark' ? 'light' : 'dark')
 
-  return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggle }}>{children}</ThemeContext.Provider>
-  )
+  return <ThemeContext.Provider value={{ theme, setTheme }}>{children}</ThemeContext.Provider>
 }
 
 export function useTheme(): ThemeContextValue {

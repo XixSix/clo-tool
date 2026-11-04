@@ -57,18 +57,18 @@ function tbcOfPhase(
   phase: Phase,
   cloCodes: string[]
 ): { value?: number; words?: string } {
-  let weighted = 0
-  let weightSum = 0
+  // TBC CLO của đợt = trung bình cộng thuần các CLO có mặt trong đợt đó
+  let sum = 0
+  let count = 0
   for (const clo of config.cloList) {
     if (!cloCodes.includes(clo.maClo)) continue
     const score = cloScoreOf(student, clo.maClo, phase)
     if (score === undefined) continue
-    const w = clo.trongSoClo ?? 1
-    weighted += score * w
-    weightSum += w
+    sum += score
+    count++
   }
-  if (weightSum === 0) return {}
-  const value = roundHalfUp(weighted / weightSum, 1)
+  if (count === 0) return {}
+  const value = roundHalfUp(sum / count, 1)
   return { value, words: numberToWordsVi(value, 1, true) }
 }
 

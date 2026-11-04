@@ -113,6 +113,32 @@ describe('validateCloList - sheet CLO_LIST', () => {
     expect(messages).toContain('Trọng số CLO của "CLO1" phải thuộc (0..100].')
   })
 
+  it('Học phần thực hành thiếu Trong_So_CLO -> lỗi', () => {
+    const config = mock()
+    config.courseInfo.loaiHp = 'thuc_hanh'
+    delete config.cloList[0].trongSoClo
+    const messages = errors(validateConfig(config)).map((i) => i.message)
+    expect(
+      messages.some((m) => m.includes('Học phần thực hành yêu cầu khai báo Trọng số CLO'))
+    ).toBe(true)
+  })
+
+  it('Học phần thực hành tổng Trọng_So_CLO ≠ 100 -> lỗi', () => {
+    const config = mock()
+    config.courseInfo.loaiHp = 'thuc_hanh'
+    // 5 CLO × 10% = 50% → thiếu
+    config.cloList.forEach((c) => (c.trongSoClo = 10))
+    const messages = errors(validateConfig(config)).map((i) => i.message)
+    expect(messages).toContain('Học phần thực hành yêu cầu tổng Trọng số CLO = 100% (hiện 50%).')
+  })
+
+  it('Học phần thực hành tổng Trọng_So_CLO = 100 -> không lỗi', () => {
+    const config = mock()
+    config.courseInfo.loaiHp = 'thuc_hanh'
+    config.cloList.forEach((c) => (c.trongSoClo = 20))
+    expect(errors(validateConfig(config))).toHaveLength(0)
+  })
+
   it('Bac_Nang_Luc trống / sai định dạng / bậc vượt thang -> cảnh báo (chỉ hiển thị, không tính điểm)', () => {
     const config = mock()
     config.cloList[0].bacNangLuc = ''

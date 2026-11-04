@@ -8,8 +8,6 @@
  * - student.ts       : Dữ liệu điểm thô sinh viên (RawStudentRow)
  * - result.ts        : Kết quả tính điểm & thống kê toàn lớp (traceability)
  * - psychometrics.ts : Kết quả kiểm định đề thi (p, d, Cronbach's alpha)
- *
- * Lưu ý: Thư mục này độc lập 100%, không import bất kỳ package nào từ Electron hoặc React.
  */
 
 export * from './course'

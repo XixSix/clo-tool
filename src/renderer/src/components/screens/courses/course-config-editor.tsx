@@ -268,9 +268,12 @@ export function CourseConfigEditor({
   const validationErrors = useMemo(() => {
     const errors: string[] = []
 
-    const totalCloWeight = sumCloWeights(config.cloList)
-    if (config.cloList.length > 0 && Math.abs(totalCloWeight - 100) > 0.01) {
-      errors.push(`Tổng trọng số CLO = ${totalCloWeight.toFixed(2)}% (phải bằng 100%)`)
+    // Trọng số CLO chỉ có nghĩa với học phần thực hành (QĐ450 Điều 9.3)
+    if (config.courseInfo.loaiHp === 'thuc_hanh') {
+      const totalCloWeight = sumCloWeights(config.cloList)
+      if (config.cloList.length > 0 && Math.abs(totalCloWeight - 100) > 0.01) {
+        errors.push(`Tổng trọng số CLO = ${totalCloWeight.toFixed(2)}% (phải bằng 100%)`)
+      }
     }
 
     const totalPlanWeight = sumWeights(config.keHoachDanhGia)
@@ -484,7 +487,9 @@ export function CourseConfigEditor({
                     <TableHead className="w-32">Mã CLO</TableHead>
                     <TableHead>Nội dung</TableHead>
                     <TableHead className="w-32">Bậc năng lực</TableHead>
-                    <TableHead className="w-24">Trọng số %</TableHead>
+                    {config.courseInfo.loaiHp === 'thuc_hanh' && (
+                      <TableHead className="w-24">Trọng số %</TableHead>
+                    )}
                     <TableHead className="w-10"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -541,25 +546,27 @@ export function CourseConfigEditor({
                           placeholder="VD: 3/6"
                         />
                       </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="1"
-                          value={clo.trongSoClo ?? 1}
-                          onChange={(e) =>
-                            setConfig((c) => ({
-                              ...c,
-                              cloList: c.cloList.map((x) =>
-                                x._id === clo._id
-                                  ? { ...x, trongSoClo: Number(e.target.value) || 0 }
-                                  : x
-                              )
-                            }))
-                          }
-                          className="w-20 text-right font-mono text-sm"
-                        />
-                      </TableCell>
+                      {config.courseInfo.loaiHp === 'thuc_hanh' && (
+                        <TableCell>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="1"
+                            value={clo.trongSoClo ?? 1}
+                            onChange={(e) =>
+                              setConfig((c) => ({
+                                ...c,
+                                cloList: c.cloList.map((x) =>
+                                  x._id === clo._id
+                                    ? { ...x, trongSoClo: Number(e.target.value) || 0 }
+                                    : x
+                                )
+                              }))
+                            }
+                            className="w-20 text-right font-mono text-sm"
+                          />
+                        </TableCell>
+                      )}
                       <TableCell className="text-center">
                         <Button
                           variant="ghost"
@@ -580,7 +587,7 @@ export function CourseConfigEditor({
               </Table>
             </div>
           )}
-          {config.cloList.length > 0 && (
+          {config.cloList.length > 0 && config.courseInfo.loaiHp === 'thuc_hanh' && (
             <div
               className={cn(
                 'mt-3 flex items-center gap-2 text-sm',

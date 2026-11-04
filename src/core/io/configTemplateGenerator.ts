@@ -57,7 +57,7 @@ export function buildConfigWorkbook(config: CourseConfig): ExcelJS.Workbook {
       Ma_CLO: c.maClo,
       Noi_Dung: c.noiDung,
       Bac_Nang_Luc: c.bacNangLuc,
-      Trong_So_CLO: c.trongSoClo ?? 1
+      Trong_So_CLO: config.courseInfo.loaiHp === 'thuc_hanh' ? (c.trongSoClo ?? 1) : ''
     })
   )
 

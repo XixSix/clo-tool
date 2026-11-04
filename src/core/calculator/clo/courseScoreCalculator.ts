@@ -22,8 +22,7 @@ export function calculateCourseScores(
   config: CourseConfig,
   cellScores: Record<string, CellScoreDetail>,
   groupScores: Record<AssessmentGroup, GroupScoreDetail>,
-  sumWeightedClo: Decimal,
-  sumCloWeights: Decimal
+  cloScores: Record<string, number>
 ): CourseScoreCalculationResult {
   const rules = config.quyTac
   const mode = rules.rounding_mode ?? 'chain'
@@ -31,8 +30,14 @@ export function calculateCourseScores(
   // Cách 1: QĐ450 Điều 9.3: 0.2*C_cc + 0.3*C_gk + 0.5*C_ck
   let cHpQd450Dec = new Decimal(0)
   if (config.courseInfo.loaiHp === 'thuc_hanh') {
-    // Học phần thực hành: C_hp = sum(CLO_k * trong_so_k) / sum(trong_so_k)
-    cHpQd450Dec = sumCloWeights.gt(0) ? sumWeightedClo.div(sumCloWeights) : new Decimal(0)
+    // Học phần thực hành/đồ án/thực tập/khóa luận (QĐ450 Điều 9.3):
+    // C_hp = Σ CLO_k × trọng số CLO_k với trọng số tính theo % (tổng = 100%).
+    // Validator đảm bảo tổng = 100 nên KHÔNG chuẩn hóa lại ở đây.
+    for (const clo of config.cloList) {
+      const w = clo.trongSoClo ?? 0
+      const s = cloScores[clo.maClo] ?? 0
+      cHpQd450Dec = cHpQd450Dec.add(new Decimal(s).mul(w).div(100))
+    }
   } else {
     // Học phần thường
     const cCC = new Decimal(groupScores.CC.score)

@@ -24,8 +24,6 @@ export interface CloCalculationResult {
 export interface TbcCloResult {
   tbcClo: number
   tbcCloInWords: string
-  sumWeightedClo: Decimal
-  sumCloWeights: Decimal
 }
 
 export interface GroupScoreResult {
@@ -107,33 +105,29 @@ export function calculateCloScores(
 }
 
 /**
- * Tính điểm trung bình cộng CLO (TBC CLO) có trọng số và chuyển thành chữ tiếng Việt
+ * Tính điểm trung bình cộng CLO (TBC CLO) — trung bình cộng thuần các CLO
+ * (Phụ lục 3: "Trung bình cộng các CLO"). KHÔNG gia quyền: `trongSoClo` chỉ
+ * có nghĩa với học phần thực hành, không dùng ở đây.
  */
 export function calculateTbcClo(
   cloList: CLODefinition[],
   cloScores: Record<string, number>,
   mode: 'chain' | 'final_only' = 'chain'
 ): TbcCloResult {
-  let sumWeightedClo = new Decimal(0)
-  let sumCloWeights = new Decimal(0)
+  let sumClo = new Decimal(0)
+  let countClo = 0
 
   for (const clo of cloList) {
     const score = cloScores[clo.maClo] ?? 0
-    const w = clo.trongSoClo ?? 1
-    sumWeightedClo = sumWeightedClo.add(new Decimal(score).mul(w))
-    sumCloWeights = sumCloWeights.add(w)
+    sumClo = sumClo.add(score)
+    countClo++
   }
 
-  const rawTbcClo = sumCloWeights.gt(0) ? sumWeightedClo.div(sumCloWeights).toNumber() : 0
+  const rawTbcClo = countClo > 0 ? sumClo.div(countClo).toNumber() : 0
   const tbcClo = roundStep(rawTbcClo, mode, 1)
   const tbcCloInWords = numberToWordsVi(tbcClo, 1, true)
 
-  return {
-    tbcClo,
-    tbcCloInWords,
-    sumWeightedClo,
-    sumCloWeights
-  }
+  return { tbcClo, tbcCloInWords }
 }
 
 /**

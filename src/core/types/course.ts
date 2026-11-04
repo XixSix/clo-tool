@@ -17,7 +17,10 @@ export interface CLODefinition {
   maClo: string
   noiDung: string
   bacNangLuc: string // e.g. "3/6", "3/5", "4/6"
-  trongSoClo?: number // default 1 (dùng cho TBC CLO hoặc HP thực hành)
+  // Trọng số CLO (đơn vị %): CHỈ dùng cho học phần thực hành (đồ án, thực tập, tốt nghiệp, ...)
+  // (QĐ450 Điều 9.3: C_hp = Σ CLO_k × trọng số CLO_k, tổng = 100%).
+  // Học phần thường bỏ qua trường này; TBC CLO luôn là trung bình cộng các CLO.
+  trongSoClo?: number
 }
 
 export type AssessmentGroup = 'CC' | 'GK' | 'CK'
