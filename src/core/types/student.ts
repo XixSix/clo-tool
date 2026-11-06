@@ -1,60 +1,76 @@
 /**
- * Data Models: DỮ LIỆU ĐIỂM THÔ & HỒ SƠ SINH VIÊN (RAW INPUT)
+ * Data Models: SINH VIÊN VÀ DỮ LIỆU NHẬP ĐIỂM
  * Quy chuẩn: Đại học Thành Đông (QĐ 450/QĐ-ĐHTĐ ngày 07/8/2024)
+ *
  */
 
-/** 1. Thông tin lớp học phần (khối header đầu file điểm thô) */
-export interface RawGradesMeta {
-  tenHocPhan?: string
-  maHp?: string
-  lop?: string
-  giangVien?: string
-  hocKy?: string
-  namHoc?: string
-}
+import type { AssessmentInputMode } from './course'
 
-/** 2. Thông tin một cột điểm danh trong file */
-export interface AttendanceSession {
-  column: string
-  label: string // Ví dụ: "Buổi 1", "Buổi 1 (28/10)", "28/10"
-}
-
-/** 3. Dữ liệu điểm danh của một sinh viên */
-export interface AttendanceRecord {
-  maSv: string
-  /** key = label của buổi, value = ký hiệu (X, V, P, M...) */
-  symbols: Record<string, string>
-}
-
-/** 4. Thông tin định danh của sinh viên */
-export interface StudentInfo {
+/** Thông tin định danh của sinh viên. */
+export interface Student {
+  id: string
   tt: number
   maSv: string
   ho: string
   ten: string
-  hoTen: string // ghép từ "ho ten", tiện hiển thị & tìm kiếm
+  hoTen: string
   ngaySinh?: string
 }
 
-/** 5. Dữ liệu làm bài & điểm thô của sinh viên */
-export interface StudentScores {
-  maDe?: string
-  diemCacCot: Record<string, number | 'VT' | null | undefined>
+/** Giá trị điểm nhập; null = ô trống, VT = vắng thi. */
+export type ScoreValue = number | 'VT' | null
+
+/** Điểm của một câu hỏi trong một đợt đánh giá. */
+export interface StudentQuestionScore {
+  questionId: string
+  diem: ScoreValue
+}
+
+/** Điểm trực tiếp của một CLO trong một đợt đánh giá. */
+export interface StudentCLOScore {
+  cloId: string
+  diem: ScoreValue
+}
+
+/** Ký hiệu điểm danh tại một buổi. */
+export interface StudentAttendanceMark {
+  buoiDiemDanhId: string
+  kyHieu: string
+}
+
+/** Điểm nhập theo từng câu hỏi của một đợt đánh giá. */
+export interface StudentQuestionAssessmentEntry {
+  cachNhapDiem: Extract<AssessmentInputMode, 'QUESTION_SCORE'>
+  dotDanhGiaId: string
+  deId: string
+  diemTheoCau: StudentQuestionScore[]
+}
+
+/** Điểm nhập trực tiếp theo CLO của một đợt đánh giá. */
+export interface StudentDirectCLOAssessmentEntry {
+  cachNhapDiem: Extract<AssessmentInputMode, 'DIRECT_CLO_SCORE'>
+  dotDanhGiaId: string
+  diemTheoClo: StudentCLOScore[]
+}
+
+/** Điểm danh theo từng buổi của một đợt chuyên cần. */
+export interface StudentAttendanceAssessmentEntry {
+  cachNhapDiem: Extract<AssessmentInputMode, 'ATTENDANCE'>
+  dotDanhGiaId: string
+  diemDanh: StudentAttendanceMark[]
+}
+
+/** Một loại dữ liệu điểm của sinh viên trong một đợt đánh giá. */
+export type StudentAssessmentEntry =
+  | StudentQuestionAssessmentEntry
+  | StudentDirectCLOAssessmentEntry
+  | StudentAttendanceAssessmentEntry
+
+/** Toàn bộ dữ liệu điểm của một sinh viên trong một học phần. */
+export interface StudentCourseScoreRecord {
+  id: string
+  sinhVienId: Student['id']
+  hocPhanId: string
+  diemTheoDotDanhGia: StudentAssessmentEntry[]
   ghiChu?: string
-}
-
-/** 6. Một dòng sinh viên trong file điểm thô (Phương án 2A - Composition) */
-export interface RawStudentRow {
-  student: StudentInfo
-  scores: StudentScores
-}
-
-/** 7. Toàn bộ dữ liệu đọc từ file điểm thô (Đối xứng với CourseConfig) */
-export interface RawGrades {
-  meta: RawGradesMeta
-  students: RawStudentRow[]
-  attendance: AttendanceRecord[]
-  attendanceSessions: AttendanceSession[]
-  declaredMaxScores: Record<string, number>
-  studentExcelRows?: number[]
 }

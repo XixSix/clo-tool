@@ -1,136 +1,90 @@
 /**
- * Data Models: KẾT QUẢ TÍNH ĐIỂM (OUTPUT TRACEABILITY)
+ * Data Models: KẾT QUẢ TÍNH ĐIỂM
  * Quy chuẩn: Đại học Thành Đông (QĐ 450/QĐ-ĐHTĐ ngày 07/8/2024)
+ *
+ * Quy ước:
+ * - Type/interface dùng tiếng Anh.
+ * - Field nghiệp vụ dùng tiếng Việt, camelCase.
+ * - Liên kết nội bộ dùng ID.
+ * - Kết quả chi tiết chỉ đi theo một chiều: sinh viên → đợt → CLO.
  */
 
-import type { AssessmentGroup, CourseConfig } from './course'
-import type { ValidationIssue } from './validation'
+import type { AssessmentGroup } from './course'
 
-// ==========================================
-// 1. ĐIỂM CHI TIẾT TỪNG Ô & NHÓM
-// ==========================================
-
-export interface CellScoreDetail {
-  maDauDiem: string
-  maClo: string
-  score: number // Thang 10, đã áp dụng rounding_mode
-  rawScore: number // Điểm chưa làm tròn
-  columnCodes: string[]
-  totalEarned: number
-  totalMax: number
-  itemRatios: number[]
+/** Cảnh báo hoặc lỗi phát sinh trong quá trình tính điểm. */
+export interface ScoreIssue {
+  mucDo: 'warning' | 'error'
+  maLoi: string
+  noiDung: string
+  dotDanhGiaId?: string
+  cauHoiId?: string
+  cloId?: string
 }
 
-export interface GroupScoreDetail {
+/** Điểm của một CLO trong một đợt đánh giá. */
+export interface AssessmentCLOScore {
+  cloId: string
+  diem: number
+  diemTho?: number
+}
+
+/** Kết quả của một đợt đánh giá: CC, GK hoặc CK. */
+export interface AssessmentResult {
+  dotDanhGiaId: string
   nhom: AssessmentGroup
-  score: number // Thang 10, TBC các CLO của nhóm đó (C_cc, C_gk, C_ck)
-  cloCodes: string[]
-  cloScores: Record<string, number>
-  rawGroupScore?: number // Điểm thô của nhóm (nếu tính theo phương thức RAW_POINTS)
+  diem: number
+  clo: AssessmentCLOScore[]
 }
 
-// ==========================================
-// 2. KẾT QUẢ TỪNG SINH VIÊN
-// ==========================================
+/** Kết quả tổng hợp một CLO trong toàn học phần. */
+export interface CLOResult {
+  cloId: string
+  diem: number
+}
 
-export interface ProcessedStudentResult {
-  tt: number
-  maSv: string
-  hoTen: string
-  ngaySinh?: string
-  maDe?: string
+/** Kết quả một PI. */
+export interface PIResult {
+  piId: string
+  diem: number
+}
 
-  // Chi tiết từng ô (đầu điểm, CLO) -> Full Traceability
-  cellScores: Record<string, CellScoreDetail> // key dạng `${maDauDiem}_${maClo}`
+/** Kết quả một PLO thành phần. */
+export interface PartialPLOResult {
+  ploThanhPhanId: string
+  diem: number
+  pi: PIResult[]
+}
 
-  // Điểm CLO thành phần từng đợt
-  processCloScores: Record<string, number> // Bảng quá trình (CC + GK)
-  finalCloScores: Record<string, number> // Bảng cuối kỳ (CK)
+/** Kết quả một PLO. PLO có cấu trúc con thật nên giữ nesting. */
+export interface PLOResult {
+  ploId: string
+  diem: number
+  ploThanhPhan: PartialPLOResult[]
+}
 
-  // Điểm CLO cả học phần (thang 10)
-  cloScores: Record<string, number>
+/** Kết quả toàn bộ của một sinh viên trong một học phần. */
+export interface StudentCourseResult {
+  id: string
+  sinhVienId: string
+  hocPhanId: string
 
-  // Điểm các nhóm đánh giá (C_cc, C_gk, C_ck)
-  groupScores: Record<AssessmentGroup, GroupScoreDetail>
+  /** Chi tiết theo đúng chiều tính toán: đợt → CLO. */
+  dotDanhGia: AssessmentResult[]
 
-  // Điểm trung bình cộng CLO (Phụ lục 3)
+  /** Điểm CLO sau khi gom tất cả đợt đánh giá. */
+  clo: CLOResult[]
+
+  /** Cây kết quả PLO → PLO thành phần → PI. */
+  plo: PLOResult[]
+
   tbcClo: number
-  tbcCloInWords: string // Đọc số thành chữ (ví dụ: "Sáu phẩy sáu")
-  tbQuaTrinh?: number // (C_cc + C_gk) / 2 (ví dụ Hùng = 7,8)
+  diemQuaTrinh?: number
+  diemHocPhan: number
+  diemHocPhanQd450?: number
+  diemHocPhanRawPoints?: number
 
-  // Điểm học phần
-  courseScore: number // Điểm chính thức theo quy tắc hp_method
-  courseScoreQd450: number // Điểm theo QĐ450 Điều 9.3 (ví dụ Hùng = 6,7)
-  courseScoreRawPoints: number // Điểm theo phương thức cũ RAW_POINTS (ví dụ Hùng = 6,9)
-  scoreDifferenceWarning?: string // Cảnh báo nếu lệch >= 0.1 giữa 2 phương thức
-
-  // Điểm PLO thành phần
-  ploScores: Record<string, number>
-
-  // Trạng thái & Cảnh báo
-  isPassedHp: boolean
-  isAbsentFinal: boolean
-  hasMissingData: boolean
-  issues: ValidationIssue[]
-}
-
-// ==========================================
-// 3. THỐNG KÊ TỔNG HỢP TOÀN LỚP
-// ==========================================
-
-export interface CloStat {
-  maClo: string
-  passedCount: number
-  passedPercent: number
-  failedCount: number
-  failedPercent: number
-  mean: number
-  min: number
-  max: number
-  isBelowThreshold: boolean
-}
-
-export interface PloStat {
-  plo: string
-  passedCount: number
-  passedPercent: number
-  failedCount: number
-  failedPercent: number
-  mean: number
-}
-
-export interface ClassEvaluationSummary {
-  totalStudents: number
-  evaluatedStudents: number
-  absentStudents: number
-  missingDataStudents: number
-  cloStats: Record<string, CloStat>
-  ploStats: Record<string, PloStat>
-  courseStat: {
-    passedCount: number
-    passedPercent: number
-    failedCount: number
-    failedPercent: number
-    mean: number
-    min: number
-    max: number
-  }
-  generalWarnings: string[]
-}
-
-export interface EvaluationResult {
-  students: ProcessedStudentResult[]
-  summary: ClassEvaluationSummary
-  config: CourseConfig
-}
-
-/** Kết quả tính điểm chuyên cần từ ký hiệu điểm danh */
-export interface AttendanceScore {
-  maSv: string
-  /** Điểm chuyên cần thang 10 */
-  score: number
-  soBuoi: number
-  soVangKhongPhep: number
-  soVangCoPhep: number
-  symbolsLa: string[]
+  datHocPhan: boolean
+  vangThiCuoiKy: boolean
+  thieuDuLieu: boolean
+  canhBao: ScoreIssue[]
 }
