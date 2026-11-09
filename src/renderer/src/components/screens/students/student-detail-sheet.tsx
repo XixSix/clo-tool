@@ -21,7 +21,7 @@ import {
 } from '@renderer/components/ui/table'
 import { formatScore } from '@renderer/lib/format'
 import type { RunSnapshotDto } from '../../../../../shared/ipc'
-import type { ProcessedStudentResult } from '@core/types'
+import type { ProcessedStudentResultView } from '@renderer/lib/result-view'
 
 /** Sheet chi tiết một sinh viên: điểm nhóm, CLO, PLO, vết tính điểm và cảnh báo. */
 export function StudentDetailSheet({
@@ -29,11 +29,11 @@ export function StudentDetailSheet({
   snapshot,
   onClose
 }: {
-  student: ProcessedStudentResult | null
+  student: ProcessedStudentResultView | null
   snapshot: RunSnapshotDto
   onClose: () => void
 }): React.ReactElement {
-  const threshold = snapshot.config.quyTac.nguong_dat_clo
+  const threshold = snapshot.config.quyTac.nguongDatClo
   const cloCodes = snapshot.config.cloList.map((c) => c.maClo)
   const cellEntries = student ? Object.values(student.cellScores) : []
 

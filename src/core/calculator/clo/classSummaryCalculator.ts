@@ -1,106 +1,94 @@
 /**
- * Module thống kê tổng hợp kết quả học tập toàn lớp (CLO, PLO, Điểm HP)
+ * Module thống kê tổng hợp kết quả học tập toàn lớp (CLO, PLO, Điểm HP).
  */
 
 import Decimal from 'decimal.js'
 import { roundHalfUp } from '../../rules'
-import { calculatePloStats } from '../plo'
+import { calculatePloStatistics } from '../plo'
 import type {
+  CLOStatistics,
   ClassEvaluationSummary,
-  CloStat,
-  CourseConfig,
-  ProcessedStudentResult
+  Course,
+  CourseStatistics,
+  StudentCourseResult
 } from '../../types'
 
 /**
- * Thống kê tỷ lệ Đạt/Không đạt, Min, Max, TB cho từng CLO, PLO và điểm HP toàn lớp
+ * Thống kê tỷ lệ Đạt/Không đạt, Min, Max, TB cho từng CLO, PLO và điểm HP toàn lớp.
  */
 export function calculateClassSummary(
-  config: CourseConfig,
-  students: ProcessedStudentResult[]
+  course: Course,
+  students: StudentCourseResult[]
 ): ClassEvaluationSummary {
-  const rules = config.quyTac
-  const totalStudents = students.length
+  const rules = course.quyTac
+  const tongSinhVien = students.length
+  const soSinhVienVangThi = students.filter((s) => s.vangThiCuoiKy).length
+  const soSinhVienDuocTinh = students.filter((s) => !s.vangThiCuoiKy).length
+  const soSinhVienThieuDuLieu = students.filter((s) => s.thieuDuLieu).length
 
-  const evaluatedStudents = students.filter((s) => !s.isAbsentFinal).length
-  const absentStudents = students.filter((s) => s.isAbsentFinal).length
-  const missingDataStudents = students.filter((s) => s.hasMissingData).length
-
-  // Thống kê từng CLO
-  const cloStats: Record<string, CloStat> = {}
-  for (const clo of config.cloList) {
-    const cloCode = clo.maClo
-    const scores = students.map((s) => s.cloScores[cloCode] ?? 0)
-
-    const passedCount = scores.filter((s) => s >= rules.nguong_dat_clo).length
-    const failedCount = totalStudents - passedCount
-    const passedPercent =
-      totalStudents > 0 ? roundHalfUp((passedCount / totalStudents) * 100, 1) : 0
-    const failedPercent = totalStudents > 0 ? roundHalfUp(100 - passedPercent, 1) : 0
-
+  const clo: CLOStatistics[] = course.cloList.map((cloDef) => {
+    const scores = students.map((s) => s.clo.find((c) => c.cloId === cloDef.id)?.diem ?? 0)
+    const soSinhVienDat = scores.filter((s) => s >= rules.nguongDatClo).length
+    const soSinhVienKhongDat = tongSinhVien - soSinhVienDat
+    const tyLeDat = tongSinhVien > 0 ? roundHalfUp((soSinhVienDat / tongSinhVien) * 100, 1) : 0
+    const tyLeKhongDat = tongSinhVien > 0 ? roundHalfUp(100 - tyLeDat, 1) : 0
     const sumScore = scores.reduce((acc, s) => acc.add(s), new Decimal(0))
-    const mean = totalStudents > 0 ? roundHalfUp(sumScore.div(totalStudents).toNumber(), 1) : 0
-    const min = scores.length > 0 ? Math.min(...scores) : 0
-    const max = scores.length > 0 ? Math.max(...scores) : 0
+    const trungBinh = tongSinhVien > 0 ? roundHalfUp(sumScore.div(tongSinhVien).toNumber(), 1) : 0
 
-    cloStats[cloCode] = {
-      maClo: cloCode,
-      passedCount,
-      passedPercent,
-      failedCount,
-      failedPercent,
-      mean,
-      min,
-      max,
-      isBelowThreshold: passedPercent < rules.ty_le_dat_clo_canh_bao
+    return {
+      cloId: cloDef.id,
+      soSinhVienDat,
+      tyLeDat,
+      soSinhVienKhongDat,
+      tyLeKhongDat,
+      trungBinh,
+      thapNhat: scores.length > 0 ? Math.min(...scores) : 0,
+      caoNhat: scores.length > 0 ? Math.max(...scores) : 0,
+      duoiNguongCanhBao: tyLeDat < rules.tyLeDatCloCanhBao
     }
-  }
+  })
 
-  // Thống kê từng PLO (uỷ nhiệm cho module plo)
-  const ploStats = calculatePloStats(config.maTranPlo, students, rules.nguong_dat_plo)
+  const plo = calculatePloStatistics(course, students, rules.nguongDatPlo)
 
-  // Thống kê Điểm học phần
-  const courseScores = students.map((s) => s.courseScore)
-  const passedHpCount = courseScores.filter((s) => s >= rules.nguong_dat_hp).length
-  const failedHpCount = totalStudents - passedHpCount
-  const passedHpPercent =
-    totalStudents > 0 ? roundHalfUp((passedHpCount / totalStudents) * 100, 1) : 0
-  const failedHpPercent = totalStudents > 0 ? roundHalfUp(100 - passedHpPercent, 1) : 0
-
+  const courseScores = students.map((s) => s.diemHocPhan)
+  const passed = courseScores.filter((s) => s >= rules.nguongDatHp).length
+  const failed = tongSinhVien - passed
+  const tyLeDat = tongSinhVien > 0 ? roundHalfUp((passed / tongSinhVien) * 100, 1) : 0
+  const tyLeKhongDat = tongSinhVien > 0 ? roundHalfUp(100 - tyLeDat, 1) : 0
   const sumHp = courseScores.reduce((acc, s) => acc.add(s), new Decimal(0))
-  const meanHp = totalStudents > 0 ? roundHalfUp(sumHp.div(totalStudents).toNumber(), 1) : 0
-  const minHp = courseScores.length > 0 ? Math.min(...courseScores) : 0
-  const maxHp = courseScores.length > 0 ? Math.max(...courseScores) : 0
+  const trungBinh = tongSinhVien > 0 ? roundHalfUp(sumHp.div(tongSinhVien).toNumber(), 1) : 0
 
-  const generalWarnings: string[] = []
-  if (totalStudents < 30) {
-    generalWarnings.push(`Quy mô lớp N = ${totalStudents} < 30 sinh viên.`)
+  const hocPhan: CourseStatistics = {
+    soSinhVienDat: passed,
+    tyLeDat,
+    soSinhVienKhongDat: failed,
+    tyLeKhongDat,
+    trungBinh,
+    thapNhat: courseScores.length > 0 ? Math.min(...courseScores) : 0,
+    caoNhat: courseScores.length > 0 ? Math.max(...courseScores) : 0
   }
-  if (missingDataStudents > 0) {
-    generalWarnings.push(`Có ${missingDataStudents} sinh viên chưa nhập đủ điểm.`)
+
+  const canhBao: string[] = []
+  if (tongSinhVien < rules.nguongCoMauN) {
+    canhBao.push(`Quy mô lớp N = ${tongSinhVien} < ${rules.nguongCoMauN} sinh viên.`)
   }
-  if (absentStudents > 0) {
-    generalWarnings.push(
-      `Có ${absentStudents} sinh viên vắng thi cuối kỳ (đã tính vào mẫu số tỷ lệ đạt với điểm 0).`
+  if (soSinhVienThieuDuLieu > 0) {
+    canhBao.push(`Có ${soSinhVienThieuDuLieu} sinh viên chưa nhập đủ điểm.`)
+  }
+  if (soSinhVienVangThi > 0) {
+    canhBao.push(
+      `Có ${soSinhVienVangThi} sinh viên vắng thi cuối kỳ (đã tính vào mẫu số tỷ lệ đạt với điểm 0).`
     )
   }
 
   return {
-    totalStudents,
-    evaluatedStudents,
-    absentStudents,
-    missingDataStudents,
-    cloStats,
-    ploStats,
-    courseStat: {
-      passedCount: passedHpCount,
-      passedPercent: passedHpPercent,
-      failedCount: failedHpCount,
-      failedPercent: failedHpPercent,
-      mean: meanHp,
-      min: minHp,
-      max: maxHp
-    },
-    generalWarnings
+    tongSinhVien,
+    soSinhVienDuocTinh,
+    soSinhVienVangThi,
+    soSinhVienThieuDuLieu,
+    clo,
+    plo,
+    hocPhan,
+    canhBao
   }
 }

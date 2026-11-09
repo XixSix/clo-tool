@@ -1,33 +1,25 @@
-import {
-  applyAttendance,
-  parseCourseConfig,
-  parseRawGrades,
-  validateConfig,
-  validateRawGrades
-} from '@core/index'
-import type { CourseConfig, RawGrades, ValidationIssue } from '@core/types'
+import { parseRawGrades, validateCourse, validateRawGrades } from '@core/index'
+import type { Course, RawGrades, ValidationIssue } from '@core/types'
 
 export interface LoadedConfig {
-  config?: CourseConfig
+  config?: Course
   issues: ValidationIssue[]
   error?: string
 }
 
-export async function loadConfig(
-  configSource: string | CourseConfig
-): Promise<LoadedConfig> {
-  if (typeof configSource !== 'string') {
-    return { config: configSource, issues: validateConfig(configSource) }
-  }
-  try {
-    const config = await parseCourseConfig(configSource)
-    return { config, issues: validateConfig(config) }
-  } catch (error) {
+/**
+ * Cấu hình học phần được nhập trực tiếp trên ứng dụng dưới dạng model `Course`.
+ * Không còn đọc từ file Excel cấu hình (đã bỏ phần IO config).
+ */
+export async function loadConfig(configSource: Course | string): Promise<LoadedConfig> {
+  if (typeof configSource === 'string') {
     return {
       issues: [],
-      error: error instanceof Error ? error.message : 'Lỗi không xác định khi đọc Config.'
+      error:
+        'Cấu hình học phần được nhập trực tiếp trên ứng dụng, không còn đọc từ file Excel. Vui lòng mở màn Học phần để nhập cấu hình.'
     }
   }
+  return { config: configSource, issues: validateCourse(configSource) }
 }
 
 export interface LoadedRawGrades {
@@ -35,16 +27,9 @@ export interface LoadedRawGrades {
   issues: ValidationIssue[]
 }
 
-export async function loadRawGrades(
-  config: CourseConfig,
-  rawPath: string
-): Promise<LoadedRawGrades> {
-  const file = await parseRawGrades(rawPath, config)
-  const applied = applyAttendance(file, config)
-  const validation = validateRawGrades(config, applied.file)
+export async function loadRawGrades(course: Course, rawPath: string): Promise<LoadedRawGrades> {
+  const file = await parseRawGrades(rawPath, course)
+  const issues = validateRawGrades(course, file)
 
-  return {
-    file: applied.file,
-    issues: [...validation, ...applied.issues]
-  }
+  return { file, issues }
 }

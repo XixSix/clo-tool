@@ -2,9 +2,9 @@
  * Kiểu dữ liệu nội bộ của bộ parser điểm thô.
  */
 
-import type { AttendanceRecord, RawStudentRow } from '../../types'
+import type { RawAttendanceRecord, RawStudentRow } from '../../types'
 
-/** Header của bảng điểm thô sau khi dò theo tên cột */
+/** Header của bảng điểm thô sau khi dò theo tên cột. */
 export interface RawHeaderInfo {
   rowNumber: number
   headers: string[]
@@ -12,20 +12,20 @@ export interface RawHeaderInfo {
   suggestions: Record<string, string>
 }
 
-/** Cột điểm danh đã phát hiện trong header */
+/** Cột điểm danh đã phát hiện trong header. */
 export interface AttendanceColumn {
   index: number
   label: string
 }
 
-/** Kết quả đọc phần dữ liệu sinh viên */
+/** Kết quả đọc phần dữ liệu sinh viên. */
 export interface ParsedStudentRows {
   students: RawStudentRow[]
-  attendance: AttendanceRecord[]
+  attendance: RawAttendanceRecord[]
   studentExcelRows: number[]
 }
 
-/** Kết quả đọc hàng "Điểm tối đa" */
+/** Kết quả đọc hàng "Điểm tối đa". */
 export interface DeclaredMaxScoreResult {
   scores: Record<string, number>
   firstStudentRow: number

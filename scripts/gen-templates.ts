@@ -4,24 +4,22 @@
  *   npm run gen:templates
  *
  * Kết quả:
- * - resources/templates/Template_Config.xlsx  : Config mẫu đầy đủ 7 sheet + hướng dẫn
  * - resources/templates/Template_DiemTho.xlsx : Điểm thô mẫu 10 SV, mỗi SV một ca biên
  */
 
 import { resolve, join } from 'node:path'
 import { mkdirSync } from 'node:fs'
-import { writeConfigTemplate, writeRawGradesTemplate } from '@core/index'
-import { buildMockClass, buildMockConfig, MOCK_SESSION_LABELS } from '../tests/fixtures/mockClass'
+import { writeRawGradesTemplate } from '@core/index'
+import { buildMockClass, buildMockCourse, MOCK_SESSION_LABELS } from '../tests/fixtures/mockClass'
 
 async function main(): Promise<void> {
   const outDir = resolve(process.cwd(), 'resources', 'templates')
   mkdirSync(outDir, { recursive: true })
 
-  const config = buildMockConfig()
+  const course = buildMockCourse()
   const { students, attendance } = buildMockClass(10)
 
-  await writeConfigTemplate(join(outDir, 'Template_Config.xlsx'), config)
-  await writeRawGradesTemplate(join(outDir, 'Template_DiemTho.xlsx'), config, {
+  await writeRawGradesTemplate(join(outDir, 'Template_DiemTho.xlsx'), course, {
     students,
     attendance,
     lop: '1A11_CNTT14',
@@ -32,7 +30,6 @@ async function main(): Promise<void> {
   })
 
   console.log('Đã sinh:')
-  console.log(' -', join(outDir, 'Template_Config.xlsx'))
   console.log(' -', join(outDir, 'Template_DiemTho.xlsx'))
 }
 

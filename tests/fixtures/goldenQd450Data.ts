@@ -4,7 +4,13 @@
  */
 
 import { DEFAULT_BUSINESS_RULES } from '@core/rules'
-import type { CourseConfig, RawStudentRow } from '@core/types'
+import type {
+  AssessmentComponent,
+  Course,
+  ExamQuestion,
+  RawStudentRow,
+  StudentCourseScoreRecord
+} from '@core/types'
 
 export const GOLDEN_T1 = {
   case1: { correct: 62, total: 100, expectedP: 0.62 },
@@ -131,69 +137,207 @@ export const GOLDEN_T11 = {
   expectedClo2: 5.8
 }
 
-/**
- * Cấu hình học phần chuẩn để test dữ liệu SV Nguyễn Văn Hùng
- */
-export const HUNG_COURSE_CONFIG: CourseConfig = {
-  courseInfo: {
-    maHp: 'KTLT101',
-    tenHp: 'Kỹ thuật lập trình',
-    soTinChi: 3,
-    hinhThucThi: 'Tự luận',
-    loaiHp: 'thuong'
-  },
+const HUNG_CLO = [
+  { id: 'CLO1.1', maClo: 'CLO1.1', noiDung: 'Hiểu cấu trúc dữ liệu', bacNangLuc: '3/6' },
+  { id: 'CLO1.2', maClo: 'CLO1.2', noiDung: 'Cài đặt thuật toán', bacNangLuc: '3/6' },
+  { id: 'CLO1.3', maClo: 'CLO1.3', noiDung: 'Tối ưu giải thuật', bacNangLuc: '4/6' },
+  { id: 'CLO1.4', maClo: 'CLO1.4', noiDung: 'Kiểm thử chương trình', bacNangLuc: '3/6' },
+  { id: 'CLO2.1', maClo: 'CLO2.1', noiDung: 'Làm việc nhóm', bacNangLuc: '3/5' },
+  { id: 'CLO2.2', maClo: 'CLO2.2', noiDung: 'Thuyết trình kỹ thuật', bacNangLuc: '3/5' },
+  { id: 'CLO3.1', maClo: 'CLO3.1', noiDung: 'Chuyên cần, tự học', bacNangLuc: '3/5' }
+]
+
+function hungQuestion(id: string, cau: string, cloId: string): ExamQuestion {
+  return { id, cau, diemToiDa: 10, cloId }
+}
+
+const KT1_DOT: AssessmentComponent = {
+  id: 'KT1',
+  tenDotDanhGia: 'Kiểm tra 1',
+  nhom: 'GK',
+  cachNhapDiem: 'QUESTION_SCORE',
+  // Trọng số gốc 30% cho mỗi CLO, chuẩn hóa về 18% trên tổng 100%
+  trongSoPhanTram: 18,
   cloList: [
-    { maClo: 'CLO1.1', noiDung: 'Hiểu cấu trúc dữ liệu', bacNangLuc: '3/6' },
-    { maClo: 'CLO1.2', noiDung: 'Cài đặt thuật toán', bacNangLuc: '3/6' },
-    { maClo: 'CLO1.3', noiDung: 'Tối ưu giải thuật', bacNangLuc: '4/6' },
-    { maClo: 'CLO1.4', noiDung: 'Kiểm thử chương trình', bacNangLuc: '3/6' },
-    { maClo: 'CLO2.1', noiDung: 'Làm việc nhóm', bacNangLuc: '3/5' },
-    { maClo: 'CLO2.2', noiDung: 'Thuyết trình kỹ thuật', bacNangLuc: '3/5' },
-    { maClo: 'CLO3.1', noiDung: 'Chuyên cần, tự học', bacNangLuc: '3/5' }
+    { cloId: 'CLO1.1', tyLePhanBo: 100 / 3 },
+    { cloId: 'CLO1.2', tyLePhanBo: 100 / 3 },
+    { cloId: 'CLO1.3', tyLePhanBo: 100 / 3 }
   ],
-  keHoachDanhGia: [
-    // CC (20%): CC đo CLO3.1 (10%), TH đo CLO3.1 (10%)
-    { nhom: 'CC', thanhPhan: 'Chuyên cần', maDauDiem: 'CC', clo: 'CLO3.1', trongSoPhanTram: 10 },
-    { nhom: 'CC', thanhPhan: 'Tự học', maDauDiem: 'TH', clo: 'CLO3.1', trongSoPhanTram: 10 },
-    // GK (30%): Trọng số của lần đo GK với các CLO là 0.3 (30%)
-    { nhom: 'GK', thanhPhan: 'KT1', maDauDiem: 'KT1', clo: 'CLO1.1', trongSoPhanTram: 30 },
-    { nhom: 'GK', thanhPhan: 'KT1', maDauDiem: 'KT1', clo: 'CLO1.2', trongSoPhanTram: 30 },
-    { nhom: 'GK', thanhPhan: 'KT1', maDauDiem: 'KT1', clo: 'CLO1.3', trongSoPhanTram: 30 },
-    { nhom: 'GK', thanhPhan: 'KT2', maDauDiem: 'KT2', clo: 'CLO1.4', trongSoPhanTram: 30 },
-    { nhom: 'GK', thanhPhan: 'KT2', maDauDiem: 'KT2', clo: 'CLO2.1', trongSoPhanTram: 30 },
-    { nhom: 'GK', thanhPhan: 'KT2', maDauDiem: 'KT2', clo: 'CLO2.2', trongSoPhanTram: 30 },
-    // CK (50%): Trọng số của lần đo CK với các CLO là 0.5 (50%)
-    { nhom: 'CK', thanhPhan: 'CK', maDauDiem: 'CK', clo: 'CLO1.1', trongSoPhanTram: 50 },
-    { nhom: 'CK', thanhPhan: 'CK', maDauDiem: 'CK', clo: 'CLO1.2', trongSoPhanTram: 50 },
-    { nhom: 'CK', thanhPhan: 'CK', maDauDiem: 'CK', clo: 'CLO1.3', trongSoPhanTram: 50 },
-    { nhom: 'CK', thanhPhan: 'CK', maDauDiem: 'CK', clo: 'CLO1.4', trongSoPhanTram: 50 },
-    { nhom: 'CK', thanhPhan: 'CK', maDauDiem: 'CK', clo: 'CLO2.1', trongSoPhanTram: 50 },
-    { nhom: 'CK', thanhPhan: 'CK', maDauDiem: 'CK', clo: 'CLO2.2', trongSoPhanTram: 50 }
+  maDeList: [
+    {
+      id: 'KT1_D1',
+      maDe: 'D1',
+      cauHoi: [
+        hungQuestion('KT1_1.1', 'C1', 'CLO1.1'),
+        hungQuestion('KT1_1.2', 'C2', 'CLO1.2'),
+        hungQuestion('KT1_1.3', 'C3', 'CLO1.3')
+      ]
+    }
+  ]
+}
+
+const KT2_DOT: AssessmentComponent = {
+  id: 'KT2',
+  tenDotDanhGia: 'Kiểm tra 2',
+  nhom: 'GK',
+  cachNhapDiem: 'QUESTION_SCORE',
+  trongSoPhanTram: 18,
+  cloList: [
+    { cloId: 'CLO1.4', tyLePhanBo: 100 / 3 },
+    { cloId: 'CLO2.1', tyLePhanBo: 100 / 3 },
+    { cloId: 'CLO2.2', tyLePhanBo: 100 / 3 }
   ],
-  cauHoi: [
-    { maCotDiem: 'CC', maDauDiem: 'CC', cau: 'CC', clo: 'CLO3.1', diemToiDa: 10 },
-    { maCotDiem: 'TH', maDauDiem: 'TH', cau: 'TH', clo: 'CLO3.1', diemToiDa: 10 },
-    { maCotDiem: 'KT1_1.1', maDauDiem: 'KT1', cau: 'C1', clo: 'CLO1.1', diemToiDa: 10 },
-    { maCotDiem: 'KT1_1.2', maDauDiem: 'KT1', cau: 'C2', clo: 'CLO1.2', diemToiDa: 10 },
-    { maCotDiem: 'KT1_1.3', maDauDiem: 'KT1', cau: 'C3', clo: 'CLO1.3', diemToiDa: 10 },
-    { maCotDiem: 'KT2_1.4', maDauDiem: 'KT2', cau: 'C1', clo: 'CLO1.4', diemToiDa: 10 },
-    { maCotDiem: 'KT2_2.1', maDauDiem: 'KT2', cau: 'C2', clo: 'CLO2.1', diemToiDa: 10 },
-    { maCotDiem: 'KT2_2.2', maDauDiem: 'KT2', cau: 'C3', clo: 'CLO2.2', diemToiDa: 10 },
-    { maCotDiem: 'CK_1.1', maDauDiem: 'CK', cau: 'C1', clo: 'CLO1.1', diemToiDa: 10 },
-    { maCotDiem: 'CK_1.2', maDauDiem: 'CK', cau: 'C2', clo: 'CLO1.2', diemToiDa: 10 },
-    { maCotDiem: 'CK_1.3', maDauDiem: 'CK', cau: 'C3', clo: 'CLO1.3', diemToiDa: 10 },
-    { maCotDiem: 'CK_1.4', maDauDiem: 'CK', cau: 'C4', clo: 'CLO1.4', diemToiDa: 10 },
-    { maCotDiem: 'CK_2.1', maDauDiem: 'CK', cau: 'C5', clo: 'CLO2.1', diemToiDa: 10 },
-    { maCotDiem: 'CK_2.2', maDauDiem: 'CK', cau: 'C6', clo: 'CLO2.2', diemToiDa: 10 }
+  maDeList: [
+    {
+      id: 'KT2_D1',
+      maDe: 'D1',
+      cauHoi: [
+        hungQuestion('KT2_1.4', 'C1', 'CLO1.4'),
+        hungQuestion('KT2_2.1', 'C2', 'CLO2.1'),
+        hungQuestion('KT2_2.2', 'C3', 'CLO2.2')
+      ]
+    }
+  ]
+}
+
+const CK_DOT: AssessmentComponent = {
+  id: 'CK',
+  tenDotDanhGia: 'Thi kết thúc học phần',
+  nhom: 'CK',
+  cachNhapDiem: 'QUESTION_SCORE',
+  trongSoPhanTram: 60,
+  cloList: ['CLO1.1', 'CLO1.2', 'CLO1.3', 'CLO1.4', 'CLO2.1', 'CLO2.2'].map((cloId) => ({
+    cloId,
+    tyLePhanBo: 100 / 6
+  })),
+  maDeList: [
+    {
+      id: 'CK_D1',
+      maDe: 'D1',
+      cauHoi: [
+        hungQuestion('CK_1.1', 'C1', 'CLO1.1'),
+        hungQuestion('CK_1.2', 'C2', 'CLO1.2'),
+        hungQuestion('CK_1.3', 'C3', 'CLO1.3'),
+        hungQuestion('CK_1.4', 'C4', 'CLO1.4'),
+        hungQuestion('CK_2.1', 'C5', 'CLO2.1'),
+        hungQuestion('CK_2.2', 'C6', 'CLO2.2')
+      ]
+    }
+  ]
+}
+
+/**
+ * Cấu hình học phần chuẩn để test dữ liệu SV Nguyễn Văn Hùng.
+ *
+ * Trọng số gốc của QĐ450 (CC 10, TH 10, mỗi CLO GK 30, mỗi CLO CK 50)
+ * được chuẩn hóa ×0,2 để tổng trọng số các đợt = 100% (đúng ràng buộc model mới):
+ * CC 2 + TH 2 + KT1 18 + KT2 18 + CK 60 = 100.
+ */
+export const HUNG_COURSE: Course = {
+  id: 'KTLT101',
+  maHp: 'KTLT101',
+  tenHp: 'Kỹ thuật lập trình',
+  soTinChi: 3,
+  hinhThucThi: 'Tự luận',
+  loaiHp: 'thuong',
+  giangVien: 'TS. Trần Thị B',
+  namHoc: '2024-2025',
+  cloList: HUNG_CLO,
+  ploList: [
+    { id: 'PLO3', maPlo: 'PLO3', noiDung: 'PLO 3', ploThanhPhanIds: ['PLO3_1'] },
+    { id: 'PLO5', maPlo: 'PLO5', noiDung: 'PLO 5', ploThanhPhanIds: ['PLO5_1'] },
+    { id: 'PLO6', maPlo: 'PLO6', noiDung: 'PLO 6', ploThanhPhanIds: ['PLO6_1'] },
+    { id: 'PLO9', maPlo: 'PLO9', noiDung: 'PLO 9', ploThanhPhanIds: ['PLO9_1'] }
   ],
-  maTranPlo: [
-    { plo: 'PLO3', pi: 'PI3.1', clo: 'CLO1.1' },
-    { plo: 'PLO3', pi: 'PI3.1', clo: 'CLO1.2' },
-    { plo: 'PLO3', pi: 'PI3.2', clo: 'CLO1.3' },
-    { plo: 'PLO3', pi: 'PI3.2', clo: 'CLO1.4' },
-    { plo: 'PLO5', pi: 'PI5.1', clo: 'CLO2.1' },
-    { plo: 'PLO6', pi: 'PI6.1', clo: 'CLO2.2' },
-    { plo: 'PLO9', pi: 'PI9.1', clo: 'CLO3.1' }
+  ploThanhPhanList: [
+    {
+      id: 'PLO3_1',
+      maPloThanhPhan: 'PLO3.1',
+      maPlo: 'PLO3',
+      noiDung: 'PLO thành phần 3.1',
+      piIds: ['PI3.1', 'PI3.2']
+    },
+    {
+      id: 'PLO5_1',
+      maPloThanhPhan: 'PLO5.1',
+      maPlo: 'PLO5',
+      noiDung: 'PLO thành phần 5.1',
+      piIds: ['PI5.1']
+    },
+    {
+      id: 'PLO6_1',
+      maPloThanhPhan: 'PLO6.1',
+      maPlo: 'PLO6',
+      noiDung: 'PLO thành phần 6.1',
+      piIds: ['PI6.1']
+    },
+    {
+      id: 'PLO9_1',
+      maPloThanhPhan: 'PLO9.1',
+      maPlo: 'PLO9',
+      noiDung: 'PLO thành phần 9.1',
+      piIds: ['PI9.1']
+    }
+  ],
+  piList: [
+    {
+      id: 'PI3.1',
+      maPi: 'PI3.1',
+      noiDung: 'PI 3.1',
+      ploThanhPhanIds: ['PLO3_1'],
+      cloIds: ['CLO1.1', 'CLO1.2']
+    },
+    {
+      id: 'PI3.2',
+      maPi: 'PI3.2',
+      noiDung: 'PI 3.2',
+      ploThanhPhanIds: ['PLO3_1'],
+      cloIds: ['CLO1.3', 'CLO1.4']
+    },
+    {
+      id: 'PI5.1',
+      maPi: 'PI5.1',
+      noiDung: 'PI 5.1',
+      ploThanhPhanIds: ['PLO5_1'],
+      cloIds: ['CLO2.1']
+    },
+    {
+      id: 'PI6.1',
+      maPi: 'PI6.1',
+      noiDung: 'PI 6.1',
+      ploThanhPhanIds: ['PLO6_1'],
+      cloIds: ['CLO2.2']
+    },
+    {
+      id: 'PI9.1',
+      maPi: 'PI9.1',
+      noiDung: 'PI 9.1',
+      ploThanhPhanIds: ['PLO9_1'],
+      cloIds: ['CLO3.1']
+    }
+  ],
+  dotDanhGia: [
+    {
+      id: 'CC',
+      tenDotDanhGia: 'Chuyên cần',
+      nhom: 'CC',
+      cachNhapDiem: 'DIRECT_CLO_SCORE',
+      trongSoPhanTram: 2,
+      cloList: [{ cloId: 'CLO3.1', tyLePhanBo: 100 }],
+      maDeList: []
+    },
+    {
+      id: 'TH',
+      tenDotDanhGia: 'Tự học',
+      nhom: 'CC',
+      cachNhapDiem: 'DIRECT_CLO_SCORE',
+      trongSoPhanTram: 2,
+      cloList: [{ cloId: 'CLO3.1', tyLePhanBo: 100 }],
+      maDeList: []
+    },
+    KT1_DOT,
+    KT2_DOT,
+    CK_DOT
   ],
   quyTac: DEFAULT_BUSINESS_RULES
 }
@@ -203,6 +347,7 @@ export const HUNG_COURSE_CONFIG: CourseConfig = {
  */
 export const HUNG_STUDENT_ROW: RawStudentRow = {
   student: {
+    id: 'HUNG01',
     tt: 1,
     maSv: 'HUNG01',
     ho: 'Nguyễn Văn',
@@ -228,4 +373,56 @@ export const HUNG_STUDENT_ROW: RawStudentRow = {
       'CK_2.2': 2.5
     }
   }
+}
+
+/** Bản ghi điểm của Hùng theo model nghiệp vụ (dùng trực tiếp cho calculateEvaluation). */
+export const HUNG_SCORE_RECORD: StudentCourseScoreRecord = {
+  id: 'HUNG01_KTLT101',
+  sinhVienId: 'HUNG01',
+  hocPhanId: 'KTLT101',
+  diemTheoDotDanhGia: [
+    {
+      cachNhapDiem: 'DIRECT_CLO_SCORE',
+      dotDanhGiaId: 'CC',
+      diemTheoClo: [{ cloId: 'CLO3.1', diem: 10.0 }]
+    },
+    {
+      cachNhapDiem: 'DIRECT_CLO_SCORE',
+      dotDanhGiaId: 'TH',
+      diemTheoClo: [{ cloId: 'CLO3.1', diem: 7.5 }]
+    },
+    {
+      cachNhapDiem: 'QUESTION_SCORE',
+      dotDanhGiaId: 'KT1',
+      deId: 'D1',
+      diemTheoCau: [
+        { questionId: 'KT1_1.1', diem: 7.5 },
+        { questionId: 'KT1_1.2', diem: 6.3 },
+        { questionId: 'KT1_1.3', diem: 7.3 }
+      ]
+    },
+    {
+      cachNhapDiem: 'QUESTION_SCORE',
+      dotDanhGiaId: 'KT2',
+      deId: 'D1',
+      diemTheoCau: [
+        { questionId: 'KT2_1.4', diem: 6.7 },
+        { questionId: 'KT2_2.1', diem: 5.0 },
+        { questionId: 'KT2_2.2', diem: 7.5 }
+      ]
+    },
+    {
+      cachNhapDiem: 'QUESTION_SCORE',
+      dotDanhGiaId: 'CK',
+      deId: 'D1',
+      diemTheoCau: [
+        { questionId: 'CK_1.1', diem: 7.1 },
+        { questionId: 'CK_1.2', diem: 6.0 },
+        { questionId: 'CK_1.3', diem: 7.3 },
+        { questionId: 'CK_1.4', diem: 5.0 },
+        { questionId: 'CK_2.1', diem: 7.5 },
+        { questionId: 'CK_2.2', diem: 2.5 }
+      ]
+    }
+  ]
 }

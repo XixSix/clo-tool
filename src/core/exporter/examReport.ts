@@ -8,7 +8,8 @@
  */
 
 import ExcelJS from 'exceljs'
-import type { CourseConfig, ExamPsychometrics, ValidationIssue } from '../types'
+import type { Course, ExamPsychometrics, ValidationIssue } from '../types'
+import { allQuestions } from '../utils/courseModel'
 import {
   applyBorders,
   BORDER_THIN,
@@ -19,7 +20,7 @@ import {
 } from './style'
 
 export function buildExamAnalysisWorkbook(
-  config: CourseConfig,
+  course: Course,
   exams: ExamPsychometrics[],
   issues: ValidationIssue[] = []
 ): ExcelJS.Workbook {
@@ -29,7 +30,7 @@ export function buildExamAnalysisWorkbook(
 
   buildItemSheet(wb, exams)
   buildReliabilitySheet(wb, exams, issues)
-  buildSuggestionSheet(wb, config, exams)
+  buildSuggestionSheet(wb, course, exams)
 
   return wb
 }
@@ -175,7 +176,7 @@ function buildReliabilitySheet(
 
 function buildSuggestionSheet(
   wb: ExcelJS.Workbook,
-  config: CourseConfig,
+  course: Course,
   exams: ExamPsychometrics[]
 ): void {
   const ws = wb.addWorksheet('GOI_Y_CAI_TIEN')
@@ -193,10 +194,12 @@ function buildSuggestionSheet(
   })
   styleHeaderRow(ws, headerRow, colCount)
 
-  const coverage = config.cloList
+  const coverage = course.cloList
     .map((clo) => {
-      const items = config.keHoachDanhGia.filter((p) => p.clo === clo.maClo)
-      const weights = items.map((p) => `${p.maDauDiem} ${p.trongSoPhanTram}%`).join(', ')
+      const items = course.dotDanhGia.filter((dot) =>
+        dot.cloList.some((mapping) => mapping.cloId === clo.id)
+      )
+      const weights = items.map((dot) => `${dot.id} ${dot.trongSoPhanTram}%`).join(', ')
       return `${clo.maClo}: ${weights || 'chưa đo'}`
     })
     .join('\n')
@@ -211,8 +214,11 @@ function buildSuggestionSheet(
     ['1. CLO của học phần được đo ở những đầu điểm nào?', coverage],
     [
       '2. Mỗi câu hỏi đo CLO nào và ở mức năng lực nào?',
-      config.cauHoi
-        .map((q) => `${q.cau || q.maCotDiem} → ${q.clo} (tối đa ${q.diemToiDa})`)
+      allQuestions(course)
+        .map(({ cauHoi }) => {
+          const maClo = course.cloList.find((c) => c.id === cauHoi.cloId)?.maClo ?? cauHoi.cloId
+          return `${cauHoi.cau || cauHoi.id} → ${maClo} (tối đa ${cauHoi.diemToiDa})`
+        })
         .join('\n')
     ],
     [
@@ -255,10 +261,10 @@ function buildSuggestionSheet(
 
 export async function writeExamAnalysisReport(
   filePath: string,
-  config: CourseConfig,
+  course: Course,
   exams: ExamPsychometrics[],
   issues: ValidationIssue[] = []
 ): Promise<void> {
-  const wb = buildExamAnalysisWorkbook(config, exams, issues)
+  const wb = buildExamAnalysisWorkbook(course, exams, issues)
   await wb.xlsx.writeFile(filePath)
 }

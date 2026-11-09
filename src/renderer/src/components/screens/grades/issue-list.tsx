@@ -26,10 +26,12 @@ export function IssueList({ issues }: { issues: IssueDto[] }): React.ReactElemen
               )}
             />
             <span className="text-muted-foreground">
-              {issue.sheet ? (
+              {issue.scope ? (
                 <span className="text-foreground font-medium">
-                  [{issue.sheet}
-                  {issue.row ? ` dòng ${issue.row}` : ''}]{' '}
+                  [{issue.scope}
+                  {issue.targetId ? ` ${issue.targetId}` : ''}
+                  {issue.row ? ` dòng ${issue.row}` : ''}
+                  {issue.column ? ` ${issue.column}` : ''}]{' '}
                 </span>
               ) : null}
               {issue.message}

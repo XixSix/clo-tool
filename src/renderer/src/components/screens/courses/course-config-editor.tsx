@@ -37,16 +37,25 @@ import {
   Upload
 } from 'lucide-react'
 import { cn } from 'cn'
-import type { CourseConfig, CourseInfo, CLODefinition } from '@core/types/course'
+import type { Course } from '@core/types'
 import type { BusinessRules, AttendanceRule } from '@core/types/rule'
 import type { SessionDto } from '../../../../../shared/ipc'
 import { PlanWizard } from './course-plan-wizard'
-import type { EditorClo, EditorConfig, EditorPlo } from './course-editor-types'
+import type {
+  CLODefinition,
+  CourseConfig,
+  CourseInfo,
+  EditorClo,
+  EditorConfig,
+  EditorPlo
+} from './course-editor-types'
+import { courseToEditor, editorToCourse, normalizeStoredCourse } from './course-adapter'
 
 /** Dữ liệu người dùng nhập thêm cho môn (không thuộc CourseConfig của core). */
 export interface CourseMetaInput {
   lop?: string
   giangVien?: string
+  namHoc?: string
 }
 
 // Default business rules from QĐ450
@@ -74,7 +83,7 @@ const EXAM_FORMATS = ['Tự luận', 'Trắc nghiệm']
 
 interface CourseConfigEditorProps {
   session: SessionDto
-  onSave: (config: CourseConfig, meta: CourseMetaInput) => void
+  onSave: (config: Course, meta: CourseMetaInput) => void
 }
 
 /** Key lưu cấu hình tạm cho mỗi môn (Phase 2 sẽ thay bằng IPC). */
@@ -152,21 +161,20 @@ function withIds(config: CourseConfig): EditorConfig {
   }
 }
 
-/** Bỏ _id trước khi lưu/đưa vào core engine. */
+/** Bỏ _id trước khi chuyển sang core engine. */
 function stripId<T extends { _id: string }>(row: T): Omit<T, '_id'> {
   const copy: Record<string, unknown> = { ...row }
   delete copy._id
   return copy as Omit<T, '_id'>
 }
 
+/** Dạng phẳng không _id của editor — đầu vào cho bộ chuyển đổi sang Course. */
 function toCourseConfig(editor: EditorConfig): CourseConfig {
   return {
     courseInfo: editor.courseInfo,
     cloList: editor.cloList.map(stripId),
     // Placeholder chỉ giữ card đợt rỗng trong wizard, không được lưu vào config core.
-    keHoachDanhGia: editor.keHoachDanhGia
-      .filter((p) => p.clo !== '__PLACEHOLDER__')
-      .map(stripId),
+    keHoachDanhGia: editor.keHoachDanhGia.filter((p) => p.clo !== '__PLACEHOLDER__').map(stripId),
     cauHoi: editor.cauHoi.map(stripId),
     maTranPlo: editor.maTranPlo.map(stripId),
     diemDanh: editor.diemDanh,
@@ -174,12 +182,15 @@ function toCourseConfig(editor: EditorConfig): CourseConfig {
   }
 }
 
-/** Đọc cấu hình đã lưu tạm trong sessionStorage (nếu có). */
+/** Đọc cấu hình đã lưu tạm trong sessionStorage (nếu có) và chuẩn hoá về dạng phẳng. */
 function loadStored(sessionId: string): StoredConfig | null {
   const saved = sessionStorage.getItem(courseConfigKey(sessionId))
   if (!saved) return null
   try {
-    return JSON.parse(saved) as StoredConfig
+    const parsed = JSON.parse(saved) as { meta?: CourseMetaInput }
+    const course = normalizeStoredCourse(parsed)
+    if (!course) return null
+    return { config: courseToEditor(course), meta: parsed.meta }
   } catch {
     return null
   }
@@ -196,7 +207,8 @@ export function CourseConfigEditor({
   )
   const [meta, setMeta] = useState<CourseMetaInput>(() => ({
     lop: stored?.meta?.lop ?? session.lop,
-    giangVien: stored?.meta?.giangVien ?? session.giangVien
+    giangVien: stored?.meta?.giangVien ?? session.giangVien,
+    namHoc: stored?.meta?.namHoc ?? session.namHoc
   }))
 
   useEffect(() => {
@@ -204,11 +216,12 @@ export function CourseConfigEditor({
     if (window.api?.getCourseConfig) {
       window.api.getCourseConfig(session.id).then((saved) => {
         if (!active || !saved?.config) return
-        setConfig(withIds(saved.config))
+        setConfig(withIds(courseToEditor(saved.config)))
         if (saved.meta) {
           setMeta({
             lop: saved.meta.lop ?? session.lop,
-            giangVien: saved.meta.giangVien ?? session.giangVien
+            giangVien: saved.meta.giangVien ?? session.giangVien,
+            namHoc: saved.meta.namHoc ?? session.namHoc
           })
         }
       })
@@ -216,7 +229,7 @@ export function CourseConfigEditor({
     return () => {
       active = false
     }
-  }, [session.id, session.lop, session.giangVien])
+  }, [session.id, session.lop, session.giangVien, session.namHoc])
 
   const [activeTab, setActiveTab] = useState('info-clo')
   const [saving, setSaving] = useState(false)
@@ -260,7 +273,7 @@ export function CourseConfigEditor({
     if (!isValid) return
     setSaving(true)
     try {
-      const serialized = toCourseConfig(config)
+      const serialized = editorToCourse(toCourseConfig(config), meta)
       if (window.api?.saveCourseConfig) {
         await window.api.saveCourseConfig(session.id, { config: serialized, meta })
       }
@@ -275,7 +288,7 @@ export function CourseConfigEditor({
   }
 
   const handleExportRawTemplate = async (): Promise<void> => {
-    const serialized = toCourseConfig(config)
+    const serialized = editorToCourse(toCourseConfig(config))
     if (window.api?.exportRawGradesTemplate) {
       const res = await window.api.exportRawGradesTemplate(serialized)
       if (res.ok && res.path) {
@@ -287,7 +300,11 @@ export function CourseConfigEditor({
   }
 
   const handleExportJson = (): void => {
-    const json = JSON.stringify({ config: toCourseConfig(config), meta }, null, 2)
+    const json = JSON.stringify(
+      { config: editorToCourse(toCourseConfig(config), meta), meta },
+      null,
+      2
+    )
     const blob = new Blob([json], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -301,10 +318,14 @@ export function CourseConfigEditor({
     const reader = new FileReader()
     reader.onload = (e) => {
       try {
-        const parsed = JSON.parse(e.target?.result as string) as StoredConfig | CourseConfig
-        const cfg = 'config' in parsed ? parsed.config : parsed
-        setConfig(withIds(cfg))
-        if ('meta' in parsed && parsed.meta) setMeta(parsed.meta)
+        const parsed = JSON.parse(e.target?.result as string) as unknown
+        const course = normalizeStoredCourse(parsed)
+        if (!course) throw new Error('Cấu hình không hợp lệ')
+        setConfig(withIds(courseToEditor(course)))
+        if (parsed && typeof parsed === 'object' && 'meta' in parsed) {
+          const metaValue = (parsed as { meta?: CourseMetaInput }).meta
+          if (metaValue) setMeta(metaValue)
+        }
       } catch {
         alert('File JSON không hợp lệ')
       }
@@ -405,6 +426,16 @@ export function CourseConfigEditor({
               onChange={(e) => setMeta((m) => ({ ...m, giangVien: e.target.value }))}
               className="mt-1"
               placeholder="VD: Nguyễn Văn A"
+            />
+          </div>
+          <div>
+            <Label htmlFor="namHoc">Năm học</Label>
+            <Input
+              id="namHoc"
+              value={meta.namHoc ?? ''}
+              onChange={(e) => setMeta((m) => ({ ...m, namHoc: e.target.value }))}
+              className="mt-1"
+              placeholder="VD: 2024-2025"
             />
           </div>
         </CardContent>
@@ -743,7 +774,11 @@ export function CourseConfigEditor({
             variant="outline"
             onClick={handleExportRawTemplate}
             disabled={!isValid}
-            title={isValid ? 'Xuất file Excel mẫu để giảng viên nhập điểm' : 'Cần sửa các lỗi cấu hình trước khi xuất mẫu'}
+            title={
+              isValid
+                ? 'Xuất file Excel mẫu để giảng viên nhập điểm'
+                : 'Cần sửa các lỗi cấu hình trước khi xuất mẫu'
+            }
           >
             <FileSpreadsheet className="mr-1 size-4" />
             Xuất mẫu điểm thô (.xlsx)

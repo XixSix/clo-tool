@@ -4,7 +4,8 @@ import type { IssueDto } from '../../shared/ipc'
 export function toIssueDto(issue: ValidationIssue): IssueDto {
   return {
     level: issue.level,
-    sheet: issue.sheet,
+    scope: issue.scope,
+    targetId: issue.targetId,
     row: issue.row,
     column: issue.column,
     message: issue.message,

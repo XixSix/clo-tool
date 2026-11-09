@@ -7,14 +7,13 @@
  * - attendanceParser: cột điểm danh
  * - maxScoreParser: hàng "Điểm tối đa"
  * - studentParser: dữ liệu sinh viên
- *
- * Orchestrator chỉ mở workbook, chọn sheet và ghép kết quả.
+ * - toStudentRecords: chuyển RawGrades → Student + StudentCourseScoreRecord
  *
  * Parser chỉ chịu trách nhiệm đọc dữ liệu; lỗi cấu trúc hoặc ô không parse được
  * sẽ ném `RawGradesParseError` thay vì trả về issue cho validator.
  */
 
-import type { CourseConfig, RawGrades } from '../../types'
+import type { Course, RawGrades } from '../../types'
 import { findSheet, readWorkbook } from '../../utils/excel'
 import { parseAttendanceColumns } from './attendanceParser'
 import { RawGradesParseError } from './errors'
@@ -24,8 +23,9 @@ import { parseRawGradesMeta } from './metaParser'
 import { parseStudentRows } from './studentParser'
 
 export * from './errors'
+export * from './toStudentRecords'
 
-export async function parseRawGrades(filePath: string, config: CourseConfig): Promise<RawGrades> {
+export async function parseRawGrades(filePath: string, course: Course): Promise<RawGrades> {
   const wb = await readWorkbook(filePath)
   const ws = findSheet(wb, 'NHAP_LIEU') ?? findSheet(wb, 'NHAP_LIEU_GV') ?? wb.worksheets[0]
 
@@ -33,7 +33,7 @@ export async function parseRawGrades(filePath: string, config: CourseConfig): Pr
     throw new RawGradesParseError('File điểm thô không có sheet dữ liệu.')
   }
 
-  const parsedHeader = parseRawGradesHeader(ws, config)
+  const parsedHeader = parseRawGradesHeader(ws, course)
   if (!parsedHeader) {
     throw new RawGradesParseError(
       'Không tìm thấy hàng tiêu đề (cần có cột "Mã SV", "Họ", "Tên"...).'
@@ -45,7 +45,7 @@ export async function parseRawGrades(filePath: string, config: CourseConfig): Pr
 
   const meta = parseRawGradesMeta(ws, header.rowNumber)
   const { sessions, columns } = parseAttendanceColumns(header.headers)
-  const maxScores = parseDeclaredMaxScores(ws, header.rowNumber, config, header.mapping)
+  const maxScores = parseDeclaredMaxScores(ws, header.rowNumber, course, header.mapping)
 
   const rows = parseStudentRows({
     ws,

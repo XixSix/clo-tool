@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useWorkspace } from '@renderer/hooks/workspace'
 import type { RawSummaryDto, RunResultDto, SessionDto } from '../../../shared/ipc'
-import type { CourseConfig } from '@core/types/course'
+import type { Course } from '@core/types'
+import { normalizeStoredCourse } from '@renderer/components/screens/courses/course-adapter'
 
 export interface ImportStep {
   title: string
@@ -12,7 +13,7 @@ export interface ImportStep {
 export interface ImportPipeline {
   bridgeReady: boolean
   active: SessionDto | null
-  courseConfig: CourseConfig | null
+  courseConfig: Course | null
   rawPath: string
   raw: RawSummaryDto | null
   outDir: string
@@ -29,13 +30,12 @@ export interface ImportPipeline {
   reset: () => void
 }
 
-function loadLocalConfig(sessionId: string): CourseConfig | null {
+function loadLocalConfig(sessionId: string): Course | null {
   const key = `course-config-${sessionId}`
   const saved = sessionStorage.getItem(key)
   if (!saved) return null
   try {
-    const parsed = JSON.parse(saved) as CourseConfig | { config: CourseConfig }
-    return 'config' in parsed ? parsed.config : parsed
+    return normalizeStoredCourse(JSON.parse(saved))
   } catch {
     return null
   }
@@ -50,7 +50,7 @@ export function useImportPipeline(active: SessionDto | null, bridgeReady: boolea
 
   const [loadedConfig, setLoadedConfig] = useState<{
     sessionId: string
-    config: CourseConfig | null
+    config: Course | null
   } | null>(null)
 
   useEffect(() => {
@@ -130,7 +130,7 @@ export function useImportPipeline(active: SessionDto | null, bridgeReady: boolea
         archiveRun({
           runId: res.runId,
           ts: Date.now(),
-          configPath: active?.configPath || `[In-App] ${courseConfig.courseInfo.maHp}`,
+          configPath: active?.configPath || `[In-App] ${courseConfig.maHp}`,
           rawPath,
           outputDir: outDir,
           finalReportPath: res.finalReportPath,
@@ -177,7 +177,7 @@ export function useImportPipeline(active: SessionDto | null, bridgeReady: boolea
     {
       title: 'Cấu hình môn',
       hint: courseConfig
-        ? `${courseConfig.cloList.length} CLO · ${courseConfig.keHoachDanhGia.length} đầu điểm`
+        ? `${courseConfig.cloList.length} CLO · ${courseConfig.dotDanhGia.length} đầu điểm`
         : 'Chưa cấu hình (vào chi tiết môn)',
       done: Boolean(courseConfig)
     },

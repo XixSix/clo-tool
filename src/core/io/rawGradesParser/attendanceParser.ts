@@ -2,18 +2,18 @@
  * Nhận diện các cột điểm danh (Buổi 1..N) trong header.
  */
 
-import type { AttendanceSession } from '../../types'
+import type { RawAttendanceSession } from '../../types'
 import { isAttendanceHeader, isInvalidAttendanceHeader } from './helpers'
 import { RawGradesParseError } from './errors'
 import type { AttendanceColumn } from './types'
 
 export interface AttendanceColumnsResult {
-  sessions: AttendanceSession[]
+  sessions: RawAttendanceSession[]
   columns: AttendanceColumn[]
 }
 
 export function parseAttendanceColumns(headers: string[]): AttendanceColumnsResult {
-  const sessions: AttendanceSession[] = []
+  const sessions: RawAttendanceSession[] = []
   const columns: AttendanceColumn[] = []
 
   headers.forEach((header, index) => {

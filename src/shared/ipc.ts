@@ -5,16 +5,19 @@
 
 import type {
   ClassEvaluationSummary,
-  CourseConfig,
+  Course,
   ExamPsychometrics,
-  ProcessedStudentResult
+  IssueScope,
+  Student,
+  StudentCourseResult
 } from '../core/types'
 
 export type IssueLevelDto = 'error' | 'warning'
 
 export interface IssueDto {
   level: IssueLevelDto
-  sheet?: string
+  scope: IssueScope
+  targetId?: string
   row?: number
   column?: string
   message: string
@@ -148,8 +151,11 @@ export interface RunSnapshotDto {
   sessionId: string
   ts: number
   label?: string
-  config: CourseConfig
-  students: ProcessedStudentResult[]
+  config: Course
+  /** Danh sách sinh viên (định danh: mã SV, họ tên, ngày sinh). */
+  students: Student[]
+  /** Kết quả tính điểm từng sinh viên, song song với `students`. */
+  results: StudentCourseResult[]
   summary: ClassEvaluationSummary
   exams: ExamPsychometrics[]
 }
@@ -197,10 +203,11 @@ export interface UpdateStatusDto {
 export interface CourseMetaInput {
   lop?: string
   giangVien?: string
+  namHoc?: string
 }
 
 export interface StoredCourseConfig {
-  config: CourseConfig
+  config: Course
   meta?: CourseMetaInput
 }
 
@@ -213,15 +220,12 @@ export interface CloApi {
   getCourseConfig: (sessionId: string) => Promise<StoredCourseConfig | null>
   saveCourseConfig: (sessionId: string, data: StoredCourseConfig) => Promise<void>
   exportRawGradesTemplate: (
-    config: CourseConfig,
+    config: Course,
     defaultFileName?: string
   ) => Promise<{ ok: boolean; path?: string; error?: string }>
-  parseRawGrades: (
-    configSource: string | CourseConfig,
-    rawPath: string
-  ) => Promise<RawSummaryDto>
+  parseRawGrades: (configSource: string | Course, rawPath: string) => Promise<RawSummaryDto>
   runPipeline: (
-    configSource: string | CourseConfig,
+    configSource: string | Course,
     rawPath: string,
     outputDir: string,
     sessionId?: string

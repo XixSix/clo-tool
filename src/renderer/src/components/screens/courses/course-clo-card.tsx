@@ -10,6 +10,7 @@ import {
 import { Badge } from '@renderer/components/ui/badge'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@renderer/components/ui/empty'
 import { Skeleton } from '@renderer/components/ui/skeleton'
+import { toCourseView } from '@renderer/lib/result-view'
 import type { RunSnapshotDto } from '../../../../../shared/ipc'
 
 /** Card "Cấu hình CLO / đầu điểm" đọc từ snapshot lần chạy gần nhất. */
@@ -20,6 +21,7 @@ export function CourseCloCard({
   snapshot: RunSnapshotDto | null
   loading: boolean
 }): React.ReactElement {
+  const courseView = snapshot ? toCourseView(snapshot.config) : null
   return (
     <Card>
       <CardHeader>
@@ -34,7 +36,7 @@ export function CourseCloCard({
             <Skeleton className="h-6 w-full" />
             <Skeleton className="h-6 w-3/4" />
           </div>
-        ) : !snapshot ? (
+        ) : !courseView ? (
           <Empty className="border-none">
             <EmptyHeader>
               <ShieldCheck className="text-muted-foreground/40" />
@@ -48,10 +50,10 @@ export function CourseCloCard({
         ) : (
           <div className="flex flex-col gap-4">
             <div className="flex flex-wrap gap-1.5">
-              {snapshot.config.cloList.map((clo) => (
+              {courseView.cloList.map((clo) => (
                 <Badge key={clo.maClo} variant="secondary" title={clo.noiDung}>
                   {clo.maClo}
-                  {snapshot.config.courseInfo.loaiHp === 'thuc_hanh' && clo.trongSoClo
+                  {courseView.courseInfo.loaiHp === 'thuc_hanh' && clo.trongSoClo
                     ? ` · ${clo.trongSoClo}%`
                     : ''}
                 </Badge>
@@ -61,22 +63,20 @@ export function CourseCloCard({
             <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-3">
               <div className="bg-muted rounded-lg p-3">
                 <p className="text-muted-foreground">Đầu điểm</p>
-                <p className="mt-1 text-lg font-semibold">
-                  {snapshot.config.keHoachDanhGia.length}
-                </p>
+                <p className="mt-1 text-lg font-semibold">{courseView.keHoachDanhGia.length}</p>
               </div>
               <div className="bg-muted rounded-lg p-3">
                 <p className="text-muted-foreground">Câu hỏi</p>
-                <p className="mt-1 text-lg font-semibold">{snapshot.config.cauHoi.length}</p>
+                <p className="mt-1 text-lg font-semibold">{courseView.cauHoi.length}</p>
               </div>
               <div className="bg-muted rounded-lg p-3">
                 <p className="text-muted-foreground">Ánh xạ PLO</p>
-                <p className="mt-1 text-lg font-semibold">{snapshot.config.maTranPlo.length}</p>
+                <p className="mt-1 text-lg font-semibold">{courseView.maTranPlo.length}</p>
               </div>
             </div>
 
             <div className="ring-foreground/10 overflow-hidden rounded-lg ring-1">
-              {snapshot.config.keHoachDanhGia.map((item) => (
+              {courseView.keHoachDanhGia.map((item) => (
                 <div
                   key={`${item.nhom}-${item.maDauDiem}-${item.clo}`}
                   className="border-border/60 flex items-center gap-2 border-b px-3 py-2 text-xs last:border-0"
@@ -92,10 +92,9 @@ export function CourseCloCard({
             </div>
 
             <p className="text-muted-foreground text-xs">
-              Ngưỡng đạt: CLO {snapshot.config.quyTac.nguong_dat_clo} · PLO{' '}
-              {snapshot.config.quyTac.nguong_dat_plo} · Học phần{' '}
-              {snapshot.config.quyTac.nguong_dat_hp} · Phương thức{' '}
-              {snapshot.config.quyTac.hp_method}
+              Ngưỡng đạt: CLO {courseView.quyTac.nguongDatClo} · PLO{' '}
+              {courseView.quyTac.nguongDatPlo} · Học phần {courseView.quyTac.nguongDatHp} · Phương
+              thức {courseView.quyTac.phuongThucTinhHp}
             </p>
           </div>
         )}

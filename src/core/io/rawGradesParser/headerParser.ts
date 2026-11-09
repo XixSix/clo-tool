@@ -1,9 +1,9 @@
 /**
- * Dò header bảng điểm thô và kiểm tra các cột điểm khai báo trong Config.
+ * Dò header bảng điểm thô và kiểm tra các cột điểm khai báo trong Course.
  */
 
 import type ExcelJS from 'exceljs'
-import type { CourseConfig } from '../../types'
+import type { Course } from '../../types'
 import { findHeaderRow } from '../../utils/excel'
 import { RawGradesParseError } from './errors'
 import { BASE_COLUMNS, scoreColumnsFromConfig } from './helpers'
@@ -16,9 +16,9 @@ export interface RawHeaderResult {
 
 export function parseRawGradesHeader(
   ws: ExcelJS.Worksheet,
-  config: CourseConfig
+  course: Course
 ): RawHeaderResult | null {
-  const scoreColumns = scoreColumnsFromConfig(config)
+  const scoreColumns = scoreColumnsFromConfig(course)
   const found = findHeaderRow(ws, [...BASE_COLUMNS, ...scoreColumns], 30)
   if (!found) return null
 
@@ -33,13 +33,15 @@ export function parseRawGradesHeader(
   }
 }
 
-/** Cột điểm có trong Config nhưng không dò được trong file */
+/** Cột điểm có trong Course nhưng không dò được trong file. */
 export function assertScoreColumns(header: RawHeaderInfo, scoreColumns: string[]): void {
   for (const maCot of scoreColumns) {
     if (header.mapping[maCot] !== undefined) continue
 
     const suggestion = header.suggestions[maCot]
     const hint = suggestion ? ` Có phải bạn muốn đặt tên là "${suggestion}"?` : ''
-    throw new RawGradesParseError(`Thiếu cột điểm "${maCot}" khai báo trong Config.${hint}`)
+    throw new RawGradesParseError(
+      `Thiếu cột điểm "${maCot}" khai báo trong cấu hình học phần.${hint}`
+    )
   }
 }

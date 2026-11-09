@@ -9,11 +9,12 @@ import {
   CardContent
 } from '@renderer/components/ui/card'
 import { Badge } from '@renderer/components/ui/badge'
-import type { CourseConfig } from '@core/types/course'
+import type { Course } from '@core/types'
+import { toCourseView } from '@renderer/lib/result-view'
 import { cn } from 'cn'
 
 interface CourseConfigCardProps {
-  config: CourseConfig | null
+  config: Course | null
 }
 
 /** Hiển thị tóm tắt cấu hình môn học đã lưu trong ứng dụng */
@@ -37,15 +38,16 @@ export function CourseConfigCard({ config }: CourseConfigCardProps): React.React
     )
   }
 
-  const isThucHanh = config.courseInfo.loaiHp === 'thuc_hanh'
-  const totalCloWeight = config.cloList.reduce((sum, c) => sum + (c.trongSoClo || 1), 0)
-  const totalPlanWeight = config.keHoachDanhGia.reduce((sum, p) => sum + p.trongSoPhanTram, 0)
+  const courseView = toCourseView(config)
+  const isThucHanh = courseView.courseInfo.loaiHp === 'thuc_hanh'
+  const totalCloWeight = courseView.cloList.reduce((sum, c) => sum + (c.trongSoClo || 1), 0)
+  const totalPlanWeight = courseView.keHoachDanhGia.reduce((sum, p) => sum + p.trongSoPhanTram, 0)
   const cloWeightOk = Math.abs(totalCloWeight - 100) < 0.01
   const planWeightOk = Math.abs(totalPlanWeight - 100) < 0.01
 
   // Check exam scores
   const maxScores: Record<string, number> = {}
-  for (const q of config.cauHoi) {
+  for (const q of courseView.cauHoi) {
     const key = `${q.maDauDiem}|${q.maDe || 'ALL'}`
     maxScores[key] = (maxScores[key] || 0) + q.diemToiDa
   }
@@ -65,19 +67,19 @@ export function CourseConfigCard({ config }: CourseConfigCardProps): React.React
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="bg-muted rounded-lg p-3">
             <p className="text-muted-foreground text-xs">CLO</p>
-            <p className="font-semibold">{config.cloList.length}</p>
+            <p className="font-semibold">{courseView.cloList.length}</p>
           </div>
           <div className="bg-muted rounded-lg p-3">
             <p className="text-muted-foreground text-xs">Đầu điểm</p>
-            <p className="font-semibold">{config.keHoachDanhGia.length}</p>
+            <p className="font-semibold">{courseView.keHoachDanhGia.length}</p>
           </div>
           <div className="bg-muted rounded-lg p-3">
             <p className="text-muted-foreground text-xs">Câu hỏi</p>
-            <p className="font-semibold">{config.cauHoi.length}</p>
+            <p className="font-semibold">{courseView.cauHoi.length}</p>
           </div>
           <div className="bg-muted rounded-lg p-3">
             <p className="text-muted-foreground text-xs">PLO mapping</p>
-            <p className="font-semibold">{config.maTranPlo.length}</p>
+            <p className="font-semibold">{courseView.maTranPlo.length}</p>
           </div>
         </div>
 
@@ -121,10 +123,10 @@ export function CourseConfigCard({ config }: CourseConfigCardProps): React.React
         )}
 
         {/* Assessment plan summary */}
-        {config.keHoachDanhGia.length > 0 && (
+        {courseView.keHoachDanhGia.length > 0 && (
           <div className="border-border/50 space-y-1 border-t pt-3">
             <p className="text-muted-foreground text-xs font-medium">Kế hoạch đánh giá:</p>
-            {config.keHoachDanhGia.map((item, idx) => (
+            {courseView.keHoachDanhGia.map((item, idx) => (
               <div key={idx} className="flex items-center gap-2 text-[12px]">
                 <Badge variant="outline" className="shrink-0 px-1.5 py-0.5 text-[10px]">
                   {item.nhom}
@@ -139,11 +141,11 @@ export function CourseConfigCard({ config }: CourseConfigCardProps): React.React
         )}
 
         {/* CLO list */}
-        {config.cloList.length > 0 && (
+        {courseView.cloList.length > 0 && (
           <div className="border-border/50 space-y-1 border-t pt-3">
             <p className="text-muted-foreground text-xs font-medium">Danh sách CLO:</p>
             <div className="flex flex-wrap gap-1.5">
-              {config.cloList.map((clo) => (
+              {courseView.cloList.map((clo) => (
                 <Badge key={clo.maClo} variant="secondary" className="text-[10px]">
                   {clo.maClo}
                   {isThucHanh ? ` (${clo.trongSoClo || 0}%)` : ''}

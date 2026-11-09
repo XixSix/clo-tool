@@ -22,10 +22,12 @@ import {
   histogramConfig,
   medianCourseScore
 } from '@renderer/components/screens/reports/report-data'
+import { toSummaryView } from '@renderer/lib/result-view'
 import type { RunSnapshotDto } from '../../../../../shared/ipc'
 
 export function OverviewTab({ snapshot }: { snapshot: RunSnapshotDto }): React.ReactElement {
-  const { summary, config } = snapshot
+  const { config } = snapshot
+  const summary = toSummaryView(snapshot.summary, config)
   const histogram = buildHistogram(snapshot)
   const cloData = buildCloData(snapshot)
   const alphaData = buildAlphaData(snapshot)
@@ -72,7 +74,7 @@ export function OverviewTab({ snapshot }: { snapshot: RunSnapshotDto }): React.R
 
         <ChartCard
           title="Tỷ lệ đạt theo CLO"
-          description={`Vạch đứt: ngưỡng cảnh báo ${config.quyTac.ty_le_dat_clo_canh_bao}%`}
+          description={`Vạch đứt: ngưỡng cảnh báo ${config.quyTac.tyLeDatCloCanhBao}%`}
         >
           <ChartContainer config={cloConfig} className="h-56 w-full">
             <BarChart
@@ -85,7 +87,7 @@ export function OverviewTab({ snapshot }: { snapshot: RunSnapshotDto }): React.R
               <YAxis type="category" dataKey="code" width={64} tickLine={false} axisLine={false} />
               <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
               <ReferenceLine
-                x={config.quyTac.ty_le_dat_clo_canh_bao}
+                x={config.quyTac.tyLeDatCloCanhBao}
                 stroke="var(--destructive)"
                 strokeDasharray="4 4"
               />

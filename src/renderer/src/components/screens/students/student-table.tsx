@@ -12,7 +12,7 @@ import {
 } from '@renderer/components/ui/table'
 import { formatScore } from '@renderer/lib/format'
 import type { StudentRow } from '@renderer/hooks/use-student-filters'
-import type { ProcessedStudentResult } from '@core/types'
+import type { ProcessedStudentResultView } from '@renderer/lib/result-view'
 
 function ScoreCell({ value }: { value: number | undefined }): React.ReactElement {
   return <span className="font-mono text-[13px] tabular-nums">{formatScore(value)}</span>
@@ -26,7 +26,7 @@ export function StudentTable({
 }: {
   rows: StudentRow[]
   loading: boolean
-  onSelect: (student: ProcessedStudentResult) => void
+  onSelect: (student: ProcessedStudentResultView) => void
 }): React.ReactElement {
   return (
     <div className="bg-card ring-foreground/10 overflow-hidden rounded-xl ring-1">

@@ -6,13 +6,27 @@
 /** Mức độ của một phát hiện khi kiểm tra dữ liệu */
 export type IssueLevel = 'error' | 'warning'
 
+/** Khối nghiệp vụ phát sinh vấn đề khi kiểm tra dữ liệu. */
+export type IssueScope =
+  | 'course_info'
+  | 'clo'
+  | 'assessment'
+  | 'exam'
+  | 'plo'
+  | 'integrity'
+  | 'student'
+  | 'raw_grades'
+
 /**
  * Một lỗi / cảnh báo dữ liệu.
- * Luôn cố gắng chỉ rõ vị trí: sheet + dòng + cột.
+ * - `scope` cho biết vấn đề thuộc khối nào của model.
+ * - `targetId` chỉ rõ đối tượng (mã CLO, đợt đánh giá, câu hỏi, PI...).
+ * - `row` / `column` chỉ dùng khi vấn đề gắn với một ô bảng tính (điểm thô).
  */
 export interface ValidationIssue {
   level: IssueLevel
-  sheet?: string
+  scope: IssueScope
+  targetId?: string
   row?: number
   column?: string
   message: string

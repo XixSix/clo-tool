@@ -35,7 +35,13 @@
  * Template phát hành chỉ dùng đúng 10 SV này (xem scripts/gen-templates.ts).
  */
 
-import type { CourseConfig, QuestionColumn, RawStudentRow } from '@core/types'
+import type {
+  AssessmentComponent,
+  Course,
+  ExamQuestion,
+  ExamVariant,
+  RawStudentRow
+} from '@core/types'
 import { DEFAULT_BUSINESS_RULES } from '@core/rules'
 
 export const MOCK_SESSION_LABELS = Array.from({ length: 12 }, (_, i) => `Buổi ${i + 1}`)
@@ -55,203 +61,175 @@ function gktColumn(c: number): string {
   return `GKT_C${String(c).padStart(2, '0')}`
 }
 
-export function buildMockConfig(): CourseConfig {
+export function buildMockCourse(): Course {
   // 40 câu trắc nghiệm của đề GKT, sinh theo khối CLO
-  const gktCauHoi: QuestionColumn[] = []
+  const gktCauHoi: ExamQuestion[] = []
   for (const block of GKT_BLOCKS) {
     for (let c = block.from; c <= block.to; c++) {
       gktCauHoi.push({
-        maCotDiem: gktColumn(c),
-        maDauDiem: 'GKT',
+        id: gktColumn(c),
         cau: `Câu ${c}`,
-        clo: block.clo,
+        cloId: block.clo,
         diemToiDa: 0.25,
-        maDe: 'D1',
         loai: 'TN'
       })
     }
   }
 
-  const gtxCauHoi: QuestionColumn[] = GTX_MAX.map((max, i) => ({
-    maCotDiem: `GTX_C${i + 1}`,
-    maDauDiem: 'GTX',
+  const gtxCauHoi: ExamQuestion[] = GTX_MAX.map((max, i) => ({
+    id: `GTX_C${i + 1}`,
     cau: `Câu ${i + 1}`,
     // GTX: câu 1 → CLO2, câu 2 → CLO3, câu 3+4 → CLO4 (2 câu cùng 1 CLO)
-    clo: i === 0 ? 'CLO2' : i === 1 ? 'CLO3' : 'CLO4',
+    cloId: i === 0 ? 'CLO2' : i === 1 ? 'CLO3' : 'CLO4',
     diemToiDa: max,
-    maDe: 'D2',
     loai: 'TL'
   }))
 
-  const ckCauHoi: QuestionColumn[] = CK_MAX.map((max, i) => ({
-    maCotDiem: `CK_C${i + 1}`,
-    maDauDiem: 'CK',
+  const ckCauHoi: ExamQuestion[] = CK_MAX.map((max, i) => ({
+    id: `CK_C${i + 1}`,
     cau: `Câu ${i + 1}`,
     // CK: câu 1 → CLO2, câu 2+3 → CLO3 (2 câu cùng 1 CLO), câu 4 → CLO4, câu 5 → CLO5
-    clo: i === 0 ? 'CLO2' : i === 1 || i === 2 ? 'CLO3' : i === 3 ? 'CLO4' : 'CLO5',
+    cloId: i === 0 ? 'CLO2' : i === 1 || i === 2 ? 'CLO3' : i === 3 ? 'CLO4' : 'CLO5',
     diemToiDa: max,
-    maDe: 'D3',
     loai: 'TL'
   }))
 
+  const gktVariant: ExamVariant = { id: 'GKT_D1', maDe: 'D1', cauHoi: gktCauHoi }
+  const gtxVariant: ExamVariant = { id: 'GTX_D2', maDe: 'D2', cauHoi: gtxCauHoi }
+  const ckVariant: ExamVariant = { id: 'CK_D3', maDe: 'D3', cauHoi: ckCauHoi }
+
+  const attendanceDot: AssessmentComponent = {
+    id: 'CC',
+    tenDotDanhGia: 'Điểm danh chuyên cần',
+    nhom: 'CC',
+    cachNhapDiem: 'ATTENDANCE',
+    trongSoPhanTram: 20,
+    cloList: [{ cloId: 'CLO1', tyLePhanBo: 100 }],
+    maDeList: [],
+    buoiDiemDanh: MOCK_SESSION_LABELS.map((label) => ({ id: label, tenBuoi: label }))
+  }
+
+  const gktDot: AssessmentComponent = {
+    id: 'GKT',
+    tenDotDanhGia: 'Kiểm tra giữa kỳ – đề trắc nghiệm',
+    nhom: 'GK',
+    cachNhapDiem: 'QUESTION_SCORE',
+    trongSoPhanTram: 15,
+    // Trọng số cũ theo từng CLO là 6% / 5% / 4% trên tổng 15%
+    cloList: [
+      { cloId: 'CLO2', tyLePhanBo: (6 / 15) * 100 },
+      { cloId: 'CLO3', tyLePhanBo: (5 / 15) * 100 },
+      { cloId: 'CLO4', tyLePhanBo: (4 / 15) * 100 }
+    ],
+    maDeList: [gktVariant]
+  }
+
+  const gtxDot: AssessmentComponent = {
+    id: 'GTX',
+    tenDotDanhGia: 'Kiểm tra giữa kỳ – đề tự luận',
+    nhom: 'GK',
+    cachNhapDiem: 'QUESTION_SCORE',
+    trongSoPhanTram: 15,
+    // Trọng số cũ theo từng CLO là 4% / 5% / 6% trên tổng 15%
+    cloList: [
+      { cloId: 'CLO2', tyLePhanBo: (4 / 15) * 100 },
+      { cloId: 'CLO3', tyLePhanBo: (5 / 15) * 100 },
+      { cloId: 'CLO4', tyLePhanBo: (6 / 15) * 100 }
+    ],
+    maDeList: [gtxVariant]
+  }
+
+  const ckDot: AssessmentComponent = {
+    id: 'CK',
+    tenDotDanhGia: 'Thi kết thúc học phần',
+    nhom: 'CK',
+    cachNhapDiem: 'QUESTION_SCORE',
+    trongSoPhanTram: 50,
+    // Trọng số cũ theo từng CLO là 10% / 10% / 20% / 10%
+    cloList: [
+      { cloId: 'CLO2', tyLePhanBo: 20 },
+      { cloId: 'CLO3', tyLePhanBo: 20 },
+      { cloId: 'CLO4', tyLePhanBo: 40 },
+      { cloId: 'CLO5', tyLePhanBo: 20 }
+    ],
+    maDeList: [ckVariant]
+  }
+
+  const ploRows: Array<{ plo: string; pIs: string[]; clos: string[] }> = [
+    { plo: 'PLO2', pIs: ['PI2.1', 'PI2.2'], clos: ['CLO1', 'CLO2'] },
+    { plo: 'PLO3', pIs: ['PI3.1', 'PI3.2'], clos: ['CLO3', 'CLO4'] },
+    { plo: 'PLO4', pIs: ['PI4.1'], clos: ['CLO5'] }
+  ]
+
   return {
-    courseInfo: {
-      maHp: 'KTLT101',
-      tenHp: 'Kỹ thuật lập trình',
-      soTinChi: 3,
-      hinhThucThi: 'Tự luận',
-      loaiHp: 'thuong'
-    },
+    id: 'KTLT101',
+    maHp: 'KTLT101',
+    tenHp: 'Kỹ thuật lập trình',
+    soTinChi: 3,
+    hinhThucThi: 'Tự luận',
+    loaiHp: 'thuong',
+    giangVien: 'TS. Nguyễn Văn A',
+    namHoc: '2024-2025',
     cloList: [
       {
+        id: 'CLO1',
         maClo: 'CLO1',
         noiDung: 'Nhận thức được vai trò của chuyên cần, ý thức và trách nhiệm trong học tập',
         bacNangLuc: '2/6',
         trongSoClo: 1
       },
       {
+        id: 'CLO2',
         maClo: 'CLO2',
         noiDung: 'Giải thích các khái niệm lập trình và áp dụng cú pháp ngôn ngữ C',
         bacNangLuc: '3/6',
         trongSoClo: 1
       },
       {
+        id: 'CLO3',
         maClo: 'CLO3',
         noiDung: 'Vận dụng cấu trúc dữ liệu và giải thuật để giải quyết bài toán',
         bacNangLuc: '3/6',
         trongSoClo: 1
       },
       {
+        id: 'CLO4',
         maClo: 'CLO4',
         noiDung: 'Thiết kế, cài đặt và kiểm thử chương trình',
         bacNangLuc: '3/5',
         trongSoClo: 1
       },
       {
+        id: 'CLO5',
         maClo: 'CLO5',
         noiDung: 'Làm việc nhóm, thuyết trình và ý thức trách nhiệm nghề nghiệp',
         bacNangLuc: '4/6',
         trongSoClo: 1
       }
     ],
-    keHoachDanhGia: [
-      {
-        nhom: 'CC',
-        thanhPhan: 'Điểm danh chuyên cần',
-        maDauDiem: 'CC',
-        clo: 'CLO1',
-        trongSoPhanTram: 20,
-        hinhThuc: 'Điểm danh'
-      },
-      {
-        nhom: 'GK',
-        thanhPhan: 'Kiểm tra giữa kỳ – đề trắc nghiệm',
-        maDauDiem: 'GKT',
-        clo: 'CLO2',
-        trongSoPhanTram: 6,
-        hinhThuc: 'Trắc nghiệm 40 câu (câu 1–12)'
-      },
-      {
-        nhom: 'GK',
-        thanhPhan: 'Kiểm tra giữa kỳ – đề trắc nghiệm',
-        maDauDiem: 'GKT',
-        clo: 'CLO3',
-        trongSoPhanTram: 5,
-        hinhThuc: 'Trắc nghiệm 40 câu (câu 13–28)'
-      },
-      {
-        nhom: 'GK',
-        thanhPhan: 'Kiểm tra giữa kỳ – đề trắc nghiệm',
-        maDauDiem: 'GKT',
-        clo: 'CLO4',
-        trongSoPhanTram: 4,
-        hinhThuc: 'Trắc nghiệm 40 câu (câu 29–40)'
-      },
-      {
-        nhom: 'GK',
-        thanhPhan: 'Kiểm tra giữa kỳ – đề tự luận',
-        maDauDiem: 'GTX',
-        clo: 'CLO2',
-        trongSoPhanTram: 4,
-        hinhThuc: 'Tự luận (câu 1)'
-      },
-      {
-        nhom: 'GK',
-        thanhPhan: 'Kiểm tra giữa kỳ – đề tự luận',
-        maDauDiem: 'GTX',
-        clo: 'CLO3',
-        trongSoPhanTram: 5,
-        hinhThuc: 'Tự luận (câu 2)'
-      },
-      {
-        nhom: 'GK',
-        thanhPhan: 'Kiểm tra giữa kỳ – đề tự luận',
-        maDauDiem: 'GTX',
-        clo: 'CLO4',
-        trongSoPhanTram: 6,
-        hinhThuc: 'Tự luận (câu 3+4 cùng CLO)'
-      },
-      {
-        nhom: 'CK',
-        thanhPhan: 'Thi kết thúc học phần',
-        maDauDiem: 'CK',
-        clo: 'CLO2',
-        trongSoPhanTram: 10,
-        hinhThuc: 'Tự luận (câu 1)'
-      },
-      {
-        nhom: 'CK',
-        thanhPhan: 'Thi kết thúc học phần',
-        maDauDiem: 'CK',
-        clo: 'CLO3',
-        trongSoPhanTram: 10,
-        hinhThuc: 'Tự luận (câu 2+3 cùng CLO)'
-      },
-      {
-        nhom: 'CK',
-        thanhPhan: 'Thi kết thúc học phần',
-        maDauDiem: 'CK',
-        clo: 'CLO4',
-        trongSoPhanTram: 20,
-        hinhThuc: 'Tự luận (câu 4)'
-      },
-      {
-        nhom: 'CK',
-        thanhPhan: 'Thi kết thúc học phần',
-        maDauDiem: 'CK',
-        clo: 'CLO5',
-        trongSoPhanTram: 10,
-        hinhThuc: 'Tự luận (câu 5)'
-      }
-    ],
-    cauHoi: [
-      {
-        maCotDiem: 'CC',
-        maDauDiem: 'CC',
-        cau: 'CC',
-        clo: 'CLO1',
-        diemToiDa: 10,
-        maDe: 'ALL',
-        loai: 'TL'
-      },
-      ...gktCauHoi,
-      ...gtxCauHoi,
-      ...ckCauHoi
-    ],
-    maTranPlo: [
-      { plo: 'PLO2', pi: 'PI2.1', clo: 'CLO1' },
-      { plo: 'PLO2', pi: 'PI2.2', clo: 'CLO2' },
-      { plo: 'PLO3', pi: 'PI3.1', clo: 'CLO3' },
-      { plo: 'PLO3', pi: 'PI3.2', clo: 'CLO4' },
-      { plo: 'PLO4', pi: 'PI4.1', clo: 'CLO5' }
-    ],
-    diemDanh: [
-      { kyHieu: 'X', heSo: 1, dienGiai: 'Có mặt đúng giờ' },
-      { kyHieu: 'OL', heSo: 1, dienGiai: 'Học online có mặt' },
-      { kyHieu: 'M', heSo: 0.5, dienGiai: 'Đi muộn hoặc về sớm' },
-      { kyHieu: 'V-CP', heSo: 0.5, dienGiai: 'Vắng có phép' },
-      { kyHieu: 'V', heSo: 0, dienGiai: 'Vắng không phép' }
-    ],
+    ploList: ploRows.map(({ plo }) => ({
+      id: plo,
+      maPlo: plo,
+      noiDung: `Chuẩn đầu ra chương trình ${plo}`,
+      ploThanhPhanIds: [`${plo}_1`]
+    })),
+    ploThanhPhanList: ploRows.map(({ plo, pIs }) => ({
+      id: `${plo}_1`,
+      maPloThanhPhan: `${plo}.1`,
+      maPlo: plo,
+      noiDung: `PLO thành phần ${plo}.1`,
+      piIds: pIs
+    })),
+    piList: ploRows.flatMap(({ plo, pIs, clos }) =>
+      pIs.map((pi, idx) => ({
+        id: pi,
+        maPi: pi,
+        noiDung: `Chỉ số ${pi}`,
+        ploThanhPhanIds: [`${plo}_1`],
+        cloIds: [clos[idx]]
+      }))
+    ),
+    dotDanhGia: [attendanceDot, gktDot, gtxDot, ckDot],
     quyTac: { ...DEFAULT_BUSINESS_RULES }
   }
 }
@@ -489,6 +467,7 @@ export function buildMockClass(studentCount = 10): MockClassData {
       const ho = nameParts.join(' ')
       students.push({
         student: {
+          id: spec.maSv,
           tt: i + 1,
           maSv: spec.maSv,
           ho,
@@ -543,6 +522,7 @@ export function buildMockClass(studentCount = 10): MockClassData {
 
     students.push({
       student: {
+        id: maSv,
         tt: i + 1,
         maSv,
         ho: `${ho} ${tenDem}`,

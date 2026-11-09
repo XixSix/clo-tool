@@ -1,22 +1,16 @@
-/** API tương thích cho các generator template Excel. */
+/** API tương thích cho generator template điểm thô. */
 
-import type { CourseConfig } from '../types'
+import type { Course } from '../types'
 import { writeWorkbook } from '../utils/excel'
-import { buildConfigWorkbook } from './configTemplateGenerator'
 import { buildRawGradesWorkbook, type RawTemplateOptions } from './rawGradesTemplateGenerator'
 
-export { buildConfigWorkbook } from './configTemplateGenerator'
 export { buildRawGradesWorkbook } from './rawGradesTemplateGenerator'
 export type { RawTemplateOptions } from './rawGradesTemplateGenerator'
 
-export async function writeConfigTemplate(filePath: string, config: CourseConfig): Promise<void> {
-  await writeWorkbook(buildConfigWorkbook(config), filePath)
-}
-
 export async function writeRawGradesTemplate(
   filePath: string,
-  config: CourseConfig,
+  course: Course,
   options: RawTemplateOptions = {}
 ): Promise<void> {
-  await writeWorkbook(buildRawGradesWorkbook(config, options), filePath)
+  await writeWorkbook(buildRawGradesWorkbook(course, options), filePath)
 }

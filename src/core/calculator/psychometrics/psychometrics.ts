@@ -18,38 +18,47 @@ import {
   roundHalfUp
 } from '../../rules'
 import type {
-  CourseConfig,
+  Course,
   ExamPsychometrics,
+  ExamQuestion,
   ItemPsychometrics,
-  QuestionColumn,
-  RawStudentRow
+  Student,
+  StudentCourseScoreRecord,
+  StudentQuestionScore
 } from '../../types'
 
 export interface QuestionAggregated {
   cau: string
   diemToiDa: number
-  clo: string
+  cloId: string
   cotGoc: string[]
 }
 
+/** Dữ liệu điểm theo câu của một sinh viên trong một đề. */
+export interface QuestionScoreEntry {
+  maSv: string
+  deId: string
+  diemTheoCau: StudentQuestionScore[]
+}
+
 /**
- * Gộp các cột điểm là ý nhỏ (ví dụ Câu 3a, Câu 3b) theo tên câu
+ * Gộp các cột điểm là ý nhỏ (ví dụ Câu 3a, Câu 3b) theo tên câu.
  */
-export function aggregateQuestions(questions: QuestionColumn[]): QuestionAggregated[] {
+export function aggregateQuestions(questions: ExamQuestion[]): QuestionAggregated[] {
   const map = new Map<string, QuestionAggregated>()
 
   for (const q of questions) {
-    const cauKey = q.cau.trim()
+    const cauKey = String(q.cau).trim()
     const existing = map.get(cauKey)
     if (existing) {
       existing.diemToiDa = new Decimal(existing.diemToiDa).add(q.diemToiDa).toNumber()
-      existing.cotGoc.push(q.maCotDiem)
+      existing.cotGoc.push(q.id)
     } else {
       map.set(cauKey, {
         cau: cauKey,
         diemToiDa: q.diemToiDa,
-        clo: q.clo,
-        cotGoc: [q.maCotDiem]
+        cloId: q.cloId,
+        cotGoc: [q.id]
       })
     }
   }
@@ -58,11 +67,11 @@ export function aggregateQuestions(questions: QuestionColumn[]): QuestionAggrega
 }
 
 /**
- * Trích xuất ma trận điểm sinh viên cho từng câu đã gộp
- * Loại bỏ các sinh viên vắng thi ('VT') hoặc thiếu dữ liệu
+ * Trích xuất ma trận điểm sinh viên cho từng câu đã gộp.
+ * Loại bỏ các sinh viên vắng thi ('VT') hoặc thiếu dữ liệu.
  */
 export function extractValidStudentMatrix(
-  students: RawStudentRow[],
+  entries: QuestionScoreEntry[],
   aggQuestions: QuestionAggregated[]
 ): {
   validStudents: { maSv: string; scores: number[]; totalScore: number }[]
@@ -71,14 +80,14 @@ export function extractValidStudentMatrix(
   const validStudents: { maSv: string; scores: number[]; totalScore: number }[] = []
   let absentCount = 0
 
-  for (const st of students) {
+  for (const entry of entries) {
     let isAbsentOrInvalid = false
     const scores: number[] = []
 
     for (const q of aggQuestions) {
       let qScore = new Decimal(0)
       for (const col of q.cotGoc) {
-        const raw = st.scores.diemCacCot[col]
+        const raw = entry.diemTheoCau.find((s) => s.questionId === col)?.diem
         if (raw === 'VT' || raw === null || raw === undefined) {
           isAbsentOrInvalid = true
           break
@@ -93,11 +102,7 @@ export function extractValidStudentMatrix(
       absentCount++
     } else {
       const total = scores.reduce((sum, s) => sum.add(s), new Decimal(0)).toNumber()
-      validStudents.push({
-        maSv: st.student.maSv,
-        scores,
-        totalScore: total
-      })
+      validStudents.push({ maSv: entry.maSv, scores, totalScore: total })
     }
   }
 
@@ -105,7 +110,7 @@ export function extractValidStudentMatrix(
 }
 
 /**
- * Tính phương sai mẫu (chia cho N - 1) theo công thức (*) trong QĐ450
+ * Tính phương sai mẫu (chia cho N - 1) theo công thức (*) trong QĐ450.
  */
 export function sampleVariance(values: number[]): number {
   const n = values.length
@@ -121,7 +126,7 @@ export function sampleVariance(values: number[]): number {
 }
 
 /**
- * Tính hệ số Cronbach alpha trực tiếp từ số câu hỏi, tổng phương sai câu và phương sai tổng
+ * Tính hệ số Cronbach alpha trực tiếp từ số câu hỏi, tổng phương sai câu và phương sai tổng.
  * Đúng theo công thức (*) trong QĐ450 Điều 5.3:
  * alpha = (n / (n - 1)) * (1 - sum(sigma_i^2) / sigma_c^2)
  */
@@ -138,7 +143,7 @@ export function calculateCronbachAlphaFromVariances(
 }
 
 /**
- * Tính toán hệ số Cronbach's alpha từ ma trận điểm
+ * Tính toán hệ số Cronbach's alpha từ ma trận điểm.
  * matrix: m sinh viên x n câu hỏi
  */
 export function calculateCronbachAlpha(matrix: number[][]): {
@@ -162,7 +167,6 @@ export function calculateCronbachAlpha(matrix: number[][]): {
     }
   }
 
-  // Phương sai từng câu
   const itemVariances: number[] = []
   let sumItemVariancesDec = new Decimal(0)
 
@@ -173,7 +177,6 @@ export function calculateCronbachAlpha(matrix: number[][]): {
     sumItemVariancesDec = sumItemVariancesDec.add(v)
   }
 
-  // Phương sai tổng điểm toàn bài của từng SV
   const totalScores = matrix.map((row) =>
     row.reduce((acc, score) => acc.add(score), new Decimal(0)).toNumber()
   )
@@ -188,7 +191,6 @@ export function calculateCronbachAlpha(matrix: number[][]): {
     }
   }
 
-  // alpha = (n / (n - 1)) * (1 - sum(sigma_i^2) / sigma_c^2)
   const nDec = new Decimal(n)
   const factor = nDec.div(nDec.sub(1))
   const varianceRatio = sumItemVariancesDec.div(totalVariance)
@@ -203,73 +205,78 @@ export function calculateCronbachAlpha(matrix: number[][]): {
 }
 
 /**
- * Tính toàn bộ chỉ số psychometrics cho mọi đợt thi trong Config.
+ * Tính toàn bộ chỉ số psychometrics cho mọi đề thi trong Course.
  *
  * Quy tắc (QĐ450 Điều 5): tính riêng cho từng đợt (GK, CK) và từng mã đề,
  * KHÔNG gộp các đợt với nhau. Bỏ qua nhóm CC (chuyên cần/thái độ).
  */
 export function calculateAllExamPsychometrics(
-  config: CourseConfig,
-  students: RawStudentRow[]
+  course: Course,
+  students: Student[],
+  records: StudentCourseScoreRecord[]
 ): ExamPsychometrics[] {
-  const groupNhom = new Map<string, string>()
-  for (const p of config.keHoachDanhGia) {
-    groupNhom.set(p.maDauDiem, p.nhom)
-  }
-
-  const groups = new Map<string, QuestionColumn[]>()
-  for (const q of config.cauHoi) {
-    const maDe = q.maDe ?? 'ALL'
-    const key = `${q.maDauDiem}|${maDe}`
-    const list = groups.get(key) ?? []
-    list.push(q)
-    groups.set(key, list)
-  }
-
+  const maSvById = new Map(students.map((s) => [s.id, s.maSv]))
+  const recordsOfCourse = records.filter(
+    (record) => !record.hocPhanId || record.hocPhanId === course.id
+  )
   const results: ExamPsychometrics[] = []
-  for (const [key, questions] of groups.entries()) {
-    const [maDauDiem, maDe] = key.split('|')
-    const nhom = groupNhom.get(maDauDiem)
-    if (nhom === 'CC') continue
 
-    const studentsOfExam =
-      maDe === 'ALL'
-        ? students
-        : students.filter(
-            (st) =>
-              (st.scores.maDe ?? 'ALL') === maDe ||
-              st.scores.maDe === undefined ||
-              st.scores.maDe === 'ALL'
-          )
+  for (const dot of course.dotDanhGia) {
+    if (dot.nhom === 'CC') continue
+    if (dot.cachNhapDiem !== 'QUESTION_SCORE') continue
 
-    results.push(
-      calculateExamPsychometrics(
-        maDauDiem,
-        maDe,
-        questions,
-        studentsOfExam,
-        config.quyTac.ty_le_nhom_27,
-        config.quyTac.nguong_co_mau_n
+    for (const variant of dot.maDeList) {
+      if (variant.cauHoi.length === 0) continue
+
+      const entries: QuestionScoreEntry[] = []
+      for (const record of recordsOfCourse) {
+        const entry = record.diemTheoDotDanhGia.find((item) => item.dotDanhGiaId === dot.id)
+        if (!entry || entry.cachNhapDiem !== 'QUESTION_SCORE') continue
+        const deId = entry.deId
+        const matches =
+          deId === 'ALL' ||
+          deId === variant.id ||
+          deId === variant.maDe ||
+          deId === undefined ||
+          deId === ''
+        if (!matches) continue
+
+        entries.push({
+          maSv: maSvById.get(record.sinhVienId) ?? record.sinhVienId,
+          deId,
+          diemTheoCau: entry.diemTheoCau
+        })
+      }
+
+      results.push(
+        calculateExamPsychometrics(
+          dot.id,
+          variant.maDe,
+          variant.cauHoi,
+          entries,
+          course.quyTac.tyLeNhom27,
+          course.quyTac.nguongCoMauN
+        )
       )
-    )
+    }
   }
 
   return results
 }
 
 /**
- * Tính toàn bộ chỉ số psychometrics cho một bài thi (một đợt, một mã đề)
+ * Tính toàn bộ chỉ số psychometrics cho một bài thi (một đợt, một mã đề).
  */
 export function calculateExamPsychometrics(
   maDauDiem: string,
   maDe: string,
-  questions: QuestionColumn[],
-  students: RawStudentRow[],
+  questions: ExamQuestion[],
+  entries: QuestionScoreEntry[],
   tyLeNhom27 = 0.27,
   nguongCoMauN = 30
 ): ExamPsychometrics {
   const aggQuestions = aggregateQuestions(questions)
-  const { validStudents } = extractValidStudentMatrix(students, aggQuestions)
+  const { validStudents } = extractValidStudentMatrix(entries, aggQuestions)
   const m = validStudents.length
   const n = aggQuestions.length
 
@@ -290,13 +297,10 @@ export function calculateExamPsychometrics(
 
   const matrix = validStudents.map((st) => st.scores)
 
-  // 1. Tính Cronbach's alpha cả đề
   const overallAlphaResult = calculateCronbachAlpha(matrix)
   const alphaRounded = roundHalfUp(overallAlphaResult.alpha, 2)
   const mucDoTinCay = classifyReliability(overallAlphaResult.alpha)
 
-  // 2. Phân nhóm 27% trên và 27% dưới
-  // Sắp xếp ổn định: tổng điểm giảm dần, nếu bằng điểm thì theo mã sinh viên
   const sortedStudents = [...validStudents].sort((a, b) => {
     if (b.totalScore !== a.totalScore) {
       return b.totalScore - a.totalScore
@@ -304,12 +308,10 @@ export function calculateExamPsychometrics(
     return a.maSv.localeCompare(b.maSv)
   })
 
-  // g = round(27% * m)
   const g = Math.max(1, roundHalfUp(new Decimal(m).mul(tyLeNhom27).toNumber(), 0))
   const topGroup = sortedStudents.slice(0, g)
   const bottomGroup = sortedStudents.slice(m - g)
 
-  // 3. Tính độ khó p, độ phân biệt d và alpha nếu bỏ câu cho từng câu
   const items: ItemPsychometrics[] = []
 
   for (let j = 0; j < n; j++) {
@@ -317,19 +319,16 @@ export function calculateExamPsychometrics(
     const maxScore = q.diemToiDa
     const maxDec = new Decimal(maxScore)
 
-    // Điểm trung bình câu j
     const colScores = validStudents.map((st) => st.scores[j])
     const meanCol = colScores
       .reduce((acc, s) => acc.add(s), new Decimal(0))
       .div(m)
       .toNumber()
 
-    // Độ khó p = mean / M
     const p = maxScore > 0 ? new Decimal(meanCol).div(maxDec).toNumber() : 0
     const pRounded = roundHalfUp(p, 2)
     const mucDoKho = classifyDifficulty(p)
 
-    // Độ phân biệt d = (mean_top - mean_bottom) / M
     const topColScores = topGroup.map((st) => st.scores[j])
     const bottomColScores = bottomGroup.map((st) => st.scores[j])
 
@@ -340,7 +339,6 @@ export function calculateExamPsychometrics(
     const dRounded = roundHalfUp(d, 2)
     const mucDoPhanBiet = classifyDiscrimination(d)
 
-    // Cronbach's alpha nếu bỏ câu j (leave-one-out)
     let alphaIfDropped = 0
     if (n > 1) {
       const reducedMatrix = validStudents.map((st) => st.scores.filter((_, idx) => idx !== j))
@@ -348,7 +346,6 @@ export function calculateExamPsychometrics(
       alphaIfDropped = roundHalfUp(reducedResult.alpha, 2)
     }
 
-    // Cảnh báo nếu d < 0 hoặc p bất thường
     const warnings: string[] = []
     if (d < 0) {
       warnings.push('Độ phân biệt d < 0: Câu hỏi có vấn đề, nên loại bỏ')
@@ -372,7 +369,6 @@ export function calculateExamPsychometrics(
     })
   }
 
-  // Cảnh báo cỡ mẫu nhỏ N < 30 hoặc g < 5
   let canhBaoCoMauN: string | undefined
   if (n <= 1) {
     canhBaoCoMauN =

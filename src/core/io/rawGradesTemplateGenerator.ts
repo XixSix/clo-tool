@@ -1,7 +1,8 @@
 /** Sinh Template_DiemTho.xlsx. */
 
 import ExcelJS from 'exceljs'
-import type { CourseConfig, RawStudentRow } from '../types'
+import type { Course, RawStudentRow } from '../types'
+import { scoreColumns, maxScoreByColumn } from '../utils/courseModel'
 import { setWidths, styleCell, styleHeaderRow, styleTitle, BORDER_THIN } from '../exporter/style'
 
 const INPUT_FILL = 'FFFEF9C3'
@@ -17,7 +18,7 @@ export interface RawTemplateOptions {
 }
 
 export function buildRawGradesWorkbook(
-  config: CourseConfig,
+  course: Course,
   options: RawTemplateOptions = {}
 ): ExcelJS.Workbook {
   const wb = new ExcelJS.Workbook()
@@ -27,13 +28,10 @@ export function buildRawGradesWorkbook(
   const ws = wb.addWorksheet('NHAP_LIEU')
   const sessions =
     options.sessions ?? Array.from({ length: 12 }, (_, i) => ({ label: `Buổi ${i + 1}` }))
-  const scoreColumns = Array.from(new Set(config.cauHoi.map((q) => q.maCotDiem)))
-  const maxScoreByColumn = new Map<string, number>()
-  for (const q of config.cauHoi) {
-    if (!maxScoreByColumn.has(q.maCotDiem)) maxScoreByColumn.set(q.maCotDiem, q.diemToiDa)
-  }
+  const columns = scoreColumns(course)
+  const maxScoreByCol = maxScoreByColumn(course)
 
-  const colCount = 5 + sessions.length + scoreColumns.length + 1
+  const colCount = 5 + sessions.length + columns.length + 1
   setWidths(ws, [
     6,
     14,
@@ -41,7 +39,7 @@ export function buildRawGradesWorkbook(
     12,
     13,
     ...Array(sessions.length).fill(7),
-    ...scoreColumns.map(() => 13),
+    ...columns.map(() => 13),
     20
   ])
 
@@ -53,8 +51,8 @@ export function buildRawGradesWorkbook(
   // Thông tin lớp
   const metaRow = 2
   const metaPairs: [string, string][] = [
-    ['Học phần', config.courseInfo.tenHp],
-    ['Mã HP', config.courseInfo.maHp],
+    ['Học phần', course.tenHp],
+    ['Mã HP', course.maHp],
     ['Lớp', options.lop ?? ''],
     ['Giảng viên', options.giangVien ?? ''],
     ['Học kỳ', options.hocKy ?? ''],
@@ -79,7 +77,7 @@ export function buildRawGradesWorkbook(
     'Tên',
     'Ngày sinh',
     ...sessions.map((s) => s.label),
-    ...scoreColumns,
+    ...columns,
     'Ghi chú'
   ]
   headers.forEach((h, idx) => {
@@ -95,8 +93,8 @@ export function buildRawGradesWorkbook(
     ws.getCell(maxRow, 5 + 1 + idx).value = ''
   })
   const scoreStart = 5 + sessions.length
-  scoreColumns.forEach((maCot, idx) => {
-    ws.getCell(maxRow, scoreStart + idx + 1).value = maxScoreByColumn.get(maCot) ?? ''
+  columns.forEach((maCot, idx) => {
+    ws.getCell(maxRow, scoreStart + idx + 1).value = maxScoreByCol.get(maCot) ?? ''
     styleCell(ws.getCell(maxRow, scoreStart + idx + 1), { bold: true, align: 'center' })
   })
   for (let c = 1; c <= colCount; c++) ws.getRow(maxRow).getCell(c).border = BORDER_THIN
@@ -120,7 +118,7 @@ export function buildRawGradesWorkbook(
     sessions.forEach((s, sIdx) => {
       row.getCell(6 + sIdx).value = symbols[s.label] ?? ''
     })
-    scoreColumns.forEach((maCot, cIdx) => {
+    columns.forEach((maCot, cIdx) => {
       const value = st.scores.diemCacCot[maCot]
       row.getCell(scoreStart + cIdx + 1).value = value === null || value === undefined ? '' : value
       row.getCell(scoreStart + cIdx + 1).fill = {

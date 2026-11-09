@@ -2,7 +2,7 @@ import { app, dialog, ipcMain, type BrowserWindow } from 'electron'
 import { promises as fs } from 'node:fs'
 import * as path from 'node:path'
 import type { ConfigSummaryDto, StoredCourseConfig } from '../../shared/ipc'
-import type { CourseConfig } from '@core/types/course'
+import type { Course } from '@core/types/course'
 import { writeRawGradesTemplate } from '@core/io/templateGenerator'
 import { hasErrors, toIssueDto } from './common'
 import { loadConfig } from './loaders'
@@ -33,27 +33,27 @@ export function registerConfigHandlers(getWindow?: () => BrowserWindow | null): 
       }
     }
 
-    const config = loaded.config
+    const course = loaded.config
     return {
       ok: true,
       filePath: configPath,
-      courseName: config.courseInfo.tenHp,
-      maHp: config.courseInfo.maHp,
-      soTinChi: config.courseInfo.soTinChi,
-      hinhThucThi: config.courseInfo.hinhThucThi,
-      cloList: config.cloList.map((clo) => ({
+      courseName: course.tenHp,
+      maHp: course.maHp,
+      soTinChi: course.soTinChi,
+      hinhThucThi: course.hinhThucThi,
+      cloList: course.cloList.map((clo) => ({
         code: clo.maClo,
         content: clo.noiDung,
         weight: clo.trongSoClo ?? 1
       })),
-      planCount: config.keHoachDanhGia.length,
-      totalWeight: config.keHoachDanhGia.reduce((sum, plan) => sum + plan.trongSoPhanTram, 0),
-      ploCount: new Set(config.maTranPlo.map((matrix) => matrix.plo)).size,
+      planCount: course.dotDanhGia.length,
+      totalWeight: course.dotDanhGia.reduce((sum, dot) => sum + dot.trongSoPhanTram, 0),
+      ploCount: course.ploList.length,
       rules: {
-        nguongDatClo: config.quyTac.nguong_dat_clo,
-        nguongDatPlo: config.quyTac.nguong_dat_plo,
-        nguongDatHp: config.quyTac.nguong_dat_hp,
-        hpMethod: config.quyTac.hp_method
+        nguongDatClo: course.quyTac.nguongDatClo,
+        nguongDatPlo: course.quyTac.nguongDatPlo,
+        nguongDatHp: course.quyTac.nguongDatHp,
+        hpMethod: course.quyTac.phuongThucTinhHp
       },
       issues: loaded.issues.map(toIssueDto),
       hasErrors: hasErrors(loaded.issues)
@@ -86,13 +86,12 @@ export function registerConfigHandlers(getWindow?: () => BrowserWindow | null): 
     'config:export-template',
     async (
       _event,
-      config: CourseConfig,
+      course: Course,
       defaultFileName?: string
     ): Promise<{ ok: boolean; path?: string; error?: string }> => {
       try {
         const win = getWindow ? getWindow() : null
-        const defaultName =
-          defaultFileName || `Template_DiemTho_${config.courseInfo.maHp || 'mon'}.xlsx`
+        const defaultName = defaultFileName || `Template_DiemTho_${course.maHp || 'mon'}.xlsx`
         const options: Electron.SaveDialogOptions = {
           title: 'Lưu file Template điểm thô',
           defaultPath: defaultName,
@@ -106,7 +105,7 @@ export function registerConfigHandlers(getWindow?: () => BrowserWindow | null): 
           return { ok: false }
         }
 
-        await writeRawGradesTemplate(result.filePath, config)
+        await writeRawGradesTemplate(result.filePath, course)
         return { ok: true, path: result.filePath }
       } catch (err) {
         return {

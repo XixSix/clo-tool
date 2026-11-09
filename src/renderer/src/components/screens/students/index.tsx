@@ -20,13 +20,13 @@ import {
   buildStudentCsvRows,
   studentCsvFileName
 } from '@renderer/components/screens/students/export-csv'
-import type { ProcessedStudentResult } from '@core/types'
+import type { ProcessedStudentResultView } from '@renderer/lib/result-view'
 
 export function SinhVien({ onScreen }: { onScreen: (s: ScreenId) => void }): React.ReactElement {
   const { active } = useWorkspace()
   const latest = latestDetailedRun(active)
   const [runId, setRunId] = useState<string>(latest?.runId ?? '')
-  const [selected, setSelected] = useState<ProcessedStudentResult | null>(null)
+  const [selected, setSelected] = useState<ProcessedStudentResultView | null>(null)
   const { snapshot, loading, error } = useRunSnapshot(runId || undefined)
   const { filter, setFilter, query, setQuery, rows, counts, visible } = useStudentFilters(snapshot)
 

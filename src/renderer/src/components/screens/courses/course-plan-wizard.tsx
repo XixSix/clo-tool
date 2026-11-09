@@ -33,8 +33,9 @@ import {
   CardContent
 } from '@renderer/components/ui/card'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@renderer/components/ui/tabs'
-import { AlertCircle, CheckCircle, Plus, Trash2 } from 'lucide-react'
+import { AlertCircle, CheckCircle, Plus, Sparkles, Trash2 } from 'lucide-react'
 import { cn } from 'cn'
+import { roundHalfUp } from '@core/rules'
 import type { EditorConfig, EditorPlan, EditorQuestion } from './course-editor-types'
 import { ASSESSMENT_GROUPS, QUESTION_TYPES } from './course-editor-types'
 
@@ -50,6 +51,7 @@ interface Dot {
   nhom: 'CC' | 'GK' | 'CK'
   thanhPhan: string
   hinhThuc: string
+  cachNhapDiem: 'QUESTION_SCORE' | 'DIRECT_CLO_SCORE' | 'ATTENDANCE'
   rows: EditorPlan[]
   questions: EditorQuestion[]
 }
@@ -57,7 +59,9 @@ interface Dot {
 function groupDots(config: EditorConfig): Dot[] {
   const byCode = new Map<string, Dot>()
   for (const row of config.keHoachDanhGia) {
-    // Bỏ qua dòng placeholder (dùng để có maDauDiem nhưng chưa chọn CLO)
+    const defaultMode = row.nhom === 'CC' ? 'ATTENDANCE' : 'QUESTION_SCORE'
+    const cachNhapDiem = row.cachNhapDiem ?? defaultMode
+
     if (row.clo === '__PLACEHOLDER__') {
       if (!byCode.has(row.maDauDiem)) {
         byCode.set(row.maDauDiem, {
@@ -65,6 +69,7 @@ function groupDots(config: EditorConfig): Dot[] {
           nhom: row.nhom,
           thanhPhan: row.thanhPhan,
           hinhThuc: row.hinhThuc || '',
+          cachNhapDiem,
           rows: [],
           questions: []
         })
@@ -78,6 +83,7 @@ function groupDots(config: EditorConfig): Dot[] {
         nhom: row.nhom,
         thanhPhan: row.thanhPhan,
         hinhThuc: row.hinhThuc || '',
+        cachNhapDiem,
         rows: [],
         questions: []
       }
@@ -118,7 +124,7 @@ export function PlanWizard({ config, setConfig, cloCodes }: PlanWizardProps): Re
     setConfig((c) => {
       const used = new Set(c.keHoachDanhGia.map((p) => p.maDauDiem).filter(Boolean))
       const maDauDiem = nextDauDiemCode(used, nhom)
-      // Tạo một entry tạm để có maDauDiem trong groupDots; sẽ bị xóa khi xóa đợt
+      const cachNhapDiem = nhom === 'CC' ? 'ATTENDANCE' : 'QUESTION_SCORE'
       return {
         ...c,
         keHoachDanhGia: [
@@ -130,7 +136,8 @@ export function PlanWizard({ config, setConfig, cloCodes }: PlanWizardProps): Re
             maDauDiem,
             clo: '__PLACEHOLDER__',
             trongSoPhanTram: 0,
-            hinhThuc: ''
+            hinhThuc: '',
+            cachNhapDiem
           }
         ]
       }
@@ -146,8 +153,11 @@ export function PlanWizard({ config, setConfig, cloCodes }: PlanWizardProps): Re
     }))
   }
 
-  /** Sửa thông tin chung của đợt (nhóm/tên/hình thức) áp lên mọi dòng kế hoạch của đợt. */
-  const patchDot = (dot: Dot, patch: Partial<Pick<EditorPlan, 'nhom' | 'thanhPhan' | 'hinhThuc'>>): void => {
+  /** Sửa thông tin chung của đợt áp lên mọi dòng kế hoạch của đợt. */
+  const patchDot = (
+    dot: Dot,
+    patch: Partial<Pick<EditorPlan, 'nhom' | 'thanhPhan' | 'hinhThuc' | 'cachNhapDiem'>>
+  ): void => {
     setConfig((c) => ({
       ...c,
       keHoachDanhGia: c.keHoachDanhGia.map((p) =>
@@ -171,7 +181,8 @@ export function PlanWizard({ config, setConfig, cloCodes }: PlanWizardProps): Re
           maDauDiem: dot.maDauDiem,
           clo,
           trongSoPhanTram: 0,
-          hinhThuc: dot.hinhThuc
+          hinhThuc: dot.hinhThuc,
+          cachNhapDiem: dot.cachNhapDiem
         }
       ]
     }))
@@ -208,25 +219,60 @@ export function PlanWizard({ config, setConfig, cloCodes }: PlanWizardProps): Re
     })
   }
 
-  /** Đặt trọng số cho đợt và chia đều (số nguyên) cho các CLO được đo. */
+  /** Đặt trọng số cho đợt: phân bổ theo điểm câu hỏi nếu có, hoặc chia đều (cho phép số thập phân). */
   const setDotTotalWeight = (dot: Dot, total: number): void => {
     const n = dot.rows.length
     if (n === 0 || !Number.isFinite(total) || total < 0) return
-    const whole = Math.floor(total)
-    const base = Math.floor(whole / n)
-    const remainder = whole - base * n
+
+    // Tính điểm câu hỏi theo từng CLO nếu có câu hỏi
+    const questions = dot.questions
+    const cloScores: Record<string, number> = {}
+    let totalQScore = 0
+    for (const q of questions) {
+      if (q.clo && q.diemToiDa > 0) {
+        cloScores[q.clo] = (cloScores[q.clo] || 0) + q.diemToiDa
+        totalQScore += q.diemToiDa
+      }
+    }
+
     setConfig((c) => {
-      let index = 0
+      const dotRows = c.keHoachDanhGia.filter((p) => p.maDauDiem === dot.maDauDiem)
+      let allocated = 0
+
       return {
         ...c,
         keHoachDanhGia: c.keHoachDanhGia.map((p) => {
           if (p.maDauDiem !== dot.maDauDiem) return p
-          const extra = index < remainder ? 1 : 0
-          index++
-          return { ...p, trongSoPhanTram: base + extra }
+          const rowIdx = dotRows.findIndex((r) => r._id === p._id)
+          const isLast = rowIdx === dotRows.length - 1
+
+          let w = 0
+          if (totalQScore > 0) {
+            if (isLast) {
+              w = roundHalfUp(total - allocated, 2)
+            } else {
+              const qScore = cloScores[p.clo] || 0
+              w = roundHalfUp((qScore / totalQScore) * total, 2)
+              allocated += w
+            }
+          } else {
+            if (isLast) {
+              w = roundHalfUp(total - allocated, 2)
+            } else {
+              w = roundHalfUp(total / dotRows.length, 2)
+              allocated += w
+            }
+          }
+          return { ...p, trongSoPhanTram: w }
         })
       }
     })
+  }
+
+  /** Đồng bộ phân bổ trọng số CLO theo điểm tối đa câu hỏi của đợt. */
+  const syncWeightsFromQuestions = (dot: Dot): void => {
+    const totalWeight = dot.rows.reduce((sum, r) => sum + (r.trongSoPhanTram || 0), 0)
+    setDotTotalWeight(dot, totalWeight)
   }
 
   const patchCloWeight = (rowId: string, weight: number): void => {
@@ -248,8 +294,30 @@ export function PlanWizard({ config, setConfig, cloCodes }: PlanWizardProps): Re
         : `Câu ${existing.filter((q) => (q.maDe || 'ALL') === maDe).length + 1}`
       // CLO mặc định: lấy từ CLO đầu tiên được đo ở đợt này, không phải toàn bộ cloCodes
       const defaultClo = dot.rows[0]?.clo ?? c.cloList[0]?.maClo ?? ''
+
+      let nextPlan = c.keHoachDanhGia
+      if (
+        defaultClo &&
+        !nextPlan.some((p) => p.maDauDiem === dot.maDauDiem && p.clo === defaultClo)
+      ) {
+        nextPlan = [
+          ...nextPlan.filter((p) => !(p.maDauDiem === dot.maDauDiem && p.clo === '__PLACEHOLDER__')),
+          {
+            _id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`,
+            nhom: dot.nhom,
+            thanhPhan: dot.thanhPhan,
+            maDauDiem: dot.maDauDiem,
+            clo: defaultClo,
+            trongSoPhanTram: 0,
+            hinhThuc: dot.hinhThuc,
+            cachNhapDiem: dot.cachNhapDiem
+          }
+        ]
+      }
+
       return {
         ...c,
+        keHoachDanhGia: nextPlan,
         cauHoi: [
           ...c.cauHoi,
           {
@@ -268,10 +336,35 @@ export function PlanWizard({ config, setConfig, cloCodes }: PlanWizardProps): Re
   }
 
   const patchQuestion = (questionId: string, patch: Partial<EditorQuestion>): void => {
-    setConfig((c) => ({
-      ...c,
-      cauHoi: c.cauHoi.map((q) => (q._id === questionId ? { ...q, ...patch } : q))
-    }))
+    setConfig((c) => {
+      const targetQ = c.cauHoi.find((q) => q._id === questionId)
+      let nextPlan = c.keHoachDanhGia
+      if (targetQ && patch.clo && patch.clo !== targetQ.clo) {
+        const dotId = targetQ.maDauDiem
+        const hasCloInPlan = nextPlan.some((p) => p.maDauDiem === dotId && p.clo === patch.clo)
+        if (!hasCloInPlan) {
+          const dotPlan = nextPlan.find((p) => p.maDauDiem === dotId)
+          nextPlan = [
+            ...nextPlan.filter((p) => !(p.maDauDiem === dotId && p.clo === '__PLACEHOLDER__')),
+            {
+              _id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`,
+              nhom: dotPlan?.nhom ?? 'GK',
+              thanhPhan: dotPlan?.thanhPhan ?? '',
+              maDauDiem: dotId,
+              clo: patch.clo,
+              trongSoPhanTram: 0,
+              hinhThuc: dotPlan?.hinhThuc ?? '',
+              cachNhapDiem: dotPlan?.cachNhapDiem
+            }
+          ]
+        }
+      }
+      return {
+        ...c,
+        keHoachDanhGia: nextPlan,
+        cauHoi: c.cauHoi.map((q) => (q._id === questionId ? { ...q, ...patch } : q))
+      }
+    })
   }
 
   const deleteQuestion = (questionId: string): void => {
@@ -292,9 +385,7 @@ export function PlanWizard({ config, setConfig, cloCodes }: PlanWizardProps): Re
     }))
     setConfig((c) => ({
       ...c,
-      cauHoi: c.cauHoi.filter(
-        (q) => !(q.maDauDiem === maDauDiem && (q.maDe || 'ALL') === maDe)
-      )
+      cauHoi: c.cauHoi.filter((q) => !(q.maDauDiem === maDauDiem && (q.maDe || 'ALL') === maDe))
     }))
   }
 
@@ -357,8 +448,32 @@ export function PlanWizard({ config, setConfig, cloCodes }: PlanWizardProps): Re
                           placeholder="Hình thức (VD: Thi viết, Trắc nghiệm...)"
                           value={dot.hinhThuc}
                           onChange={(e) => patchDot(dot, { hinhThuc: e.target.value })}
-                          className="w-56 text-sm"
+                          className="w-48 text-sm"
                         />
+                        <Select
+                          value={dot.cachNhapDiem}
+                          onValueChange={(v) =>
+                            patchDot(dot, {
+                              cachNhapDiem: v as
+                                | 'QUESTION_SCORE'
+                                | 'DIRECT_CLO_SCORE'
+                                | 'ATTENDANCE'
+                            })
+                          }
+                        >
+                          <SelectTrigger className="w-48 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="QUESTION_SCORE">Theo câu hỏi đề thi</SelectItem>
+                            <SelectItem value="DIRECT_CLO_SCORE">
+                              Điểm trực tiếp (thang 10)
+                            </SelectItem>
+                            {dot.nhom === 'CC' && (
+                              <SelectItem value="ATTENDANCE">Điểm danh theo buổi</SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
                         {/* Mã đầu điểm do app sinh — chỉ đọc để đối chiếu file điểm thô */}
                         <span
                           title="Mã đầu điểm được sinh tự động"
@@ -376,25 +491,32 @@ export function PlanWizard({ config, setConfig, cloCodes }: PlanWizardProps): Re
                     {/* CLO được đo + trọng số */}
                     <div className="border-border/50 space-y-2 border-t pt-4">
                       <div className="flex flex-wrap items-center justify-between gap-3">
-                        <h4 className="text-sm font-medium">CLO được đo &amp; trọng số</h4>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-sm font-medium">CLO được đo &amp; trọng số</h4>
+                          {dot.questions.length > 0 && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => syncWeightsFromQuestions(dot)}
+                              className="h-7 text-xs"
+                            >
+                              <Sparkles className="mr-1 size-3.5" /> Phân bổ theo điểm câu hỏi
+                            </Button>
+                          )}
+                        </div>
                         <div className="flex shrink-0 items-center gap-2">
-                          <Label className="text-muted-foreground text-xs">
-                            Trọng số đợt:
-                          </Label>
+                          <Label className="text-muted-foreground text-xs">Trọng số đợt:</Label>
                           <Input
                             type="number"
                             min="0"
                             value={dotWeight || ''}
                             placeholder="VD: 30"
-                            onChange={(e) =>
-                              setDotTotalWeight(dot, Number(e.target.value) || 0)
-                            }
+                            onChange={(e) => setDotTotalWeight(dot, Number(e.target.value) || 0)}
                             onFocus={(e) => e.target.select()}
                             className="w-24 text-right font-mono text-sm"
                           />
-                          <span className="text-muted-foreground text-xs">%
-                            (chia đều cho các CLO)
-                          </span>
+                          <span className="text-muted-foreground text-xs">%</span>
                         </div>
                       </div>
                       {dot.rows.length === 0 ? (
@@ -403,73 +525,73 @@ export function PlanWizard({ config, setConfig, cloCodes }: PlanWizardProps): Re
                         </p>
                       ) : (
                         <div className="overflow-x-auto">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="w-12 text-center">STT</TableHead>
-                              <TableHead className="w-40">CLO</TableHead>
-                              <TableHead className="w-28 text-right">Trọng số %</TableHead>
-                              <TableHead className="w-16"></TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {dot.rows.map((row, idx) => (
-                              <TableRow key={row._id}>
-                                <TableCell className="text-muted-foreground text-center">
-                                  {idx + 1}
-                                </TableCell>
-                                <TableCell>
-                                  <Select
-                                    value={row.clo || undefined}
-                                    onValueChange={(v) =>
-                                      setConfig((c) => ({
-                                        ...c,
-                                        keHoachDanhGia: c.keHoachDanhGia.map((p) =>
-                                          p._id === row._id ? { ...p, clo: v } : p
-                                        )
-                                      }))
-                                    }
-                                    disabled={cloCodes.length === 0}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue placeholder="Chọn CLO" />
-                                    </SelectTrigger>
-                                     <SelectContent>
-                                       {cloCodes.map((code) => (
-                                        <SelectItem key={code} value={code}>
-                                          {code}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  <Input
-                                    type="number"
-                                    min="0"
-                                    value={row.trongSoPhanTram || ''}
-                                    onChange={(e) => {
-                                      const val = e.target.value
-                                      patchCloWeight(row._id, val === '' ? 0 : Number(val))
-                                    }}
-                                    onFocus={(e) => e.target.select()}
-                                    className="ml-auto w-24 text-right font-mono text-sm"
-                                  />
-                                </TableCell>
-                                <TableCell className="text-center">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => removeCloFromDot(dot, row.clo)}
-                                  >
-                                    <Trash2 className="text-destructive size-4" />
-                                  </Button>
-                                </TableCell>
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="w-12 text-center">STT</TableHead>
+                                <TableHead className="w-40">CLO</TableHead>
+                                <TableHead className="w-28 text-right">Trọng số %</TableHead>
+                                <TableHead className="w-16"></TableHead>
                               </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
+                            </TableHeader>
+                            <TableBody>
+                              {dot.rows.map((row, idx) => (
+                                <TableRow key={row._id}>
+                                  <TableCell className="text-muted-foreground text-center">
+                                    {idx + 1}
+                                  </TableCell>
+                                  <TableCell>
+                                    <Select
+                                      value={row.clo || undefined}
+                                      onValueChange={(v) =>
+                                        setConfig((c) => ({
+                                          ...c,
+                                          keHoachDanhGia: c.keHoachDanhGia.map((p) =>
+                                            p._id === row._id ? { ...p, clo: v } : p
+                                          )
+                                        }))
+                                      }
+                                      disabled={cloCodes.length === 0}
+                                    >
+                                      <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Chọn CLO" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {cloCodes.map((code) => (
+                                          <SelectItem key={code} value={code}>
+                                            {code}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    <Input
+                                      type="number"
+                                      min="0"
+                                      value={row.trongSoPhanTram || ''}
+                                      onChange={(e) => {
+                                        const val = e.target.value
+                                        patchCloWeight(row._id, val === '' ? 0 : Number(val))
+                                      }}
+                                      onFocus={(e) => e.target.select()}
+                                      className="ml-auto w-24 text-right font-mono text-sm"
+                                    />
+                                  </TableCell>
+                                  <TableCell className="text-center">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => removeCloFromDot(dot, row.clo)}
+                                    >
+                                      <Trash2 className="text-destructive size-4" />
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
                       )}
                       {cloCodes.length > 0 && (
                         <Select
@@ -497,7 +619,27 @@ export function PlanWizard({ config, setConfig, cloCodes }: PlanWizardProps): Re
                     </div>
 
                     {/* Câu hỏi / cột điểm của đợt */}
-                    {dot.nhom === 'CC' ? (
+                    {dot.cachNhapDiem === 'DIRECT_CLO_SCORE' ? (
+                      <div className="border-border/50 bg-muted/30 rounded border p-3 text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground">
+                          Điểm trực tiếp (thang 10):
+                        </span>{' '}
+                        File Excel chỉ cần 1 cột điểm có mã{' '}
+                        <code className="font-mono font-semibold text-foreground">
+                          {dot.maDauDiem}
+                        </code>
+                        . Điểm cột này tự động gán cho tất cả CLO đã chọn ở trên (
+                        {dot.rows.map((r) => r.clo).join(', ')}).
+                      </div>
+                    ) : dot.cachNhapDiem === 'ATTENDANCE' ? (
+                      <div className="border-border/50 bg-muted/30 rounded border p-3 text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground">
+                          Điểm danh theo buổi:
+                        </span>{' '}
+                        Điểm số được tính tự động từ các buổi điểm danh (ký hiệu P, V, M) trong file
+                        Excel.
+                      </div>
+                    ) : dot.nhom === 'CC' ? (
                       <CcColumns
                         dot={dot}
                         cloCodes={cloCodes}
@@ -601,7 +743,7 @@ function CcColumns(props: {
                     <Select
                       value={q.clo || undefined}
                       onValueChange={(v) => patchQuestion(q._id, { clo: v })}
-                       disabled={dotCloCodes.length === 0}
+                      disabled={dotCloCodes.length === 0}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Chọn CLO" />
@@ -662,6 +804,7 @@ function ExamQuestions(props: {
   const {
     dot,
     examCodes,
+    cloCodes,
     addQuestion,
     patchQuestion,
     deleteQuestion,
@@ -669,9 +812,6 @@ function ExamQuestions(props: {
     deleteExamCode
   } = props
   const [newExamCode, setNewExamCode] = React.useState('')
-
-  // CLO được đo ở đợt này (chỉ cho dropdown câu hỏi)
-  const dotCloCodes = dot.rows.map((r) => r.clo)
 
   const handleAddExamCode = (): void => {
     const code = newExamCode.trim().toUpperCase()
@@ -778,13 +918,13 @@ function ExamQuestions(props: {
                             <Select
                               value={q.clo || undefined}
                               onValueChange={(v) => patchQuestion(q._id, { clo: v })}
-                              disabled={dotCloCodes.length === 0}
+                              disabled={cloCodes.length === 0}
                             >
                               <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Chọn CLO" />
                               </SelectTrigger>
                               <SelectContent>
-                                {dotCloCodes.map((code) => (
+                                {cloCodes.map((code) => (
                                   <SelectItem key={code} value={code}>
                                     {code}
                                   </SelectItem>
@@ -809,7 +949,9 @@ function ExamQuestions(props: {
                           <TableCell>
                             <Select
                               value={q.loai || 'TL'}
-                              onValueChange={(v) => patchQuestion(q._id, { loai: v as 'TL' | 'TN' })}
+                              onValueChange={(v) =>
+                                patchQuestion(q._id, { loai: v as 'TL' | 'TN' })
+                              }
                             >
                               <SelectTrigger className="w-full">
                                 <SelectValue />
@@ -824,7 +966,11 @@ function ExamQuestions(props: {
                             </Select>
                           </TableCell>
                           <TableCell className="text-center">
-                            <Button variant="ghost" size="icon" onClick={() => deleteQuestion(q._id)}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => deleteQuestion(q._id)}
+                            >
                               <Trash2 className="text-destructive size-4" />
                             </Button>
                           </TableCell>

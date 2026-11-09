@@ -184,9 +184,9 @@ export function CourseDetail({
             session={session}
             onSave={(config, meta) => {
               patchSession(session.id, {
-                maHp: config.courseInfo.maHp,
-                courseName: config.courseInfo.tenHp,
-                soTinChi: config.courseInfo.soTinChi,
+                maHp: config.maHp,
+                courseName: config.tenHp,
+                soTinChi: config.soTinChi,
                 lop: meta.lop?.trim() || undefined,
                 giangVien: meta.giangVien?.trim() || undefined,
                 cloCount: config.cloList.length

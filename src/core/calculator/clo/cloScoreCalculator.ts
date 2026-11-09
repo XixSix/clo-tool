@@ -1,29 +1,27 @@
 /**
- * Module tính điểm CLO cả học phần, CLO từng đợt (quá trình/cuối kỳ), TBC CLO và Điểm nhóm (C_cc, C_gk, C_ck)
+ * Module tính điểm CLO toàn học phần, CLO theo giai đoạn (quá trình/cuối kỳ),
+ * điểm nhóm (CC/GK/CK) và TBC CLO.
  * Quy chuẩn: QĐ 450/QĐ-ĐHTĐ
  */
 
 import Decimal from 'decimal.js'
-import { numberToWordsVi } from '../../utils/numberToWordsVi'
 import { roundStep } from '../../rules'
-import type {
-  AssessmentGroup,
-  CellScoreDetail,
-  CLODefinition,
-  CourseConfig,
-  EvaluationPlanItem,
-  GroupScoreDetail
-} from '../../types'
+import { numberToWordsVi } from '../../utils/numberToWordsVi'
+import { componentsByGroup } from '../../utils/courseModel'
+import type { AssessmentGroup, AssessmentResult, CLOResult, Course } from '../../types'
 
-export interface CloCalculationResult {
-  cloScores: Record<string, number>
-  processCloScores: Record<string, number>
-  finalCloScores: Record<string, number>
-}
+export type ScorePhase = 'process' | 'final'
 
 export interface TbcCloResult {
   tbcClo: number
   tbcCloInWords: string
+}
+
+export interface GroupScoreDetail {
+  nhom: AssessmentGroup
+  score: number
+  cloCodes: string[]
+  cloScores: Record<string, number>
 }
 
 export interface GroupScoreResult {
@@ -31,168 +29,131 @@ export interface GroupScoreResult {
   tbQuaTrinh?: number
 }
 
+function round(value: number, course: Course): number {
+  return roundStep(value, course.quyTac.cheDoLamTron, 1)
+}
+
+/** Trọng số của một ô (đợt, CLO) trong toàn học phần. */
+function cellWeight(dotWeightPercent: number, tyLePhanBo: number): Decimal {
+  return new Decimal(dotWeightPercent).mul(tyLePhanBo).div(100)
+}
+
 /**
- * Tính điểm CLO cả học phần, quá trình và cuối kỳ
+ * Trung bình có trọng số điểm CLO của một tập đợt đánh giá.
+ * CLO không có mặt trong tập đợt → không trả về khóa.
  */
-export function calculateCloScores(
-  config: CourseConfig,
-  cellScores: Record<string, CellScoreDetail>
-): CloCalculationResult {
-  const mode = config.quyTac.rounding_mode ?? 'chain'
-  const cloScores: Record<string, number> = {}
-  const processCloScores: Record<string, number> = {}
-  const finalCloScores: Record<string, number> = {}
+function weightedCloAcross(
+  course: Course,
+  dotResults: AssessmentResult[],
+  filterGroup?: AssessmentGroup[]
+): Record<string, number> {
+  const byDotId = new Map(dotResults.map((r) => [r.dotDanhGiaId, r]))
+  const result: Record<string, number> = {}
 
-  for (const clo of config.cloList) {
-    const cloCode = clo.maClo
+  for (const clo of course.cloList) {
+    let sum = new Decimal(0)
+    let totalWeight = new Decimal(0)
 
-    // 2.1 CLO cả học phần: tổng w(j,k) * s(j,k) / tổng w(j,k)
-    let weightedSumAll = new Decimal(0)
-    let totalWeightAll = new Decimal(0)
-
-    // 2.2 CLO quá trình (nhóm CC và GK)
-    let weightedSumProcess = new Decimal(0)
-    let totalWeightProcess = new Decimal(0)
-
-    // 2.3 CLO cuối kỳ (nhóm CK)
-    let weightedSumFinal = new Decimal(0)
-    let totalWeightFinal = new Decimal(0)
-
-    for (const p of config.keHoachDanhGia) {
-      if (p.clo !== cloCode) continue
-      const cellKey = `${p.maDauDiem}_${p.clo}`
-      const cell = cellScores[cellKey]
+    for (const dot of course.dotDanhGia) {
+      if (filterGroup && !filterGroup.includes(dot.nhom)) continue
+      const mapping = dot.cloList.find((m) => m.cloId === clo.id)
+      if (!mapping) continue
+      const dotResult = byDotId.get(dot.id)
+      if (!dotResult) continue
+      const cell = dotResult.clo.find((c) => c.cloId === clo.id)
       if (!cell) continue
 
-      const w = new Decimal(p.trongSoPhanTram)
-      const s = new Decimal(cell.score)
-
-      weightedSumAll = weightedSumAll.add(w.mul(s))
-      totalWeightAll = totalWeightAll.add(w)
-
-      if (p.nhom === 'CC' || p.nhom === 'GK') {
-        weightedSumProcess = weightedSumProcess.add(w.mul(s))
-        totalWeightProcess = totalWeightProcess.add(w)
-      } else if (p.nhom === 'CK') {
-        weightedSumFinal = weightedSumFinal.add(w.mul(s))
-        totalWeightFinal = totalWeightFinal.add(w)
-      }
+      const w = cellWeight(dot.trongSoPhanTram, mapping.tyLePhanBo)
+      sum = sum.add(w.mul(cell.diem))
+      totalWeight = totalWeight.add(w)
     }
 
-    if (totalWeightAll.gt(0)) {
-      const rawClo = weightedSumAll.div(totalWeightAll).toNumber()
-      cloScores[cloCode] = roundStep(rawClo, mode, 1)
-    } else {
-      cloScores[cloCode] = 0
-    }
-
-    if (totalWeightProcess.gt(0)) {
-      const rawProc = weightedSumProcess.div(totalWeightProcess).toNumber()
-      processCloScores[cloCode] = roundStep(rawProc, mode, 1)
-    }
-
-    if (totalWeightFinal.gt(0)) {
-      const rawFin = weightedSumFinal.div(totalWeightFinal).toNumber()
-      finalCloScores[cloCode] = roundStep(rawFin, mode, 1)
-    }
+    if (totalWeight.gt(0)) result[clo.id] = round(sum.div(totalWeight).toNumber(), course)
   }
 
-  return {
-    cloScores,
-    processCloScores,
-    finalCloScores
-  }
+  return result
 }
 
-/**
- * Tính điểm trung bình cộng CLO (TBC CLO) — trung bình cộng thuần các CLO
- * (Phụ lục 3: "Trung bình cộng các CLO"). KHÔNG gia quyền: `trongSoClo` chỉ
- * có nghĩa với học phần thực hành, không dùng ở đây.
- */
-export function calculateTbcClo(
-  cloList: CLODefinition[],
-  cloScores: Record<string, number>,
-  mode: 'chain' | 'final_only' = 'chain'
-): TbcCloResult {
-  let sumClo = new Decimal(0)
-  let countClo = 0
-
-  for (const clo of cloList) {
-    const score = cloScores[clo.maClo] ?? 0
-    sumClo = sumClo.add(score)
-    countClo++
-  }
-
-  const rawTbcClo = countClo > 0 ? sumClo.div(countClo).toNumber() : 0
-  const tbcClo = roundStep(rawTbcClo, mode, 1)
-  const tbcCloInWords = numberToWordsVi(tbcClo, 1, true)
-
-  return { tbcClo, tbcCloInWords }
+/** Điểm CLO toàn học phần (gom mọi đợt đánh giá). */
+export function calculateCloResults(course: Course, dotResults: AssessmentResult[]): CLOResult[] {
+  const scores = weightedCloAcross(course, dotResults)
+  return course.cloList.map((clo) => ({ cloId: clo.id, diem: scores[clo.id] ?? 0 }))
 }
 
-/**
- * Tính điểm các nhóm đánh giá C_cc, C_gk, C_ck và TB quá trình
- */
+/** Điểm CLO của giai đoạn Quá trình (CC + GK) hoặc Cuối kỳ (CK). */
+export function calculatePhaseCloScores(
+  course: Course,
+  dotResults: AssessmentResult[],
+  phase: ScorePhase
+): Record<string, number> {
+  return weightedCloAcross(course, dotResults, phase === 'process' ? ['CC', 'GK'] : ['CK'])
+}
+
+/** Điểm nhóm CC/GK/CK = trung bình cộng điểm các CLO có mặt trong nhóm. */
 export function calculateGroupScores(
-  keHoachDanhGia: EvaluationPlanItem[],
-  cellScores: Record<string, CellScoreDetail>,
-  mode: 'chain' | 'final_only' = 'chain'
+  course: Course,
+  dotResults: AssessmentResult[]
 ): GroupScoreResult {
   const groups: AssessmentGroup[] = ['CC', 'GK', 'CK']
-  const groupScores: Record<AssessmentGroup, GroupScoreDetail> = {
-    CC: { nhom: 'CC', score: 0, cloCodes: [], cloScores: {} },
-    GK: { nhom: 'GK', score: 0, cloCodes: [], cloScores: {} },
-    CK: { nhom: 'CK', score: 0, cloCodes: [], cloScores: {} }
-  }
+  const byDotId = new Map(dotResults.map((r) => [r.dotDanhGiaId, r]))
+  const groupScores = {} as Record<AssessmentGroup, GroupScoreDetail>
 
-  for (const grp of groups) {
-    const itemsInGroup = keHoachDanhGia.filter((p) => p.nhom === grp)
-    const cloSet = new Set(itemsInGroup.map((p) => p.clo))
-    const cloCodes = Array.from(cloSet)
+  for (const group of groups) {
+    const dots = componentsByGroup(course, [group])
+    const cloCodes = Array.from(new Set(dots.flatMap((dot) => dot.cloList.map((m) => m.cloId))))
+    const cloScores: Record<string, number> = {}
+    let sumGroup = new Decimal(0)
 
-    let sumGroupClo = new Decimal(0)
-    const groupCloMap: Record<string, number> = {}
-
-    for (const cloCode of cloCodes) {
-      const cellsOfCloInGroup = itemsInGroup.filter((p) => p.clo === cloCode)
-      let wSum = new Decimal(0)
-      let wTotal = new Decimal(0)
-
-      for (const p of cellsOfCloInGroup) {
-        const cellKey = `${p.maDauDiem}_${p.clo}`
-        const cell = cellScores[cellKey]
-        if (cell) {
-          const w = new Decimal(p.trongSoPhanTram)
-          wSum = wSum.add(w.mul(cell.score))
-          wTotal = wTotal.add(w)
-        }
+    for (const cloId of cloCodes) {
+      let sum = new Decimal(0)
+      let totalWeight = new Decimal(0)
+      for (const dot of dots) {
+        const mapping = dot.cloList.find((m) => m.cloId === cloId)
+        if (!mapping) continue
+        const cell = byDotId.get(dot.id)?.clo.find((c) => c.cloId === cloId)
+        if (!cell) continue
+        const w = cellWeight(dot.trongSoPhanTram, mapping.tyLePhanBo)
+        sum = sum.add(w.mul(cell.diem))
+        totalWeight = totalWeight.add(w)
       }
-
-      const cloScoreInGroup = wTotal.gt(0) ? roundStep(wSum.div(wTotal).toNumber(), mode, 1) : 0
-
-      groupCloMap[cloCode] = cloScoreInGroup
-      sumGroupClo = sumGroupClo.add(cloScoreInGroup)
+      const score = totalWeight.gt(0) ? round(sum.div(totalWeight).toNumber(), course) : 0
+      cloScores[cloId] = score
+      sumGroup = sumGroup.add(score)
     }
 
-    const meanGroup = cloCodes.length > 0 ? sumGroupClo.div(cloCodes.length).toNumber() : 0
-    const scoreGroup = roundStep(meanGroup, mode, 1)
-
-    groupScores[grp] = {
-      nhom: grp,
-      score: scoreGroup,
+    groupScores[group] = {
+      nhom: group,
+      score: cloCodes.length > 0 ? round(sumGroup.div(cloCodes.length).toNumber(), course) : 0,
       cloCodes,
-      cloScores: groupCloMap
+      cloScores
     }
   }
 
   let tbQuaTrinh: number | undefined
   if (groupScores.CC.score > 0 || groupScores.GK.score > 0) {
-    const sumProc = new Decimal(groupScores.CC.score).add(groupScores.GK.score)
-    tbQuaTrinh = roundStep(sumProc.div(2).toNumber(), mode, 1)
+    tbQuaTrinh = round(
+      new Decimal(groupScores.CC.score).add(groupScores.GK.score).div(2).toNumber(),
+      course
+    )
   }
 
+  return { groupScores, tbQuaTrinh }
+}
+
+/** TBC CLO = trung bình cộng thuần các CLO của học phần. */
+export function calculateTbcClo(course: Course, cloResults: CLOResult[]): TbcCloResult {
+  const byId = new Map(cloResults.map((c) => [c.cloId, c.diem]))
+  let sum = new Decimal(0)
+  let count = 0
+
+  for (const clo of course.cloList) {
+    sum = sum.add(byId.get(clo.id) ?? 0)
+    count++
+  }
+
+  const tbcClo = count > 0 ? round(sum.div(count).toNumber(), course) : 0
   return {
-    groupScores,
-    tbQuaTrinh
+    tbcClo,
+    tbcCloInWords: numberToWordsVi(tbcClo, 1, true)
   }
 }

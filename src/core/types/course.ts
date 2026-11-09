@@ -102,6 +102,10 @@ export interface Course {
   soTinChi: number
   hinhThucThi: string
   loaiHp: CourseType
+  /** Giảng viên phụ trách học phần. */
+  giangVien?: string
+  /** Năm học, ví dụ "2024-2025". */
+  namHoc?: string
   cloList: CourseLearningOutcome[]
   ploList: PLO[]
   ploThanhPhanList: PartialPLO[]

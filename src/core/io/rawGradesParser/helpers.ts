@@ -3,8 +3,9 @@
  */
 
 import type ExcelJS from 'exceljs'
-import type { CourseConfig, RawGradesMeta } from '../../types'
+import type { Course, RawGradesMeta } from '../../types'
 import { normalizeHeader } from '../../utils/excel'
+import { scoreColumns } from '../../utils/courseModel'
 
 export const BASE_COLUMNS = ['TT', 'Ma_SV', 'Ho', 'Ten', 'Ho_Ten', 'Ngay_Sinh', 'Ma_De', 'Ghi_Chu']
 
@@ -17,9 +18,9 @@ export const META_LABELS: { key: keyof RawGradesMeta; patterns: string[] }[] = [
   { key: 'namHoc', patterns: ['namhoc'] }
 ]
 
-/** Danh sách cột điểm cần có, giữ thứ tự xuất hiện trong Config */
-export function scoreColumnsFromConfig(config: CourseConfig): string[] {
-  return Array.from(new Set(config.cauHoi.map((q) => q.maCotDiem)))
+/** Danh sách cột điểm cần có, giữ thứ tự xuất hiện trong Course. */
+export function scoreColumnsFromConfig(course: Course): string[] {
+  return scoreColumns(course)
 }
 
 /**
@@ -35,7 +36,7 @@ export function isAttendanceHeader(header: string): boolean {
   return VALID_ATTENDANCE_HEADER.test(header.trim())
 }
 
-/** Phát hiện cột điểm danh sai quy cách để ném lỗi rõ ràng */
+/** Phát hiện cột điểm danh sai quy cách để ném lỗi rõ ràng. */
 export function isInvalidAttendanceHeader(header: string): boolean {
   const trimmed = header.trim()
   if (isAttendanceHeader(trimmed)) return false
@@ -47,7 +48,7 @@ export function isInvalidAttendanceHeader(header: string): boolean {
   return false
 }
 
-/** Đọc ô theo tên cột đã map; trả undefined nếu cột không có trong file */
+/** Đọc ô theo tên cột đã map; trả undefined nếu cột không có trong file. */
 export function columnCell(
   row: ExcelJS.Row,
   mapping: Record<string, number>,
@@ -57,7 +58,7 @@ export function columnCell(
   return index === undefined ? undefined : row.getCell(index + 1)
 }
 
-/** Mã SV thay thế cho dòng thiếu mã, giữ đúng quy ước cũ */
+/** Mã SV thay thế cho dòng thiếu mã, giữ đúng quy ước cũ. */
 export function missingMaSv(row: number): string {
   return `__MISSING_${row}`
 }

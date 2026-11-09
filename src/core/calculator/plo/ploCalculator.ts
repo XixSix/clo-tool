@@ -1,85 +1,133 @@
 /**
  * Module tính điểm và thống kê Chuẩn đầu ra chương trình đào tạo (PLO)
  * Quy chuẩn: QĐ 450/QĐ-ĐHTĐ
+ *
+ * Cây điểm: PLO → PLO thành phần → PI → CLO.
+ * Điểm mỗi cấp là trung bình cộng các nút con có điểm.
  */
 
 import Decimal from 'decimal.js'
 import { roundHalfUp, roundStep } from '../../rules'
-import type { PLOMapping, PloStat, ProcessedStudentResult } from '../../types'
+import type {
+  CLOResult,
+  PIResult,
+  PartialPLOResult,
+  PLOStatistics,
+  PLOResult,
+  Course,
+  StudentCourseResult
+} from '../../types'
 
-/**
- * Tính điểm PLO thành phần từ ma trận ánh xạ CLO -> PLO cho 1 sinh viên
- */
-export function calculatePloScores(
-  maTranPlo: PLOMapping[],
-  cloScores: Record<string, number>,
-  mode: 'chain' | 'final_only' = 'chain'
-): Record<string, number> {
-  const ploMap = new Map<string, string[]>()
-  for (const mRow of maTranPlo) {
-    const list = ploMap.get(mRow.plo) ?? []
-    if (!list.includes(mRow.clo)) {
-      list.push(mRow.clo)
+/** Điểm từng PI từ điểm CLO. */
+export function calculatePiResults(
+  course: Course,
+  cloResults: CLOResult[]
+): Record<string, PIResult> {
+  const cloScoreById = new Map(cloResults.map((c) => [c.cloId, c.diem]))
+  const mode = course.quyTac.cheDoLamTron ?? 'chain'
+  const result: Record<string, PIResult> = {}
+
+  for (const pi of course.piList) {
+    let sum = new Decimal(0)
+    let count = 0
+    for (const cloId of pi.cloIds) {
+      const score = cloScoreById.get(cloId)
+      if (score === undefined) continue
+      sum = sum.add(score)
+      count++
     }
-    ploMap.set(mRow.plo, list)
-  }
-
-  const ploScores: Record<string, number> = {}
-  for (const [ploCode, cloList] of ploMap.entries()) {
-    let sumPlo = new Decimal(0)
-    let countPlo = 0
-
-    for (const cloCode of cloList) {
-      const sc = cloScores[cloCode]
-      if (sc !== undefined) {
-        sumPlo = sumPlo.add(sc)
-        countPlo++
-      }
-    }
-
-    if (countPlo > 0) {
-      const rawPlo = sumPlo.div(countPlo).toNumber()
-      ploScores[ploCode] = roundStep(rawPlo, mode, 1)
-    } else {
-      ploScores[ploCode] = 0
+    result[pi.id] = {
+      piId: pi.id,
+      diem: count > 0 ? roundStep(sum.div(count).toNumber(), mode, 1) : 0
     }
   }
 
-  return ploScores
+  return result
 }
 
-/**
- * Thống kê tỷ lệ Đạt/Không đạt, Min, Max, TB cho từng PLO toàn lớp
- */
-export function calculatePloStats(
-  maTranPlo: PLOMapping[],
-  students: ProcessedStudentResult[],
-  nguongDatPlo = 4.0
-): Record<string, PloStat> {
-  const ploSet = new Set(maTranPlo.map((p) => p.plo))
-  const totalStudents = students.length
-  const ploStats: Record<string, PloStat> = {}
+/** Điểm PLO thành phần từ điểm các PI. */
+export function calculatePartialPloResults(
+  course: Course,
+  piResults: Record<string, PIResult>
+): Record<string, PartialPLOResult> {
+  const mode = course.quyTac.cheDoLamTron ?? 'chain'
+  const result: Record<string, PartialPLOResult> = {}
 
-  for (const ploCode of ploSet) {
-    const scores = students.map((s) => s.ploScores[ploCode] ?? 0)
-    const passedCount = scores.filter((s) => s >= nguongDatPlo).length
-    const failedCount = totalStudents - passedCount
-    const passedPercent =
-      totalStudents > 0 ? roundHalfUp((passedCount / totalStudents) * 100, 1) : 0
-    const failedPercent = totalStudents > 0 ? roundHalfUp(100 - passedPercent, 1) : 0
+  for (const partial of course.ploThanhPhanList) {
+    const pi: PIResult[] = []
+    let sum = new Decimal(0)
+    let count = 0
 
-    const sumScore = scores.reduce((acc, s) => acc.add(s), new Decimal(0))
-    const mean = totalStudents > 0 ? roundHalfUp(sumScore.div(totalStudents).toNumber(), 1) : 0
+    for (const piId of partial.piIds) {
+      const piResult = piResults[piId]
+      if (!piResult) continue
+      pi.push(piResult)
+      sum = sum.add(piResult.diem)
+      count++
+    }
 
-    ploStats[ploCode] = {
-      plo: ploCode,
-      passedCount,
-      passedPercent,
-      failedCount,
-      failedPercent,
-      mean
+    result[partial.id] = {
+      ploThanhPhanId: partial.id,
+      diem: count > 0 ? roundStep(sum.div(count).toNumber(), mode, 1) : 0,
+      pi
     }
   }
 
-  return ploStats
+  return result
+}
+
+/** Toàn bộ cây điểm PLO của một sinh viên. */
+export function calculatePloResults(course: Course, cloResults: CLOResult[]): PLOResult[] {
+  const mode = course.quyTac.cheDoLamTron ?? 'chain'
+  const piResults = calculatePiResults(course, cloResults)
+  const partialResults = calculatePartialPloResults(course, piResults)
+
+  return course.ploList.map((plo) => {
+    const ploThanhPhan: PartialPLOResult[] = []
+    let sum = new Decimal(0)
+    let count = 0
+
+    for (const partialId of plo.ploThanhPhanIds) {
+      const partial = partialResults[partialId]
+      if (!partial) continue
+      ploThanhPhan.push(partial)
+      sum = sum.add(partial.diem)
+      count++
+    }
+
+    return {
+      ploId: plo.id,
+      diem: count > 0 ? roundStep(sum.div(count).toNumber(), mode, 1) : 0,
+      ploThanhPhan
+    }
+  })
+}
+
+/** Thống kê tỷ lệ Đạt/Không đạt + TB cho từng PLO toàn lớp. */
+export function calculatePloStatistics(
+  course: Course,
+  students: StudentCourseResult[],
+  nguongDatPlo = 4.0
+): PLOStatistics[] {
+  const total = students.length
+  const mode = course.quyTac.cheDoLamTron ?? 'chain'
+
+  return course.ploList.map((plo) => {
+    const scores = students.map((student) => student.plo.find((p) => p.ploId === plo.id)?.diem ?? 0)
+    const passed = scores.filter((s) => s >= nguongDatPlo).length
+    const failed = total - passed
+    const tyLeDat = total > 0 ? roundHalfUp((passed / total) * 100, 1) : 0
+    const tyLeKhongDat = total > 0 ? roundHalfUp(100 - tyLeDat, 1) : 0
+    const sum = scores.reduce((acc, s) => acc.add(s), new Decimal(0))
+    const trungBinh = total > 0 ? roundStep(sum.div(total).toNumber(), mode, 1) : 0
+
+    return {
+      ploId: plo.id,
+      soSinhVienDat: passed,
+      tyLeDat,
+      soSinhVienKhongDat: failed,
+      tyLeKhongDat,
+      trungBinh
+    }
+  })
 }

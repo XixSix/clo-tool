@@ -4,30 +4,35 @@ import { join } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import ExcelJS from 'exceljs'
 import {
-  applyAttendance,
-  CONFIG_SHEET_COLUMNS,
   matchHeaders,
   normalizeHeader,
-  parseCourseConfig,
   parseRawGrades,
-  validateConfig,
+  validateCourse,
   validateRawGrades,
-  writeConfigTemplate,
   writeRawGradesTemplate
 } from '@core/index'
-import { buildMockClass, buildMockConfig, MOCK_SESSION_LABELS } from './fixtures/mockClass'
+import type { Course } from '@core/types'
+import { buildMockClass, buildMockCourse, MOCK_SESSION_LABELS } from './fixtures/mockClass'
 
 let dir: string
-let configPath: string
 let rawPath: string
+let course: Course
+
+/** Tìm số cột (1-based) theo tiêu đề ở hàng 4 của sheet NHAP_LIEU. */
+function columnOf(ws: ExcelJS.Worksheet, header: string): number {
+  const row = ws.getRow(4)
+  for (let c = 1; c <= ws.columnCount; c++) {
+    if (row.getCell(c).value === header) return c
+  }
+  throw new Error(`Không tìm thấy cột "${header}" trong file mẫu.`)
+}
 
 beforeAll(async () => {
   dir = mkdtempSync(join(tmpdir(), 'clo-io-'))
-  configPath = join(dir, 'config.xlsx')
   rawPath = join(dir, 'raw.xlsx')
-  await writeConfigTemplate(configPath, buildMockConfig())
+  course = buildMockCourse()
   const { students, attendance } = buildMockClass(10)
-  await writeRawGradesTemplate(rawPath, buildMockConfig(), {
+  await writeRawGradesTemplate(rawPath, course, {
     students,
     attendance,
     lop: '1A11_CNTT14',
@@ -64,39 +69,9 @@ describe('headerMatcher', () => {
   })
 })
 
-describe('parseCourseConfig', () => {
-  it('đọc Config và dùng mặc định cho điểm danh, quy tắc', async () => {
-    const config = await parseCourseConfig(configPath)
-    expect(config.courseInfo.maHp).toBe('KTLT101')
-    expect(config.cloList.map((c) => c.maClo)).toEqual(['CLO1', 'CLO2', 'CLO3', 'CLO4', 'CLO5'])
-    expect(config.keHoachDanhGia).toHaveLength(11)
-    expect(config.cauHoi).toHaveLength(50)
-    expect(config.maTranPlo).toHaveLength(5)
-    expect(config.diemDanh).toHaveLength(5)
-    expect(config.quyTac.nguong_dat_clo).toBe(4)
-    expect(config.quyTac.rounding_mode).toBe('chain')
-  })
-
-  it('báo lỗi rõ ràng khi thiếu sheet bắt buộc', async () => {
-    const wb = new ExcelJS.Workbook()
-    wb.addWorksheet('HOC_PHAN').addRow(['Ma_HP', 'Ten_HP'])
-    const broken = join(dir, 'broken.xlsx')
-    await wb.xlsx.writeFile(broken)
-
-    await expect(parseCourseConfig(broken)).rejects.toThrow('Thiếu cột')
-  })
-
-  it('không đọc cấu hình điểm danh và quy tắc từ Excel', async () => {
-    const config = await parseCourseConfig(configPath)
-    expect(config.quyTac.nguong_dat_clo).toBe(4)
-    expect(config.quyTac.rounding_mode).toBe('chain')
-  })
-})
-
 describe('parseRawGrades', () => {
   it('đọc sinh viên, giữ Mã SV dạng văn bản và nhận diện VT / ô trống', async () => {
-    const config = await parseCourseConfig(configPath)
-    const file = await parseRawGrades(rawPath, config)
+    const file = await parseRawGrades(rawPath, course)
     expect(file.students).toHaveLength(10)
     expect(file.students[0].student.maSv).toBe('0123456789')
     expect(file.studentExcelRows?.[0]).toBe(6)
@@ -111,14 +86,12 @@ describe('parseRawGrades', () => {
     const wb = new ExcelJS.Workbook()
     await wb.xlsx.readFile(rawPath)
     const ws = wb.getWorksheet('NHAP_LIEU')!
-    // Cột CC = 5 cột cố định + 12 buổi + 1 (không còn cột TD)
-    ws.getRow(7).getCell(18).value = '8,5'
+    ws.getRow(7).getCell(columnOf(ws, 'GKT_C01')).value = '0,25'
     const commaFile = join(dir, 'raw-comma.xlsx')
     await wb.xlsx.writeFile(commaFile)
 
-    const config = await parseCourseConfig(configPath)
-    const file = await parseRawGrades(commaFile, config)
-    expect(file.students[1].scores.diemCacCot.CC).toBe(8.5)
+    const file = await parseRawGrades(commaFile, course)
+    expect(file.students[1].scores.diemCacCot.GKT_C01).toBe(0.25)
   })
 
   it('nhận diện 3 định dạng cột điểm danh hợp lệ và từ chối định dạng sai', async () => {
@@ -130,8 +103,7 @@ describe('parseRawGrades', () => {
     const validAttendanceFile = join(dir, 'raw-attendance-valid.xlsx')
     await wb.xlsx.writeFile(validAttendanceFile)
 
-    const config = await parseCourseConfig(configPath)
-    const file = await parseRawGrades(validAttendanceFile, config)
+    const file = await parseRawGrades(validAttendanceFile, course)
     expect(file.attendanceSessions[0].label).toBe('Buổi 1 (28/10)')
     expect(file.attendanceSessions[1].label).toBe('29/10')
 
@@ -139,23 +111,21 @@ describe('parseRawGrades', () => {
     ws.getRow(4).getCell(6).value = 'Tiết 1'
     const invalidAttendanceFile = join(dir, 'raw-attendance-invalid.xlsx')
     await wb.xlsx.writeFile(invalidAttendanceFile)
-    await expect(parseRawGrades(invalidAttendanceFile, config)).rejects.toThrow(
+    await expect(parseRawGrades(invalidAttendanceFile, course)).rejects.toThrow(
       /không đúng định dạng/
     )
   })
 
-  it('báo thiếu cột điểm khai báo trong Config', async () => {
+  it('báo thiếu cột điểm khai báo trong Course', async () => {
     const wb = new ExcelJS.Workbook()
     await wb.xlsx.readFile(rawPath)
     const ws = wb.getWorksheet('NHAP_LIEU')!
-    // Cột CC nằm ngay sau 5 cột cố định + 12 cột điểm danh
-    ws.getRow(4).getCell(18).value = 'ZZZ_KHONG_CO'
+    ws.getRow(4).getCell(columnOf(ws, 'GKT_C01')).value = 'ZZZ_KHONG_CO'
     const missingFile = join(dir, 'raw-missing-column.xlsx')
     await wb.xlsx.writeFile(missingFile)
 
-    const config = await parseCourseConfig(configPath)
-    await expect(parseRawGrades(missingFile, config)).rejects.toThrow(
-      'Thiếu cột điểm "CC" khai báo trong Config.'
+    await expect(parseRawGrades(missingFile, course)).rejects.toThrow(
+      'Thiếu cột điểm "GKT_C01" khai báo trong cấu hình học phần.'
     )
   })
 
@@ -163,105 +133,79 @@ describe('parseRawGrades', () => {
     const wb = new ExcelJS.Workbook()
     await wb.xlsx.readFile(rawPath)
     const ws = wb.getWorksheet('NHAP_LIEU')!
-    ws.getRow(6).getCell(18).value = 'abc'
+    ws.getRow(6).getCell(columnOf(ws, 'GKT_C01')).value = 'abc'
     const invalidFile = join(dir, 'raw-invalid-cell.xlsx')
     await wb.xlsx.writeFile(invalidFile)
 
-    const config = await parseCourseConfig(configPath)
-    await expect(parseRawGrades(invalidFile, config)).rejects.toThrow(
+    await expect(parseRawGrades(invalidFile, course)).rejects.toThrow(
       'Giá trị "abc" không phải là điểm số hợp lệ'
     )
   })
 })
 
 describe('validator', () => {
-  it('Config mẫu không có lỗi', async () => {
-    const config = await parseCourseConfig(configPath)
-    const issues = validateConfig(config)
+  it('Course mẫu không có lỗi', () => {
+    const issues = validateCourse(course)
     expect(issues.filter((i) => i.level === 'error')).toHaveLength(0)
   })
 
   it('phát hiện tổng trọng số ≠ 100%', () => {
-    const config = buildMockConfig()
-    config.keHoachDanhGia[0].trongSoPhanTram = 7
-    const issues = validateConfig(config)
+    const broken = buildMockCourse()
+    broken.dotDanhGia[0].trongSoPhanTram = 7
+    const issues = validateCourse(broken)
     expect(issues.some((i) => i.level === 'error' && i.message.includes('100%'))).toBe(true)
   })
 
-  it('phát hiện CLO không tồn tại và cặp đầu điểm–CLO lệch', () => {
-    const config = buildMockConfig()
-    config.cauHoi[0].clo = 'CLO_KHONG_TON_TAI'
-    const issues = validateConfig(config)
+  it('phát hiện CLO không tồn tại', () => {
+    const broken = buildMockCourse()
+    broken.dotDanhGia[0].cloList[0].cloId = 'CLO_KHONG_TON_TAI'
+    const issues = validateCourse(broken)
     expect(issues.some((i) => i.message.includes('CLO_KHONG_TON_TAI'))).toBe(true)
   })
 
   it('phát hiện điểm vượt điểm tối đa và báo đúng dòng Excel', async () => {
-    const config = await parseCourseConfig(configPath)
-    const file = await parseRawGrades(rawPath, config)
+    const file = await parseRawGrades(rawPath, course)
     file.students[0].scores.diemCacCot.CK_C2 = 9
-    const issues = validateRawGrades(config, file)
-    const issue = issues.find((i) => i.level === 'error' && i.message.includes('> điểm tối đa'))
+    const issues = validateRawGrades(course, file)
+    const issue = issues.find(
+      (i) => i.level === 'error' && i.message.includes('vượt quá điểm tối đa')
+    )
     expect(issue).toBeDefined()
     expect(issue!.row).toBe(file.studentExcelRows?.[0])
   })
 
-  it('không báo thiếu điểm CC sau khi đã tính từ điểm danh', async () => {
-    const config = await parseCourseConfig(configPath)
-    const file = await parseRawGrades(rawPath, config)
-    const applied = applyAttendance(file, config)
-    const issues = validateRawGrades(config, applied.file)
-    expect(issues.some((i) => i.message.includes('chưa nhập điểm cột "CC"'))).toBe(false)
-  })
-
   it('phát hiện mã SV trùng/thiếu và thiếu họ tên', async () => {
-    const config = await parseCourseConfig(configPath)
-    const file = await parseRawGrades(rawPath, config)
+    const file = await parseRawGrades(rawPath, course)
     file.students[1].student.maSv = file.students[0].student.maSv
     file.students[2].student.maSv = '__MISSING_999'
     file.students[3].student.hoTen = ''
 
-    const messages = validateRawGrades(config, file).map((issue) => issue.message)
+    const messages = validateRawGrades(course, file).map((issue) => issue.message)
     expect(messages).toContain(`Mã SV "${file.students[0].student.maSv}" bị trùng.`)
     expect(messages).toContain('Thiếu Mã SV.')
     expect(messages).toContain('Thiếu họ tên.')
   })
 
   it('cảnh báo điểm không phải bội của 0,25', async () => {
-    const config = await parseCourseConfig(configPath)
-    const file = await parseRawGrades(rawPath, config)
+    const file = await parseRawGrades(rawPath, course)
     file.students[0].scores.diemCacCot.GTX_C1 = 0.3
 
-    const messages = validateRawGrades(config, file).map((issue) => issue.message)
+    const messages = validateRawGrades(course, file).map((issue) => issue.message)
     expect(messages).toContain(
-      `SV ${file.students[0].student.maSv}: điểm 0.3 không phải bội của 0,25.`
+      `SV ${file.students[0].student.maSv}: điểm "GTX_C1" = 0.3 không phải bội của 0,25.`
     )
   })
 
   it('cảnh báo cỡ mẫu nhỏ và thiếu cột điểm danh', async () => {
-    const config = await parseCourseConfig(configPath)
-    config.quyTac.nguong_co_mau_n = 999
-    const parsedFile = await parseRawGrades(rawPath, config)
+    const broken = buildMockCourse()
+    broken.quyTac.nguongCoMauN = 999
+    const parsedFile = await parseRawGrades(rawPath, broken)
     const file = { ...parsedFile, attendanceSessions: [] }
 
-    const messages = validateRawGrades(config, file).map((issue) => issue.message)
+    const messages = validateRawGrades(broken, file).map((issue) => issue.message)
     expect(messages).toContain('Quy mô lớp N = 10 < 999: các chỉ số p, d, α kém tin cậy.')
     expect(messages).toContain(
       'File điểm thô không có cột điểm danh (Buổi 1..N). Điểm CC phải nhập tay.'
     )
-  })
-})
-
-describe('CONFIG_SHEET_COLUMNS', () => {
-  it('mọi sheet bắt buộc đều có danh sách cột', () => {
-    for (const sheet of [
-      'HOC_PHAN',
-      'CLO_LIST',
-      'KE_HOACH_DANH_GIA',
-      'CAU_HOI',
-      'MA_TRAN_PLO',
-      'MA_TRAN_PLO'
-    ]) {
-      expect(CONFIG_SHEET_COLUMNS[sheet]).toBeDefined()
-    }
   })
 })

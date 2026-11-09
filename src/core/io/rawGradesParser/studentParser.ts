@@ -3,7 +3,7 @@
  */
 
 import type ExcelJS from 'exceljs'
-import type { AttendanceRecord, RawStudentRow } from '../../types'
+import type { RawAttendanceRecord, RawStudentRow } from '../../types'
 import { cellText, parseNumber } from '../../utils/excel'
 import { RawGradesParseError } from './errors'
 import { columnCell, missingMaSv } from './helpers'
@@ -25,7 +25,7 @@ export function parseStudentRows({
   attendanceColumns
 }: ParseStudentRowsOptions): ParsedStudentRows {
   const students: RawStudentRow[] = []
-  const attendance: AttendanceRecord[] = []
+  const attendance: RawAttendanceRecord[] = []
   const studentExcelRows: number[] = []
 
   for (let r = firstStudentRow; r <= ws.rowCount; r++) {
@@ -94,6 +94,7 @@ export function parseStudentRows({
 
     students.push({
       student: {
+        id: studentMaSv,
         tt: ttParsed ?? students.length + 1,
         maSv: studentMaSv,
         ho: finalHo,

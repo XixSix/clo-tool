@@ -160,7 +160,7 @@ export function AppTopbar({
       <div className="flex-1" />
 
       {/* Search pill — chỉ giao diện, placeholder */}
-      <div className="bg-card ring-border/70 focus-within:ring-primary/40 hidden h-11 w-72 items-center gap-2.5 rounded-full px-4 shadow-sm ring-1 transition focus-within:ring-2 min-[900px]:flex [-webkit-app-region:no-drag]">
+      <div className="bg-card ring-border/70 focus-within:ring-primary/40 hidden h-11 w-72 items-center gap-2.5 rounded-full px-4 shadow-sm ring-1 transition [-webkit-app-region:no-drag] focus-within:ring-2 min-[900px]:flex">
         <Search className="text-muted-foreground size-4 shrink-0" />
         <Input
           aria-label="Tìm kiếm"

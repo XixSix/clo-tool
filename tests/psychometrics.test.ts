@@ -4,11 +4,12 @@ import {
   calculateCronbachAlpha,
   calculateCronbachAlphaFromVariances,
   calculateExamPsychometrics,
-  sampleVariance
+  sampleVariance,
+  type QuestionScoreEntry
 } from '@core/index'
 import { roundHalfUp } from '@core/rules'
 import { GOLDEN_T4 } from './fixtures/goldenQd450Data'
-import type { QuestionColumn, RawStudentRow } from '@core/types'
+import type { ExamQuestion } from '@core/types'
 
 describe('Psychometrics Module', () => {
   describe('Phương sai mẫu (sample variance)', () => {
@@ -62,10 +63,10 @@ describe('Psychometrics Module', () => {
 
   describe('Gộp câu hỏi (sub-items aggregation)', () => {
     it('phải gộp đúng các câu 3a, 3b thành Câu 3 với tổng điểm tối đa', () => {
-      const questions: QuestionColumn[] = [
-        { maCotDiem: 'C1', maDauDiem: 'CK', cau: 'Câu 1', clo: 'CLO1', diemToiDa: 2 },
-        { maCotDiem: 'C3a', maDauDiem: 'CK', cau: 'Câu 3', clo: 'CLO2', diemToiDa: 1.5 },
-        { maCotDiem: 'C3b', maDauDiem: 'CK', cau: 'Câu 3', clo: 'CLO3', diemToiDa: 1.5 }
+      const questions: ExamQuestion[] = [
+        { id: 'C1', cau: 'Câu 1', cloId: 'CLO1', diemToiDa: 2 },
+        { id: 'C3a', cau: 'Câu 3', cloId: 'CLO2', diemToiDa: 1.5 },
+        { id: 'C3b', cau: 'Câu 3', cloId: 'CLO3', diemToiDa: 1.5 }
       ]
 
       const agg = aggregateQuestions(questions)
@@ -82,86 +83,47 @@ describe('Psychometrics Module', () => {
   describe('Độ khó p, độ phân biệt d và loại trừ sinh viên vắng thi', () => {
     it('phải tính đúng độ khó p và độ phân biệt d cho bài thi', () => {
       // 15 sinh viên, 2 câu hỏi (max: Câu 1 = 1đ, Câu 2 = 2đ)
-      const questions: QuestionColumn[] = [
-        { maCotDiem: 'Q1', maDauDiem: 'CK', cau: 'Câu 1', clo: 'CLO1', diemToiDa: 1 },
-        { maCotDiem: 'Q2', maDauDiem: 'CK', cau: 'Câu 2', clo: 'CLO2', diemToiDa: 2 }
+      const questions: ExamQuestion[] = [
+        { id: 'Q1', cau: 'Câu 1', cloId: 'CLO1', diemToiDa: 1 },
+        { id: 'Q2', cau: 'Câu 2', cloId: 'CLO2', diemToiDa: 2 }
       ]
 
       // 4 SV top: điểm Q1 đều = 1 (topMean = 1)
       // 4 SV bottom: 2 đúng Q1 = 1, 2 sai Q1 = 0 (bottomMean = 0.5)
       // d(Q1) = (1 - 0.5) / 1 = 0.5 (Khớp Test T2)
-      const students: RawStudentRow[] = [
+      const rows: Array<{ maSv: string; q1: number | 'VT'; q2: number | 'VT' }> = [
         // Top 4 SV
-        {
-          student: { tt: 1, maSv: 'SV01', ho: 'A', ten: '1', hoTen: 'A1' },
-          scores: { diemCacCot: { Q1: 1, Q2: 2 } }
-        },
-        {
-          student: { tt: 2, maSv: 'SV02', ho: 'A', ten: '2', hoTen: 'A2' },
-          scores: { diemCacCot: { Q1: 1, Q2: 2 } }
-        },
-        {
-          student: { tt: 3, maSv: 'SV03', ho: 'A', ten: '3', hoTen: 'A3' },
-          scores: { diemCacCot: { Q1: 1, Q2: 2 } }
-        },
-        {
-          student: { tt: 4, maSv: 'SV04', ho: 'A', ten: '4', hoTen: 'A4' },
-          scores: { diemCacCot: { Q1: 1, Q2: 2 } }
-        },
+        { maSv: 'SV01', q1: 1, q2: 2 },
+        { maSv: 'SV02', q1: 1, q2: 2 },
+        { maSv: 'SV03', q1: 1, q2: 2 },
+        { maSv: 'SV04', q1: 1, q2: 2 },
         // Mid 7 SV
-        {
-          student: { tt: 5, maSv: 'SV05', ho: 'A', ten: '5', hoTen: 'A5' },
-          scores: { diemCacCot: { Q1: 1, Q2: 1 } }
-        },
-        {
-          student: { tt: 6, maSv: 'SV06', ho: 'A', ten: '6', hoTen: 'A6' },
-          scores: { diemCacCot: { Q1: 1, Q2: 1 } }
-        },
-        {
-          student: { tt: 7, maSv: 'SV07', ho: 'A', ten: '7', hoTen: 'A7' },
-          scores: { diemCacCot: { Q1: 1, Q2: 1 } }
-        },
-        {
-          student: { tt: 8, maSv: 'SV08', ho: 'A', ten: '8', hoTen: 'A8' },
-          scores: { diemCacCot: { Q1: 0, Q2: 1 } }
-        },
-        {
-          student: { tt: 9, maSv: 'SV09', ho: 'A', ten: '9', hoTen: 'A9' },
-          scores: { diemCacCot: { Q1: 0, Q2: 1 } }
-        },
-        {
-          student: { tt: 10, maSv: 'SV10', ho: 'A', ten: '10', hoTen: 'A10' },
-          scores: { diemCacCot: { Q1: 0, Q2: 1 } }
-        },
-        {
-          student: { tt: 11, maSv: 'SV11', ho: 'A', ten: '11', hoTen: 'A11' },
-          scores: { diemCacCot: { Q1: 1, Q2: 0 } }
-        },
+        { maSv: 'SV05', q1: 1, q2: 1 },
+        { maSv: 'SV06', q1: 1, q2: 1 },
+        { maSv: 'SV07', q1: 1, q2: 1 },
+        { maSv: 'SV08', q1: 0, q2: 1 },
+        { maSv: 'SV09', q1: 0, q2: 1 },
+        { maSv: 'SV10', q1: 0, q2: 1 },
+        { maSv: 'SV11', q1: 1, q2: 0 },
         // Bottom 4 SV
-        {
-          student: { tt: 12, maSv: 'SV12', ho: 'A', ten: '12', hoTen: 'A12' },
-          scores: { diemCacCot: { Q1: 1, Q2: 0 } }
-        },
-        {
-          student: { tt: 13, maSv: 'SV13', ho: 'A', ten: '13', hoTen: 'A13' },
-          scores: { diemCacCot: { Q1: 1, Q2: 0 } }
-        },
-        {
-          student: { tt: 14, maSv: 'SV14', ho: 'A', ten: '14', hoTen: 'A14' },
-          scores: { diemCacCot: { Q1: 0, Q2: 0 } }
-        },
-        {
-          student: { tt: 15, maSv: 'SV15', ho: 'A', ten: '15', hoTen: 'A15' },
-          scores: { diemCacCot: { Q1: 0, Q2: 0 } }
-        },
+        { maSv: 'SV12', q1: 1, q2: 0 },
+        { maSv: 'SV13', q1: 1, q2: 0 },
+        { maSv: 'SV14', q1: 0, q2: 0 },
+        { maSv: 'SV15', q1: 0, q2: 0 },
         // 1 SV vắng thi -> phải bị loại khỏi mẫu tính p, d, alpha
-        {
-          student: { tt: 16, maSv: 'SV16', ho: 'A', ten: '16', hoTen: 'A16' },
-          scores: { diemCacCot: { Q1: 'VT', Q2: 'VT' } }
-        }
+        { maSv: 'SV16', q1: 'VT', q2: 'VT' }
       ]
 
-      const examResult = calculateExamPsychometrics('CK', 'ALL', questions, students, 0.27, 30)
+      const entries: QuestionScoreEntry[] = rows.map((row) => ({
+        maSv: row.maSv,
+        deId: 'ALL',
+        diemTheoCau: [
+          { questionId: 'Q1', diem: row.q1 },
+          { questionId: 'Q2', diem: row.q2 }
+        ]
+      }))
+
+      const examResult = calculateExamPsychometrics('CK', 'ALL', questions, entries, 0.27, 30)
 
       expect(examResult.soSinhVien).toBe(15) // SV16 vắng thi bị loại
       expect(examResult.items).toHaveLength(2)
