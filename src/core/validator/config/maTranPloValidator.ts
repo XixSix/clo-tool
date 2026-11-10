@@ -6,14 +6,13 @@
  * liên quan PI chủ yếu là warning, trừ mâu thuẫn rõ ràng như 1 PI thuộc 2 PLO.
  */
 
-import type { CourseConfig, ValidationIssue } from '../../types'
+import type { PLOMapping, ValidationIssue } from '../../types'
 
 const PLO_PATTERN = /^PLO\d+$/
 const PI_PATTERN = /^PI\d+\.\d+$/
 
-export function validateMaTranPlo(config: CourseConfig): ValidationIssue[] {
+export function validateMaTranPlo(ploMatrix: PLOMapping[]): ValidationIssue[] {
   const issues: ValidationIssue[] = []
-  const ploMatrix = config.maTranPlo
 
   if (ploMatrix.length === 0) {
     issues.push({

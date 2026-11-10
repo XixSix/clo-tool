@@ -2,24 +2,20 @@
  * Validate các chỉ tiêu ở mức toàn lớp của file điểm thô.
  */
 
-import type { CourseConfig, RawGrades, ValidationIssue } from '../../types'
+import type { ValidationIssue } from '../../types'
 
-export function validateRawClass(config: CourseConfig, file: RawGrades): ValidationIssue[] {
-  const issues: ValidationIssue[] = []
-
-  if (file.students.length < config.quyTac.nguong_co_mau_n) {
-    issues.push({
-      level: 'warning',
-      message: `Quy mô lớp N = ${file.students.length} < ${config.quyTac.nguong_co_mau_n}: các chỉ số p, d, α kém tin cậy.`
-    })
+export function validateClassLevel(
+  studentCount: number,
+  nguongCoMauN: number
+): ValidationIssue[] {
+  if (studentCount < nguongCoMauN) {
+    return [
+      {
+        level: 'warning',
+        message: `Quy mô lớp N = ${studentCount} < ${nguongCoMauN}: các chỉ số p, d, α kém tin cậy.`
+      }
+    ]
   }
 
-  if (file.attendanceSessions.length === 0) {
-    issues.push({
-      level: 'warning',
-      message: 'File điểm thô không có cột điểm danh (Buổi 1..N). Điểm CC phải nhập tay.'
-    })
-  }
-
-  return issues
+  return []
 }

@@ -5,7 +5,7 @@
 import type ExcelJS from 'exceljs'
 import type { QuestionColumn } from '../../types'
 import { findSheet, parseNumber } from '../../utils/excel'
-import { CONFIG_SHEET_COLUMNS, get, readTable } from './helpers'
+import { CONFIG_SHEET_COLUMNS, get, readConfigTable } from './helpers'
 import { ConfigParseError } from './errors'
 
 export function parseCauHoiSheet(wb: ExcelJS.Workbook): QuestionColumn[] {
@@ -16,7 +16,7 @@ export function parseCauHoiSheet(wb: ExcelJS.Workbook): QuestionColumn[] {
     throw new ConfigParseError('Thiếu sheet CAU_HOI trong file Config.')
   }
 
-  const { headers, rows } = readTable(ws, CONFIG_SHEET_COLUMNS.CAU_HOI, 'CAU_HOI')
+  const { headers, rows } = readConfigTable(ws, CONFIG_SHEET_COLUMNS.CAU_HOI, 'CAU_HOI')
   if (rows.length === 0) {
     throw new ConfigParseError('Sheet CAU_HOI không có dữ liệu.')
   }

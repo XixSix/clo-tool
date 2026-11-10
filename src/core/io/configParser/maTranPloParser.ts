@@ -5,7 +5,7 @@
 import type ExcelJS from 'exceljs'
 import type { PLOMapping } from '../../types'
 import { findSheet } from '../../utils/excel'
-import { CONFIG_SHEET_COLUMNS, get, readTable } from './helpers'
+import { CONFIG_SHEET_COLUMNS, get, readConfigTable } from './helpers'
 import { ConfigParseError } from './errors'
 
 export function parseMaTranPloSheet(wb: ExcelJS.Workbook): PLOMapping[] {
@@ -14,7 +14,7 @@ export function parseMaTranPloSheet(wb: ExcelJS.Workbook): PLOMapping[] {
   const ws = findSheet(wb, 'MA_TRAN_PLO')
   if (!ws) throw new ConfigParseError('Thiếu sheet MA_TRAN_PLO trong file Config.')
 
-  const { headers, rows } = readTable(ws, CONFIG_SHEET_COLUMNS.MA_TRAN_PLO, 'MA_TRAN_PLO')
+  const { headers, rows } = readConfigTable(ws, CONFIG_SHEET_COLUMNS.MA_TRAN_PLO, 'MA_TRAN_PLO')
   if (rows.length === 0) {
     throw new ConfigParseError('Sheet MA_TRAN_PLO không có dữ liệu.')
   }

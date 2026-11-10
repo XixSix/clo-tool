@@ -5,7 +5,7 @@
 import type ExcelJS from 'exceljs'
 import type { CLODefinition } from '../../types'
 import { findSheet, parseNumber } from '../../utils/excel'
-import { CONFIG_SHEET_COLUMNS, get, readTable } from './helpers'
+import { CONFIG_SHEET_COLUMNS, get, readConfigTable } from './helpers'
 import { ConfigParseError } from './errors'
 
 export function parseCloListSheet(wb: ExcelJS.Workbook): CLODefinition[] {
@@ -16,7 +16,7 @@ export function parseCloListSheet(wb: ExcelJS.Workbook): CLODefinition[] {
     throw new ConfigParseError('Thiếu sheet CLO_LIST trong file Config.')
   }
 
-  const { headers, rows } = readTable(ws, CONFIG_SHEET_COLUMNS.CLO_LIST, 'CLO_LIST')
+  const { headers, rows } = readConfigTable(ws, CONFIG_SHEET_COLUMNS.CLO_LIST, 'CLO_LIST')
   if (rows.length === 0) {
     throw new ConfigParseError('Sheet CLO_LIST không có dữ liệu.')
   }

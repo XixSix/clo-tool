@@ -5,7 +5,7 @@
  * - Tên cột có thể lệch dấu/khoảng trắng/hoa thường; nếu lệch nhiều sẽ gợi ý.
  */
 
-import { cellText, findHeaderRow, rowTexts } from '../../utils/excel'
+import { cellText, readTable as readExcelTable } from '../../utils/excel'
 import type ExcelJS from 'exceljs'
 import { ConfigParseError } from './errors'
 
@@ -40,33 +40,14 @@ export function get(
 /**
  * Đọc một sheet dạng bảng: trả về header map + danh sách dòng dữ liệu không rỗng.
  */
-export function readTable(
+export function readConfigTable(
   ws: ExcelJS.Worksheet,
   columns: string[],
   sheetName: string
 ): { headers: Record<string, number>; rows: number[] } {
-  const header = findHeaderRow(ws, columns)
-  if (!header) {
-    throw new ConfigParseError(
-      `Không tìm thấy hàng tiêu đề của sheet ${sheetName}. Cần tối thiểu các cột: ${columns.join(', ')}`
-    )
-  }
+  const table = readExcelTable(ws, columns, sheetName, {
+    makeError: (message) => new ConfigParseError(message)
+  })
 
-  if (header.match.missing.length > 0) {
-    const missing = header.match.missing
-      .map((column) => {
-        const suggestion = header.match.suggestions[column]
-        return suggestion ? `"${column}" (gợi ý: "${suggestion}")` : `"${column}"`
-      })
-      .join(', ')
-    throw new ConfigParseError(`Thiếu cột ${missing} trong sheet ${sheetName}.`)
-  }
-
-  const rows: number[] = []
-  for (let r = header.rowNumber + 1; r <= ws.rowCount; r++) {
-    const texts = rowTexts(ws.getRow(r), ws.columnCount)
-    if (texts.some((t) => t.trim() !== '')) rows.push(r)
-  }
-
-  return { headers: header.match.mapping, rows }
+  return { headers: table.mapping, rows: table.rows }
 }

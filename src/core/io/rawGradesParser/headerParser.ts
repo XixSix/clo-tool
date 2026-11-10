@@ -1,12 +1,15 @@
 /**
  * Dò header bảng điểm thô và kiểm tra các cột điểm khai báo trong Config.
+ *
+ * File điểm thô dùng chung `readTable` với Config: header cố định một hàng,
+ * thiếu cột bắt buộc thì dừng ngay — không hỗ trợ layout lộn xộn.
  */
 
 import type ExcelJS from 'exceljs'
 import type { CourseConfig } from '../../types'
-import { findHeaderRow } from '../../utils/excel'
+import { readTable } from '../../utils/excel'
 import { RawGradesParseError } from './errors'
-import { BASE_COLUMNS, scoreColumnsFromConfig } from './helpers'
+import { RAW_GRADES_COLUMNS, scoreColumnsFromConfig } from './helpers'
 import type { RawHeaderInfo } from './types'
 
 export interface RawHeaderResult {
@@ -17,29 +20,22 @@ export interface RawHeaderResult {
 export function parseRawGradesHeader(
   ws: ExcelJS.Worksheet,
   config: CourseConfig
-): RawHeaderResult | null {
+): RawHeaderResult {
   const scoreColumns = scoreColumnsFromConfig(config)
-  const found = findHeaderRow(ws, [...BASE_COLUMNS, ...scoreColumns], 30)
-  if (!found) return null
+  const columns = [...RAW_GRADES_COLUMNS, ...scoreColumns]
+
+  const table = readTable(ws, columns, ws.name, {
+    maxScanRows: 30,
+    makeError: (message) => new RawGradesParseError(message)
+  })
 
   return {
     scoreColumns,
     header: {
-      rowNumber: found.rowNumber,
-      headers: found.headers,
-      mapping: found.match.mapping,
-      suggestions: found.match.suggestions
+      rowNumber: table.rowNumber,
+      headers: table.headerTexts,
+      mapping: table.mapping,
+      suggestions: table.suggestions
     }
-  }
-}
-
-/** Cột điểm có trong Config nhưng không dò được trong file */
-export function assertScoreColumns(header: RawHeaderInfo, scoreColumns: string[]): void {
-  for (const maCot of scoreColumns) {
-    if (header.mapping[maCot] !== undefined) continue
-
-    const suggestion = header.suggestions[maCot]
-    const hint = suggestion ? ` Có phải bạn muốn đặt tên là "${suggestion}"?` : ''
-    throw new RawGradesParseError(`Thiếu cột điểm "${maCot}" khai báo trong Config.${hint}`)
   }
 }

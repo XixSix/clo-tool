@@ -5,7 +5,7 @@
 import type ExcelJS from 'exceljs'
 import type { EvaluationPlanItem } from '../../types'
 import { findSheet, parseNumber, cellText, getMergedRowRange } from '../../utils/excel'
-import { CONFIG_SHEET_COLUMNS, get, readTable } from './helpers'
+import { CONFIG_SHEET_COLUMNS, get, readConfigTable } from './helpers'
 import { ConfigParseError } from './errors'
 
 export function parseKeHoachSheet(wb: ExcelJS.Workbook): EvaluationPlanItem[] {
@@ -16,7 +16,7 @@ export function parseKeHoachSheet(wb: ExcelJS.Workbook): EvaluationPlanItem[] {
     throw new ConfigParseError('Thiếu sheet KE_HOACH_DANH_GIA trong file Config.')
   }
 
-  const { headers, rows } = readTable(
+  const { headers, rows } = readConfigTable(
     ws,
     CONFIG_SHEET_COLUMNS.KE_HOACH_DANH_GIA,
     'KE_HOACH_DANH_GIA'

@@ -51,6 +51,70 @@ export function findHeaderRow(
   return Object.keys(best.match.mapping).length >= Math.min(2, expectedColumns.length) ? best : null
 }
 
+/** Kết quả đọc một sheet dạng bảng có schema cố định */
+export interface TableReadResult {
+  rowNumber: number
+  /** Tiêu đề thực tế của file, giữ đúng thứ tự cột */
+  headerTexts: string[]
+  /** Tên cột chuẩn -> chỉ số cột (0-based) */
+  mapping: Record<string, number>
+  /** Tên cột thiếu -> tên gần giống trong file */
+  suggestions: Record<string, string>
+  /** Số dòng dữ liệu không rỗng nằm dưới header */
+  rows: number[]
+}
+
+export interface ReadTableOptions {
+  maxScanRows?: number
+  /** Tạo loại lỗi phù hợp với từng loại file (Config / điểm thô) */
+  makeError?: (message: string) => Error
+}
+
+/**
+ * Đọc một sheet dạng bảng: dò header, bắt buộc đủ cột, trả về mapping + dòng dữ liệu.
+ *
+ * Dùng chung cho Config và file điểm thô để cả hai cùng một quy tắc:
+ * header cố định một hàng, thiếu cột bắt buộc thì dừng ngay.
+ */
+export function readTable(
+  ws: ExcelJS.Worksheet,
+  columns: string[],
+  sheetName: string,
+  options: ReadTableOptions = {}
+): TableReadResult {
+  const makeError = options.makeError ?? ((message: string) => new Error(message))
+  const header = findHeaderRow(ws, columns, options.maxScanRows)
+  if (!header) {
+    throw makeError(
+      `Không tìm thấy hàng tiêu đề của sheet ${sheetName}. Cần tối thiểu các cột: ${columns.join(', ')}`
+    )
+  }
+
+  if (header.match.missing.length > 0) {
+    const missing = header.match.missing
+      .map((column) => {
+        const suggestion = header.match.suggestions[column]
+        return suggestion ? `"${column}" (gợi ý: "${suggestion}")` : `"${column}"`
+      })
+      .join(', ')
+    throw makeError(`Thiếu cột ${missing} trong sheet ${sheetName}.`)
+  }
+
+  const rows: number[] = []
+  for (let r = header.rowNumber + 1; r <= ws.rowCount; r++) {
+    const texts = rowTexts(ws.getRow(r), ws.columnCount)
+    if (texts.some((t) => t.trim() !== '')) rows.push(r)
+  }
+
+  return {
+    rowNumber: header.rowNumber,
+    headerTexts: header.headers,
+    mapping: header.match.mapping,
+    suggestions: header.match.suggestions,
+    rows
+  }
+}
+
 /** Ghi workbook ra file, tự tạo thư mục cha */
 export async function writeWorkbook(wb: ExcelJS.Workbook, filePath: string): Promise<void> {
   const path = await import('node:path')

@@ -107,24 +107,30 @@ export function calculateCloScores(
 }
 
 /**
- * Tính điểm trung bình cộng CLO (TBC CLO) có trọng số và chuyển thành chữ tiếng Việt
+ * Tính điểm trung bình cộng CLO (TBC CLO) và chuyển thành chữ tiếng Việt
+ * Theo QĐ450 Phụ lục 3: TBC CLO là trung bình cộng thuần của các CLO
  */
 export function calculateTbcClo(
   cloList: CLODefinition[],
   cloScores: Record<string, number>,
   mode: 'chain' | 'final_only' = 'chain'
 ): TbcCloResult {
+  let sumClo = new Decimal(0)
+  let countClo = 0
   let sumWeightedClo = new Decimal(0)
   let sumCloWeights = new Decimal(0)
 
   for (const clo of cloList) {
     const score = cloScores[clo.maClo] ?? 0
+    sumClo = sumClo.add(score)
+    countClo++
+
     const w = clo.trongSoClo ?? 1
     sumWeightedClo = sumWeightedClo.add(new Decimal(score).mul(w))
     sumCloWeights = sumCloWeights.add(w)
   }
 
-  const rawTbcClo = sumCloWeights.gt(0) ? sumWeightedClo.div(sumCloWeights).toNumber() : 0
+  const rawTbcClo = countClo > 0 ? sumClo.div(countClo).toNumber() : 0
   const tbcClo = roundStep(rawTbcClo, mode, 1)
   const tbcCloInWords = numberToWordsVi(tbcClo, 1, true)
 

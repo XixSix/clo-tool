@@ -3,10 +3,16 @@
  */
 
 import type ExcelJS from 'exceljs'
-import type { CourseConfig, RawGradesMeta } from '../../types'
-import { normalizeHeader } from '../../utils/excel'
+import type { RawGradesMeta } from '../../types'
+import { cellText, normalizeHeader } from '../../utils/excel'
 
-export const BASE_COLUMNS = ['TT', 'Ma_SV', 'Ho', 'Ten', 'Ho_Ten', 'Ngay_Sinh', 'Ma_De', 'Ghi_Chu']
+/**
+ * Cột cố định bắt buộc của file điểm thô.
+ *
+ * Dùng cùng quy tắc với Config: header một hàng, thiếu cột nào là dừng ngay.
+ * `Ma_De` để tùy chọn vì file một đề không cần cột này.
+ */
+export const RAW_GRADES_COLUMNS = ['TT', 'Ma_SV', 'Ho', 'Ten', 'Ngay_Sinh', 'Ghi_Chu']
 
 export const META_LABELS: { key: keyof RawGradesMeta; patterns: string[] }[] = [
   { key: 'tenHocPhan', patterns: ['hocphan', 'tenhocphan'] },
@@ -18,9 +24,12 @@ export const META_LABELS: { key: keyof RawGradesMeta; patterns: string[] }[] = [
 ]
 
 /** Danh sách cột điểm cần có, giữ thứ tự xuất hiện trong Config */
-export function scoreColumnsFromConfig(config: CourseConfig): string[] {
-  return Array.from(new Set(config.cauHoi.map((q) => q.maCotDiem)))
-}
+export {
+  DIRECT_SCORE_COLUMN_MAX,
+  directScoreColumns,
+  maxScoreOfColumn,
+  scoreColumnsFromConfig
+} from '../../utils/scoreColumns'
 
 /**
  * 3 format cột điểm danh hợp lệ:
@@ -59,4 +68,14 @@ export function columnCell(
 /** Mã SV thay thế cho dòng thiếu mã, giữ đúng quy ước cũ */
 export function missingMaSv(row: number): string {
   return `__MISSING_${row}`
+}
+
+/** Đọc Họ + Tên từ một dòng và ghép họ tên đầy đủ để hiển thị */
+export function parseStudentName(
+  row: ExcelJS.Row,
+  mapping: Record<string, number>
+): { ho: string; ten: string; hoTen: string } {
+  const ho = cellText(columnCell(row, mapping, 'Ho')).trim()
+  const ten = cellText(columnCell(row, mapping, 'Ten')).trim()
+  return { ho, ten, hoTen: [ho, ten].filter(Boolean).join(' ') }
 }

@@ -6,7 +6,7 @@ import type ExcelJS from 'exceljs'
 import type { AttendanceRecord, RawStudentRow } from '../../types'
 import { cellText, parseNumber } from '../../utils/excel'
 import { RawGradesParseError } from './errors'
-import { columnCell, missingMaSv } from './helpers'
+import { columnCell, missingMaSv, parseStudentName } from './helpers'
 import type { AttendanceColumn, ParsedStudentRows } from './types'
 
 export interface ParseStudentRowsOptions {
@@ -32,23 +32,11 @@ export function parseStudentRows({
     const row = ws.getRow(r)
     const maSvCell = columnCell(row, mapping, 'Ma_SV')
     const maSv = cellText(maSvCell).trim()
-    const ho = cellText(columnCell(row, mapping, 'Ho')).trim()
-    const ten = cellText(columnCell(row, mapping, 'Ten')).trim()
-    const hoTenFull = cellText(columnCell(row, mapping, 'Ho_Ten')).trim()
-    let finalHo = ho
-    let finalTen = ten
-    let finalHoTen = hoTenFull
-    if (!finalHoTen) {
-      finalHoTen = [ho, ten].filter(Boolean).join(' ')
-    } else if (!finalTen) {
-      const parts = finalHoTen.split(/\s+/)
-      finalTen = parts.length > 1 ? parts.pop()! : finalHoTen
-      finalHo = parts.join(' ')
-    }
+    const { ho, ten, hoTen } = parseStudentName(row, mapping)
 
     // Dòng ghi chú/hướng dẫn thường là ô gộp: bỏ qua, không coi là sinh viên
     if (maSvCell?.isMerged) continue
-    if (!maSv && !finalHoTen) continue
+    if (!maSv && !hoTen) continue
 
     const diemCacCot: RawStudentRow['scores']['diemCacCot'] = {}
     const invalidCells: { maCot: string; raw: string }[] = []
@@ -88,17 +76,16 @@ export function parseStudentRows({
     }
 
     const studentMaSv = maSv || missingMaSv(r)
-    const ttParsed = parseNumber(
-      cellText(mapping.TT !== undefined ? row.getCell(mapping.TT + 1) : row.getCell(1))
-    )
+    const ttCell = columnCell(row, mapping, 'TT')
+    const ttParsed = parseNumber(ttCell ? cellText(ttCell) : cellText(row.getCell(1)))
 
     students.push({
       student: {
         tt: ttParsed ?? students.length + 1,
         maSv: studentMaSv,
-        ho: finalHo,
-        ten: finalTen,
-        hoTen: finalHoTen,
+        ho,
+        ten,
+        hoTen,
         ngaySinh: cellText(columnCell(row, mapping, 'Ngay_Sinh')).trim() || undefined
       },
       scores: {

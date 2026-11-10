@@ -8,3 +8,4 @@
 
 export * from './numberToWordsVi'
 export * from './excel'
+export * from './scoreColumns'

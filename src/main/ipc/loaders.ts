@@ -34,9 +34,10 @@ export async function loadRawGrades(
   config: CourseConfig,
   rawPath: string
 ): Promise<LoadedRawGrades> {
+  // 1. Parse → 2. Validate dữ liệu gốc → 3. Tính điểm danh.
   const file = await parseRawGrades(rawPath, config)
+  const validation = validateRawGrades(config, file)
   const applied = applyAttendance(file, config)
-  const validation = validateRawGrades(config, applied.file)
 
   return {
     file: applied.file,

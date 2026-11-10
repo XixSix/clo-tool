@@ -3,6 +3,7 @@
 import ExcelJS from 'exceljs'
 import type { CourseConfig, RawStudentRow } from '../types'
 import { setWidths, styleCell, styleHeaderRow, styleTitle, BORDER_THIN } from '../exporter/style'
+import { maxScoreOfColumn, scoreColumnsFromConfig } from '../utils/scoreColumns'
 
 const INPUT_FILL = 'FFFEF9C3'
 
@@ -27,10 +28,10 @@ export function buildRawGradesWorkbook(
   const ws = wb.addWorksheet('NHAP_LIEU')
   const sessions =
     options.sessions ?? Array.from({ length: 12 }, (_, i) => ({ label: `Buổi ${i + 1}` }))
-  const scoreColumns = Array.from(new Set(config.cauHoi.map((q) => q.maCotDiem)))
+  const scoreColumns = scoreColumnsFromConfig(config)
   const maxScoreByColumn = new Map<string, number>()
-  for (const q of config.cauHoi) {
-    if (!maxScoreByColumn.has(q.maCotDiem)) maxScoreByColumn.set(q.maCotDiem, q.diemToiDa)
+  for (const maCot of scoreColumns) {
+    maxScoreByColumn.set(maCot, maxScoreOfColumn(config, maCot))
   }
 
   const colCount = 5 + sessions.length + scoreColumns.length + 1
