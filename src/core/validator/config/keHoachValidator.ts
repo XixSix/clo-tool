@@ -2,14 +2,17 @@
  * Validate sheet KE_HOACH_DANH_GIA — kế hoạch đánh giá từng CLO.
  */
 
-import type { CourseConfig, ValidationIssue } from '../../types'
+import type { CLODefinition, EvaluationPlanItem, ValidationIssue } from '../../types'
 import { roundHalfUp } from '../../rules'
 
 const VALID_GROUPS = new Set(['CC', 'GK', 'CK'])
 
-export const validateKeHoach = (config: CourseConfig): ValidationIssue[] => {
+export const validateKeHoach = (
+  plan: EvaluationPlanItem[],
+  cloList: CLODefinition[],
+  canhBaoCcDonLe: boolean
+): ValidationIssue[] => {
   const issues: ValidationIssue[] = []
-  const plan = config.keHoachDanhGia
 
   // Validate all sheet
   if (plan.length === 0) {
@@ -57,19 +60,19 @@ export const validateKeHoach = (config: CourseConfig): ValidationIssue[] => {
     }
 
     // Validate trọng số
-    if (!Number.isInteger(p.trongSoPhanTram)) {
-      issues.push({
-        level: 'error',
-        sheet: 'KE_HOACH_DANH_GIA',
-        column: 'Trong_So_Phan_Tram',
-        message: `Trọng số của đầu điểm "${p.maDauDiem}" (CLO "${p.clo}") phải là số nguyên % (nhận ${p.trongSoPhanTram}).`
-      })
-    } else if (p.trongSoPhanTram <= 0) {
+    if (!Number.isFinite(p.trongSoPhanTram) || p.trongSoPhanTram <= 0) {
       issues.push({
         level: 'error',
         sheet: 'KE_HOACH_DANH_GIA',
         column: 'Trong_So_Phan_Tram',
         message: `Trọng số của đầu điểm "${p.maDauDiem}" phải lớn hơn 0.`
+      })
+    } else if (p.trongSoPhanTram > 100) {
+      issues.push({
+        level: 'error',
+        sheet: 'KE_HOACH_DANH_GIA',
+        column: 'Trong_So_Phan_Tram',
+        message: `Trọng số của đầu điểm "${p.maDauDiem}" phải nhỏ hơn hoặc bằng 100.`
       })
     }
 
@@ -111,11 +114,9 @@ export const validateKeHoach = (config: CourseConfig): ValidationIssue[] => {
     }
   }
 
-  // Chỉ so tổng khi mọi trọng số đều nguyên: trọng số thập phân đã báo lỗi ở
-  // từng dòng nên "tổng ≠ 100%" chỉ gây nhiễu. Trọng số nguyên cộng chính xác
-  // tuyệt đối trong float -> so sánh trực tiếp, không cần EPSILON.
+  // Tổng trọng số = 100
   const totalWeight = plan.reduce((sum, p) => sum + p.trongSoPhanTram, 0)
-  if (plan.every((p) => Number.isInteger(p.trongSoPhanTram)) && totalWeight !== 100) {
+  if (Math.abs(roundHalfUp(totalWeight, 2) - 100) > 0.01) {
     issues.push({
       level: 'error',
       sheet: 'KE_HOACH_DANH_GIA',
@@ -125,8 +126,8 @@ export const validateKeHoach = (config: CourseConfig): ValidationIssue[] => {
   }
 
   // CLO chỉ đo bằng chuyên cần/thái độ (Quyết định #7: không chặn)
-  if (config.quyTac.canh_bao_cc_don_le) {
-    for (const clo of config.cloList) {
+  if (canhBaoCcDonLe) {
+    for (const clo of cloList) {
       const groups = groupsByClo.get(clo.maClo)
       if (groups && [...groups].every((g) => g === 'CC')) {
         issues.push({

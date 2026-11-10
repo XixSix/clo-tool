@@ -18,10 +18,14 @@ import { validateCrossSheet } from './crossSheetValidator'
 
 export function validateConfig(config: CourseConfig): ValidationIssue[] {
   return [
-    ...validateHocPhan(config),
-    ...validateCloList(config),
-    ...validateKeHoach(config),
-    ...validateCauHoi(config),
+    ...validateHocPhan(config.courseInfo),
+    ...validateCloList(config.cloList, config.courseInfo.loaiHp),
+    ...validateKeHoach(
+      config.keHoachDanhGia,
+      config.cloList,
+      config.quyTac.canh_bao_cc_don_le
+    ),
+    ...validateCauHoi(config.cauHoi, config.maTranPlo),
     ...validateMaTranPlo(config),
     ...validateCrossSheet(config)
   ]
