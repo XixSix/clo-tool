@@ -77,11 +77,12 @@ jobs:
 
       # @napi-rs/canvas là native module: runner arm64 chỉ cài sẵn bản arm64,
       # nên phải cài thêm bản của kiến trúc còn lại để đóng gói đủ cả hai app.
+      # `--force` để npm bỏ qua kiểm tra os/cpu (cài chéo kiến trúc).
       - name: Cài binary canvas cho cả arm64 và x64
         shell: bash
         run: |
           canvas_version=$(node -p "require('@napi-rs/canvas/package.json').version")
-          npm install --no-save \
+          npm install --no-save --force \
             "@napi-rs/canvas-darwin-arm64@$canvas_version" \
             "@napi-rs/canvas-darwin-x64@$canvas_version"
 
