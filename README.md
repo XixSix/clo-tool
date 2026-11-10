@@ -189,13 +189,20 @@ Mỗi phiên bản là **một tag `vX.Y.Z`** — tag chính là "hợp đồng"
    git push origin v1.0.2
    ```
 
-4. Push tag kích hoạt `.github/workflows/release.yml`: chạy test, build và đính kèm
-   `CLO_PLO_Evaluator-<version>-setup.exe` (có tự cập nhật), `-portable.exe` (tải tay),
-   `latest.yml` + `.blockmap` vào GitHub Release.
+4. Push tag kích hoạt `.github/workflows/release.yml`: chạy test, build trên **Windows** và
+   **macOS** rồi đính kèm vào GitHub Release:
+   - Windows: `CLO_PLO_Evaluator-<version>-setup.exe` (có tự cập nhật),
+     `-portable.exe` (tải tay), `latest.yml` + `.blockmap`.
+   - macOS: `CLO_PLO_Evaluator-<version>-arm64.dmg` / `-x64.dmg` (tải tay) và
+     `-arm64-mac.zip` / `-x64-mac.zip` + `latest-mac.yml` (dùng cho tự cập nhật).
+     `arm64` cho Apple Silicon, `x64` cho Intel.
 5. Gộp `release/x.y.z` vào `develop` và `main` (chỉ `--ff-only`) rồi push.
 
 Lưu ý:
 
-- Tự cập nhật chỉ áp dụng cho bản **cài đặt** (`setup.exe`); bản `portable.exe` phải tải lại.
-- Build chưa ký số nên Windows SmartScreen có thể cảnh báo lần chạy đầu.
+- Tự cập nhật chỉ áp dụng cho bản **cài đặt** (`setup.exe` trên Windows, file `.app` trong
+  `mac.zip` trên macOS); bản `portable.exe` và `.dmg` phải tải lại.
+- Build chưa ký số nên Windows SmartScreen có thể cảnh báo lần chạy đầu; trên macOS, lần mở
+  đầu cần chuột phải → **Open** (hoặc `xattr -dr com.apple.quarantine`), và tự cập nhật trên
+  macOS chỉ hoạt động sau khi app được ký + notarize bằng Apple Developer ID.
 - Workflow kiểm tra `version` trong `package.json` phải khớp tên tag, trước khi build.
