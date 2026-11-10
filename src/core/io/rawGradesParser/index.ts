@@ -18,9 +18,10 @@ import type { CourseConfig, RawGrades } from '../../types'
 import { findSheet, readWorkbook } from '../../utils/excel'
 import { parseAttendanceColumns } from './attendanceParser'
 import { RawGradesParseError } from './errors'
-import { assertScoreColumns, parseRawGradesHeader } from './headerParser'
+import { parseRawGradesHeader } from './headerParser'
 import { parseDeclaredMaxScores } from './maxScoreParser'
 import { parseRawGradesMeta } from './metaParser'
+import { buildRawGrades } from './rawGradesBuilder'
 import { parseStudentRows } from './studentParser'
 
 export * from './errors'
@@ -36,15 +37,7 @@ export async function parseRawGrades(
     throw new RawGradesParseError('File điểm thô không có sheet dữ liệu.')
   }
 
-  const parsedHeader = parseRawGradesHeader(ws, config)
-  if (!parsedHeader) {
-    throw new RawGradesParseError(
-      'Không tìm thấy hàng tiêu đề (cần có cột "Mã SV", "Họ", "Tên"...).'
-    )
-  }
-
-  const { header, scoreColumns } = parsedHeader
-  assertScoreColumns(header, scoreColumns)
+  const { header, scoreColumns } = parseRawGradesHeader(ws, config)
 
   const meta = parseRawGradesMeta(ws, header.rowNumber)
   const { sessions, columns } = parseAttendanceColumns(header.headers)
@@ -62,12 +55,12 @@ export async function parseRawGrades(
     throw new RawGradesParseError('Không đọc được sinh viên nào.')
   }
 
-  return {
+  return buildRawGrades({
     meta,
     students: rows.students,
     attendance: rows.attendance,
     attendanceSessions: sessions,
     declaredMaxScores: maxScores.scores,
     studentExcelRows: rows.studentExcelRows
-  }
+  })
 }

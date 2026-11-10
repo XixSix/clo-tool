@@ -171,7 +171,7 @@ describe('parseRawGrades', () => {
 
     const config = await parseCourseConfig(configPath)
     await expect(parseRawGrades(missingFile, config)).rejects.toThrow(
-      'Thiếu cột điểm "CC" khai báo trong Config.'
+      'Thiếu cột "CC" trong sheet NHAP_LIEU.'
     )
   })
 

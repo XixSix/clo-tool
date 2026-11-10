@@ -5,7 +5,7 @@
 import type ExcelJS from 'exceljs'
 import type { CourseInfo } from '../../types'
 import { findSheet, parseNumber } from '../../utils/excel'
-import { CONFIG_SHEET_COLUMNS, get, readTable } from './helpers'
+import { CONFIG_SHEET_COLUMNS, get, readConfigTable } from './helpers'
 import { ConfigParseError } from './errors'
 
 export function parseHocPhanSheet(wb: ExcelJS.Workbook): CourseInfo {
@@ -14,7 +14,7 @@ export function parseHocPhanSheet(wb: ExcelJS.Workbook): CourseInfo {
     throw new ConfigParseError('Thiếu sheet HOC_PHAN trong file Config.')
   }
 
-  const { headers, rows } = readTable(ws, CONFIG_SHEET_COLUMNS.HOC_PHAN, 'HOC_PHAN')
+  const { headers, rows } = readConfigTable(ws, CONFIG_SHEET_COLUMNS.HOC_PHAN, 'HOC_PHAN')
   if (rows.length === 0) {
     throw new ConfigParseError('Sheet HOC_PHAN không có dữ liệu.')
   }

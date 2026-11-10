@@ -5,6 +5,7 @@
 import type ExcelJS from 'exceljs'
 import type { CourseConfig } from '../../types'
 import { cellText, parseNumber } from '../../utils/excel'
+import { scoreColumnsFromConfig } from './helpers'
 import type { DeclaredMaxScoreResult } from './types'
 
 export function parseDeclaredMaxScores(
@@ -15,6 +16,7 @@ export function parseDeclaredMaxScores(
 ): DeclaredMaxScoreResult {
   const scores: Record<string, number> = {}
   let firstStudentRow = headerRow + 1
+  const scoreColumns = scoreColumnsFromConfig(config)
 
   const maxRowTexts: string[] = []
   for (let c = 1; c <= ws.columnCount; c++) {
@@ -24,23 +26,21 @@ export function parseDeclaredMaxScores(
   const isMaxRow =
     maxRowTexts.some((text) => /tối\s*đa|toi\s*da/i.test(text)) ||
     (maxRowTexts[0]?.trim() === '' &&
-      config.cauHoi.every((q) => {
-        const index = mapping[q.maCotDiem]
+      scoreColumns.every((maCot) => {
+        const index = mapping[maCot]
         return (
-          index !== undefined &&
-          maxRowTexts[index] !== '' &&
-          parseNumber(maxRowTexts[index]) !== null
+          index !== undefined && maxRowTexts[index] !== '' && parseNumber(maxRowTexts[index]) !== null
         )
       }))
 
   if (!isMaxRow) return { scores, firstStudentRow }
 
-  for (const q of config.cauHoi) {
-    const index = mapping[q.maCotDiem]
+  for (const maCot of scoreColumns) {
+    const index = mapping[maCot]
     if (index === undefined) continue
 
     const value = parseNumber(maxRowTexts[index])
-    if (value !== null) scores[q.maCotDiem] = value
+    if (value !== null) scores[maCot] = value
   }
 
   firstStudentRow += 1

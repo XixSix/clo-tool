@@ -204,12 +204,13 @@ Làm một lần cho mỗi học phần. Gồm 7 sheet:
 | Nhóm cột                                     | Nội dung                                                                                  | Ghi chú                                                                          |
 | :------------------------------------------- | :---------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------- |
 | Thông tin lớp (các ô có nhãn phía trên bảng) | Lớp, Giảng viên, Học kỳ, Năm học                                                          | Tên học phần lấy từ Config, không nhập lại                                       |
-| Cột cố định                                  | `TT`, `Mã SV`, `Họ`, `Tên` (hoặc `Họ và tên`), `Ngày sinh`, `Mã đề` (tùy chọn), `Ghi chú` | **`Mã SV` đọc dạng văn bản** (tránh mất số 0 đầu)                                |
+| Cột cố định (bắt buộc)                       | `TT`, `Mã SV`, `Họ`, `Tên`, `Ngày sinh`, `Ghi chú`                                        | **`Mã SV` đọc dạng văn bản** (tránh mất số 0 đầu)                                |
+| Cột tùy chọn                                 | `Mã đề`                                                                                   | Chỉ cần khi lớp có nhiều đề                                                      |
 | Điểm danh                                    | `Buổi 1` … `Buổi N`, với một hàng ngày học bên trên                                       | Ký hiệu theo `DIEM_DANH`. CC = Σ hệ số / số buổi đã diễn ra × 10                 |
 | Thái độ, chuyên cần nhập sẵn                 | Cột thang 10 theo `Mã cột điểm`                                                           | GV có thể nhập điểm CC sẵn thay vì điểm danh                                     |
 | Điểm kiểm tra, điểm thi                      | Mỗi cột đúng một `Mã cột điểm` trong `CAU_HOI`                                            | Hàng "Điểm tối đa" nằm ngay dưới hàng tiêu đề, do app điền sẵn khi sinh template |
 
-**Cách giảm lỗi gõ sai tên cột:** app **sinh file `Template_DiemTho.xlsx` từ Config** (tiêu đề cột, điểm tối đa, ô nhập màu vàng, ràng buộc nhập), giảng viên chỉ dán điểm vào. Khi đọc file, app dò tiêu đề theo **tên cột** chứ không theo vị trí hàng/cột cố định, và gợi ý tên gần giống nếu lệch.
+**Cách giảm lỗi gõ sai tên cột:** app **sinh file `Template_DiemTho.xlsx` từ Config** (tiêu đề cột, điểm tối đa, ô nhập màu vàng, ràng buộc nhập), giảng viên chỉ dán điểm vào. File điểm thô dùng **cùng quy tắc với Config**: tiêu đề nằm trên một hàng, phải có đủ các cột cố định và cột điểm khai báo trong Config; thiếu cột nào là báo lỗi ngay, không tự đoán layout. Tên cột vẫn được dò theo tên (chấp nhận lệch dấu/khoảng trắng/hoa thường) và có gợi ý tên gần giống.
 
 ### 3. Quy ước ô trống và giá trị đặc biệt
 

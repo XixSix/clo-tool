@@ -26,7 +26,12 @@ export function validateConfig(config: CourseConfig): ValidationIssue[] {
       config.quyTac.canh_bao_cc_don_le
     ),
     ...validateCauHoi(config.cauHoi, config.maTranPlo),
-    ...validateMaTranPlo(config),
-    ...validateCrossSheet(config)
+    ...validateMaTranPlo(config.maTranPlo),
+    ...validateCrossSheet(
+      config.cloList,
+      config.keHoachDanhGia,
+      config.cauHoi,
+      config.maTranPlo
+    )
   ]
 }

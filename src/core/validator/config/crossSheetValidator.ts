@@ -2,15 +2,26 @@
  * Validate chéo giữa các sheet (KE_HOACH ↔ CAU_HOI ↔ CLO_LIST ↔ MA_TRAN_PLO).
  */
 
-import type { CourseConfig, ValidationIssue } from '../../types'
+import type {
+  CLODefinition,
+  EvaluationPlanItem,
+  PLOMapping,
+  QuestionColumn,
+  ValidationIssue
+} from '../../types'
 import { EPSILON, examMaxScores } from '../helpers'
 import { roundHalfUp } from '../../rules'
 
-export function validateCrossSheet(config: CourseConfig): ValidationIssue[] {
+export function validateCrossSheet(
+  cloList: CLODefinition[],
+  keHoachDanhGia: EvaluationPlanItem[],
+  cauHoi: QuestionColumn[],
+  maTranPlo: PLOMapping[]
+): ValidationIssue[] {
   const issues: ValidationIssue[] = []
 
   // 1. Mã CLO phải tồn tại trong CLO_LIST (từ cả 3 sheet tham chiếu)
-  const cloCodes = new Set(config.cloList.map((c) => c.maClo.trim()))
+  const cloCodes = new Set(cloList.map((c) => c.maClo.trim()))
   const checkClo = (clo: string, sheet: string, row?: number): void => {
     const code = clo?.trim()
     if (code && !cloCodes.has(code)) {
@@ -23,15 +34,15 @@ export function validateCrossSheet(config: CourseConfig): ValidationIssue[] {
       })
     }
   }
-  config.keHoachDanhGia.forEach((p, idx) => checkClo(p.clo, 'KE_HOACH_DANH_GIA', idx + 2))
-  config.cauHoi.forEach((q, idx) => checkClo(q.clo, 'CAU_HOI', idx + 2))
-  config.maTranPlo.forEach((m, idx) => checkClo(m.clo, 'MA_TRAN_PLO', idx + 2))
+  keHoachDanhGia.forEach((p, idx) => checkClo(p.clo, 'KE_HOACH_DANH_GIA', idx + 2))
+  cauHoi.forEach((q, idx) => checkClo(q.clo, 'CAU_HOI', idx + 2))
+  maTranPlo.forEach((m, idx) => checkClo(m.clo, 'MA_TRAN_PLO', idx + 2))
 
   // 2. Cặp (đầu điểm, CLO) phải khớp 2 chiều giữa KE_HOACH_DANH_GIA và CAU_HOI
   // Trim mã trước khi so khớp để khoảng trắng thừa không tạo cặp "khác nhau".
   const pairKey = (maDauDiem: string, clo: string): string => `${maDauDiem.trim()}|${clo.trim()}`
-  const planKeys = new Set(config.keHoachDanhGia.map((p) => pairKey(p.maDauDiem, p.clo)))
-  const questionKeys = new Set(config.cauHoi.map((q) => pairKey(q.maDauDiem, q.clo)))
+  const planKeys = new Set(keHoachDanhGia.map((p) => pairKey(p.maDauDiem, p.clo)))
+  const questionKeys = new Set(cauHoi.map((q) => pairKey(q.maDauDiem, q.clo)))
 
   for (const key of questionKeys) {
     if (!planKeys.has(key)) {
@@ -55,8 +66,8 @@ export function validateCrossSheet(config: CourseConfig): ValidationIssue[] {
   }
 
   // 3. CLO không được đầu điểm nào đo
-  const measuredClo = new Set(config.keHoachDanhGia.map((p) => p.clo.trim()))
-  for (const clo of config.cloList) {
+  const measuredClo = new Set(keHoachDanhGia.map((p) => p.clo.trim()))
+  for (const clo of cloList) {
     const code = clo.maClo.trim()
     if (code && !measuredClo.has(code)) {
       issues.push({
@@ -68,8 +79,8 @@ export function validateCrossSheet(config: CourseConfig): ValidationIssue[] {
   }
 
   // 4. CLO chưa được ánh xạ tới PI/PLO (đối chiếu CLO_LIST với MA_TRAN_PLO)
-  const mappedClo = new Set(config.maTranPlo.map((m) => m.clo.trim()))
-  for (const clo of config.cloList) {
+  const mappedClo = new Set(maTranPlo.map((m) => m.clo.trim()))
+  for (const clo of cloList) {
     const code = clo.maClo.trim()
     if (code && !mappedClo.has(code)) {
       issues.push({
@@ -81,7 +92,7 @@ export function validateCrossSheet(config: CourseConfig): ValidationIssue[] {
   }
 
   // 5. Tổng điểm tối đa mỗi đề phải bằng 10
-  for (const [key, total] of Object.entries(examMaxScores(config.cauHoi))) {
+  for (const [key, total] of Object.entries(examMaxScores(cauHoi))) {
     if (Math.abs(total - 10) > EPSILON) {
       const [maDauDiem, maDe] = key.split('|')
       issues.push({
