@@ -2,14 +2,17 @@
  * Validate sheet CLO_LIST — danh mục chuẩn đầu ra (CLO).
  */
 
-import type { CourseConfig, ValidationIssue } from '../../types'
+import type { CLODefinition, CourseInfo, ValidationIssue } from '../../types'
+import { roundHalfUp } from '../../rules'
 
 // Chấp nhận cả dạng phân cấp CLOx.y (ví dụ CLO1.1) theo QĐ450
 const CLO_CODE_PATTERN = /^CLO\d+(\.\d+)?$/
 
-export function validateCloList(config: CourseConfig): ValidationIssue[] {
+export function validateCloList(
+  cloList: CLODefinition[],
+  loaiHp: CourseInfo['loaiHp']
+): ValidationIssue[] {
   const issues: ValidationIssue[] = []
-  const cloList = config.cloList
 
   // Validate all sheet
   if (cloList.length === 0) {
@@ -63,7 +66,7 @@ export function validateCloList(config: CourseConfig): ValidationIssue[] {
     }
 
     // Bậc năng lực dạng "bậc/thang" (QĐ450: 3/6, 3/5, 4/6) — chỉ dùng hiển thị
-    // trong template/Phụ lục, không tham gia tính điểm nên mọi khuyết tật chỉ cảnh báo
+    // trong template/Phụ lục, không tham gia tính điểm nên chỉ cảnh báo
     if (!clo.bacNangLuc || clo.bacNangLuc.trim() === '') {
       issues.push({
         level: 'warning',
@@ -105,6 +108,31 @@ export function validateCloList(config: CourseConfig): ValidationIssue[] {
         column: 'Trong_So_CLO',
         message: `Trọng số CLO của "${clo.maClo}" phải thuộc (0..100].`
       })
+    }
+  }
+
+  // Học phần thực hành (QĐ450 Điều 9.3): C_hp = Σ CLO_k × trọng số CLO_k
+  if (loaiHp === 'thuc_hanh' && cloList.length > 0) {
+    const missing = cloList.filter((c) => c.trongSoClo === undefined)
+    if (missing.length > 0) {
+      issues.push({
+        level: 'error',
+        sheet: 'CLO_LIST',
+        column: 'Trong_So_CLO',
+        message: `Học phần thực hành yêu cầu khai báo Trọng số CLO cho mọi CLO (thiếu: ${missing
+          .map((c) => c.maClo)
+          .join(', ')}).`
+      })
+    } else {
+      const total = cloList.reduce((sum, c) => sum + (c.trongSoClo ?? 0), 0)
+      if (roundHalfUp(total, 2) !== 100) {
+        issues.push({
+          level: 'error',
+          sheet: 'CLO_LIST',
+          column: 'Trong_So_CLO',
+          message: `Học phần thực hành yêu cầu tổng Trọng số CLO = 100% (hiện ${roundHalfUp(total, 2)}%).`
+        })
+      }
     }
   }
 

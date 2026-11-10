@@ -20,15 +20,17 @@
  *   (cùng câu nhưng khác CLO được phép — đó là các ý a, b của cùng câu).
  */
 
-import type { CourseConfig, ValidationIssue } from '../../types'
+import type { PLOMapping, QuestionColumn, ValidationIssue } from '../../types'
 import { isMultipleOfQuarter } from '../helpers'
 import { roundHalfUp } from '../../rules'
 
 const VALID_LOAI = new Set(['TL', 'TN'])
 
-export const validateCauHoi = (config: CourseConfig): ValidationIssue[] => {
+export const validateCauHoi = (
+  question: QuestionColumn[],
+  maTranPlo: PLOMapping[]
+): ValidationIssue[] => {
   const issues: ValidationIssue[] = []
-  const question = config.cauHoi
 
   // Validate all sheet
   if (question.length === 0) {
@@ -247,10 +249,10 @@ export const validateCauHoi = (config: CourseConfig): ValidationIssue[] => {
   }
 
   // Tổng điểm câu đo CLO tham gia PLO phải > 50% điểm bài thi (QĐ450 Điều 3.4)
-  if (config.maTranPlo.length > 0) {
-    const ploClos = new Set(config.maTranPlo.map((m) => m.clo))
+  if (maTranPlo.length > 0) {
+    const ploClos = new Set(maTranPlo.map((m) => m.clo))
     const totals = new Map<string, { total: number; columns: Set<string> }>()
-    for (const q of config.cauHoi) {
+    for (const q of question) {
       const key = `${q.maDauDiem}|${q.maDe ?? 'ALL'}`
       const entry = totals.get(key) ?? { total: 0, columns: new Set<string>() }
       // Một cột điểm có thể phục vụ nhiều CLO -> chỉ cộng một lần
@@ -264,7 +266,7 @@ export const validateCauHoi = (config: CourseConfig): ValidationIssue[] => {
       const [maDauDiem, maDe] = key.split('|')
       // Tính theo cột duy nhất để không cộng trùng
       const unique = new Map(
-        config.cauHoi
+        question
           .filter((q) => q.maDauDiem === maDauDiem && (q.maDe ?? 'ALL') === maDe)
           .map((q) => [q.maCotDiem, q])
       )

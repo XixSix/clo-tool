@@ -2,13 +2,12 @@
  * Validate sheet HOC_PHAN — thông tin chung của học phần.
  */
 
-import type { CourseConfig, ValidationIssue } from '../../types'
+import type { CourseInfo, ValidationIssue } from '../../types'
 
 const VALID_LOAI_HP = new Set(['thuong', 'thuc_hanh'])
 
-export const validateHocPhan = (config: CourseConfig): ValidationIssue[] => {
+export const validateHocPhan = (info: CourseInfo): ValidationIssue[] => {
   const issues: ValidationIssue[] = []
-  const info = config.courseInfo
 
   // Validate Ma_HP
   if (!info.maHp || info.maHp.trim() === '') {

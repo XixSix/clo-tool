@@ -84,6 +84,10 @@ _Vì sao nhập điểm trực tiếp trong app để v2:_ giảng viên đã c�
 - **Nhóm:** `CC` (chuyên cần + thái độ, 20%), `GK` (kiểm tra giữa kỳ/thường xuyên, 30%), `CK` (thi cuối kỳ, 50%), theo QĐ450 Điều 9.3. Trọng số nhóm nằm trong Config.
 - **Ô (j, k):** cặp đầu điểm `j` đo CLO `k`. Mỗi ô có một trọng số `w(j,k)` theo kế hoạch đánh giá, giống bảng "Bảng 4" của Mẫu Excel 2026 (CC–CLO2: 5%, CC–CLO3: 5%, ...).
 
+> **Nhập trọng số theo đề cương bằng ô gộp:** Khi nhiều CLO cùng một đợt đánh giá có chung một trọng số tổng (ví dụ đề cương ghi "Kiểm tra định kỳ: 15%" cho CLO1 và CLO2), giảng viên có thể **gộp ô `Trong_So_Phan_Tram`** qua các dòng đó và chỉ nhập một lần giá trị tổng. Bộ đọc Config tự chia đều giá trị cho số dòng kế hoạch nằm trong vùng gộp, nên tổng vẫn bằng 100% và kết quả tính điểm giống hệt khi nhập tay từng CLO. Không cần gõ gộp mã CLO trên một dòng.
+>
+> **Đầu điểm không có câu hỏi con (GK, TD…):** Nếu đề kiểm tra không tách được điểm theo từng câu/ý cho từng CLO, không cần khai dòng nào trong `CAU_HOI`. App coi đầu điểm đó là **cột điểm trực tiếp** thang 10: cột trong file điểm thô mang đúng mã `Ma_Dau_Diem` (ví dụ `GK1`, `GK2`), và **mọi CLO mà đầu điểm đó đo trong `KE_HOACH_DANH_GIA` đều nhận cùng một điểm**. Nhờ vậy một cột `GK1` tự chia đều cho CLO1 và CLO2 mà không phải nhập lại theo CLO.
+
 #### A. Điểm CLO thành phần (thang 10) cho từng ô (j, k)
 
 $$s_{j,k} = \frac{1}{n}\sum_{i=1}^{n}\frac{d_i}{t_i}\times 10$$
@@ -110,9 +114,9 @@ $$\text{CLO}_k = \frac{\sum_{j} w_{j,k}\, s_{j,k}}{\sum_{j} w_{j,k}}$$
 
 #### C. TBC CLO
 
-$$\text{TBC CLO} = \frac{\sum_{k=1}^{n} v_k\,\text{CLO}_k}{\sum_{k=1}^{n} v_k}$$
+$$\text{TBC CLO} = \frac{\sum_{k=1}^{n}\text{CLO}_k}{n}$$
 
-$v_k$ là cột `Trọng số CLO` trong `CLO_LIST` (bỏ trống = 1, tức trung bình cộng thuần như Phụ lục 3 ghi "Trung bình cộng các CLO"). Ví dụ Hùng: TBC CLO = 6,6.
+Theo QĐ450 Phụ lục 3 ("Trung bình cộng các CLO"), TBC CLO là **trung bình cộng thuần**, không gia quyền. Cột `Trọng số CLO` trong `CLO_LIST` chỉ dùng cho học phần thực hành (mục D). Ví dụ Hùng: TBC CLO = 6,6.
 
 #### D. Điểm học phần (điểm học vụ)
 

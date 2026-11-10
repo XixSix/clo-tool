@@ -129,35 +129,41 @@ describe('validateCloList - sheet CLO_LIST', () => {
       'Bậc năng lực "7/6" của CLO "CLO3" không hợp lệ — bậc phải là số nguyên từ 1 đến thang (6).'
     )
   })
+
+  it('học phần thực hành -> bắt buộc Trọng số CLO và tổng phải bằng 100%', () => {
+    const config = mock()
+    config.courseInfo.loaiHp = 'thuc_hanh'
+    // Xóa trọng số CLO -> lỗi thiếu
+    config.cloList.forEach((c) => {
+      delete c.trongSoClo
+    })
+    const errMissing = errors(validateConfig(config)).map((i) => i.message)
+    expect(errMissing.some((m) => m.includes('Học phần thực hành yêu cầu khai báo Trọng số CLO'))).toBe(true)
+
+    // Khai báo nhưng tổng lệch 100% -> lỗi tổng
+    config.cloList.forEach((c, idx) => {
+      c.trongSoClo = idx === 0 ? 50 : 10
+    })
+    const errSum = errors(validateConfig(config)).map((i) => i.message)
+    expect(errSum.some((m) => m.includes('yêu cầu tổng Trọng số CLO = 100%'))).toBe(true)
+  })
 })
 
 describe('validateKeHoach - sheet KE_HOACH_DANH_GIA', () => {
-  it('trọng số không nguyên -> lỗi', () => {
+  it('trọng số thập phân có tổng đúng 100% -> hợp lệ không lỗi', () => {
     const config = mock()
     const [row0, row1] = config.keHoachDanhGia
     row0.trongSoPhanTram = 20.5
-    // Bù lại dòng khác để tổng vẫn 100, tránh lỗi chồng lấn nhiễu
+    // Bù lại dòng khác để tổng vẫn 100
     row1.trongSoPhanTram -= 0.5
-    const messages = errors(validateConfig(config)).map((i) => i.message)
-    expect(messages).toContain(
-      `Trọng số của đầu điểm "${row0.maDauDiem}" (CLO "${row0.clo}") phải là số nguyên % (nhận 20.5).`
-    )
-    expect(messages).toContain(
-      `Trọng số của đầu điểm "${row1.maDauDiem}" (CLO "${row1.clo}") phải là số nguyên % (nhận ${row1.trongSoPhanTram}).`
-    )
+    expect(errors(validateConfig(config))).toHaveLength(0)
   })
 
-  it('trọng số thập phân nhưng tổng đúng 100 -> CHỈ báo lỗi nguyên, không báo tổng ≠ 100%', () => {
+  it('trọng số thập phân nhưng tổng lệch 100% -> báo tổng ≠ 100%', () => {
     const config = mock()
     config.keHoachDanhGia[0].trongSoPhanTram = 20.5
-    // Bù để tổng vẫn = 100 (20.5 + đổi dòng khác 5 -> 4.5)
-    const other = config.keHoachDanhGia.find((p) => p.trongSoPhanTram === 5)!
-    other.trongSoPhanTram = 4.5
     const messages = errors(validateConfig(config)).map((i) => i.message)
-    expect(messages.some((m) => m.includes('phải bằng 100%'))).toBe(false)
-    expect(messages).toContain(
-      `Trọng số của đầu điểm "${config.keHoachDanhGia[0].maDauDiem}" (CLO "${config.keHoachDanhGia[0].clo}") phải là số nguyên % (nhận 20.5).`
-    )
+    expect(messages.some((m) => m.includes('phải bằng 100%'))).toBe(true)
   })
 
   it('trọng số nguyên nhưng tổng lệch -> báo tổng ≠ 100%', () => {
@@ -388,5 +394,15 @@ describe('validateCrossSheet - check chéo được giữ nguyên', () => {
     q.maDauDiem = ` ${q.maDauDiem} `
     q.clo = ` ${q.clo} `
     expect(errors(validateConfig(config))).toHaveLength(0)
+  })
+
+  it('lệch cặp (đầu điểm, CLO) giữa KE_HOACH_DANH_GIA và CAU_HOI -> chỉ cảnh báo, không phải lỗi', () => {
+    const config = mock()
+    // Xóa một câu trong CAU_HOI (ví dụ câu đo CLO1 ở đầu điểm CC)
+    config.cauHoi = config.cauHoi.filter((q) => !(q.maDauDiem === 'CC' && q.clo === 'CLO1'))
+    const issues = validateConfig(config)
+    expect(errors(issues)).toHaveLength(0)
+    const wms = warnings(issues).map((w) => w.message)
+    expect(wms.some((m) => m.includes('có trong kế hoạch nhưng không có cột điểm tương ứng trong CAU_HOI'))).toBe(true)
   })
 })

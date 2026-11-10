@@ -91,6 +91,22 @@ describe('parseCourseConfig', () => {
     expect(config.quyTac.nguong_dat_clo).toBe(4)
     expect(config.quyTac.rounding_mode).toBe('chain')
   })
+
+  it('tự động chia đều trọng số khi ô Trong_So_Phan_Tram bị merge trong KE_HOACH_DANH_GIA', async () => {
+    const wb = new ExcelJS.Workbook()
+    await wb.xlsx.readFile(configPath)
+    const ws = wb.getWorksheet('KE_HOACH_DANH_GIA')!
+    // Dòng 2 và 3 merge cột E (Trong_So_Phan_Tram) với giá trị 20%
+    ws.mergeCells('E2:E3')
+    ws.getCell('E2').value = 20
+    const mergedConfigPath = join(dir, 'config-merged-kehoach.xlsx')
+    await wb.xlsx.writeFile(mergedConfigPath)
+
+    const parsed = await parseCourseConfig(mergedConfigPath)
+    // Dòng 2 và 3 mỗi dòng nhận 20 / 2 = 10%
+    expect(parsed.keHoachDanhGia[0].trongSoPhanTram).toBe(10)
+    expect(parsed.keHoachDanhGia[1].trongSoPhanTram).toBe(10)
+  })
 })
 
 describe('parseRawGrades', () => {

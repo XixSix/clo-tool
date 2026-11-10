@@ -37,7 +37,7 @@ export function validateCrossSheet(config: CourseConfig): ValidationIssue[] {
     if (!planKeys.has(key)) {
       const [maDauDiem, clo] = key.split('|')
       issues.push({
-        level: 'error',
+        level: 'warning',
         sheet: 'CAU_HOI',
         message: `Cặp đầu điểm "${maDauDiem}" – CLO "${clo}" có trong CAU_HOI nhưng không có trong KE_HOACH_DANH_GIA.`
       })
@@ -47,9 +47,9 @@ export function validateCrossSheet(config: CourseConfig): ValidationIssue[] {
     if (!questionKeys.has(key)) {
       const [maDauDiem, clo] = key.split('|')
       issues.push({
-        level: 'error',
+        level: 'warning',
         sheet: 'KE_HOACH_DANH_GIA',
-        message: `Cặp đầu điểm "${maDauDiem}" – CLO "${clo}" có trong kế hoạch nhưng không có cột điểm tương ứng trong CAU_HOI.`
+        message: `Cặp đầu điểm "${maDauDiem}" – CLO "${clo}" có trong kế hoạch nhưng không có cột điểm tương ứng trong CAU_HOI (sẽ dùng cột điểm trực tiếp "${maDauDiem}" thang 10 nếu có).`
       })
     }
   }
