@@ -4,6 +4,14 @@ Mọi thay đổi đáng chú ý của phần mềm được ghi ở đây. Đ�
 [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/), phiên bản theo
 [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [1.0.4] - 2026-11-10
+
+### Sửa
+
+- Job build macOS: cài bổ sung binary `@napi-rs/canvas` cho kiến trúc còn lại bằng
+  `npm install --force` (npm mặc định chặn cài chéo os/cpu), nhờ đó đóng gói được cả
+  `arm64` và `x64`. Bản 1.0.3 chỉ phát hành được file Windows vì bước này lỗi.
+
 ## [1.0.3] - 2026-11-10
 
 ### Thêm
