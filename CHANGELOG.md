@@ -4,6 +4,33 @@ Mọi thay đổi đáng chú ý của phần mềm được ghi ở đây. Đ�
 [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/), phiên bản theo
 [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [1.0.3] - 2026-11-10
+
+### Thêm
+
+- Hỗ trợ **macOS**: build GitHub Actions trên `macos-latest` cho cả Apple Silicon (`arm64`)
+  và Intel (`x64`), phát hành `.dmg` (cài tay) và `.zip` (tự cập nhật) kèm `latest-mac.yml`.
+- Script `npm run build:mac` để build macOS tại máy.
+
+### Ghi chú
+
+- Bản macOS chưa ký số/notarize: lần mở đầu phải chuột phải → **Open**, và tự cập nhật chỉ
+  hoạt động sau khi có Apple Developer ID.
+
+## [1.0.2] - 2026-11-10
+
+### Thay đổi
+
+- Chuẩn hoá bộ đọc/kiểm tra Config: mỗi sheet một parser/validator riêng, validator nhận đúng
+  dữ liệu cần thay vì cả `CourseConfig`.
+- Tách bộ đọc điểm thô thành các bước riêng (header, meta, điểm danh, điểm tối đa, sinh viên)
+  và validator điểm thô thành các nhóm rule độc lập.
+- Thứ tự xử lý file điểm thô: đọc → kiểm tra → mới tính điểm chuyên cần.
+
+### Sửa
+
+- Cột chỉ "gần giống" tên chuẩn không còn bị coi là đã tìm thấy, chỉ dùng làm gợi ý sửa tên.
+
 ## [1.0.1] - 2026-11-02
 
 ### Thêm
