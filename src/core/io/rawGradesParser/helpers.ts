@@ -10,7 +10,8 @@ import { cellText, normalizeHeader } from '../../utils/excel'
  * Cột cố định bắt buộc của file điểm thô.
  *
  * Dùng cùng quy tắc với Config: header một hàng, thiếu cột nào là dừng ngay.
- * `Ma_De` để tùy chọn vì file một đề không cần cột này.
+ * `Ma_De` là cột tùy chọn (file một đề không cần cột này); cuối kỳ có nhiều mã đề
+ * thì parser bắt buộc cột — xem `parseRawGradesHeader`.
  */
 export const RAW_GRADES_COLUMNS = ['TT', 'Ma_SV', 'Ho', 'Ten', 'Ngay_Sinh', 'Ghi_Chu']
 

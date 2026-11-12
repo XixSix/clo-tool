@@ -212,7 +212,23 @@ Làm một lần cho mỗi học phần. Gồm 7 sheet:
 
 **Cách giảm lỗi gõ sai tên cột:** app **sinh file `Template_DiemTho.xlsx` từ Config** (tiêu đề cột, điểm tối đa, ô nhập màu vàng, ràng buộc nhập), giảng viên chỉ dán điểm vào. File điểm thô dùng **cùng quy tắc với Config**: tiêu đề nằm trên một hàng, phải có đủ các cột cố định và cột điểm khai báo trong Config; thiếu cột nào là báo lỗi ngay, không tự đoán layout. Tên cột vẫn được dò theo tên (chấp nhận lệch dấu/khoảng trắng/hoa thường) và có gợi ý tên gần giống.
 
-### 3. Quy ước ô trống và giá trị đặc biệt
+### 3. Nhập điểm 2 giai đoạn (tùy chọn)
+
+Màn Nhập điểm có công tắc **Một file / Hai giai đoạn**; luồng một file giữ nguyên như trước. Luồng hai giai đoạn cho phép gửi kết quả quá trình cho QLĐT duyệt trước khi thi cuối kỳ:
+
+1. **Giai đoạn quá trình:** nhập điểm danh + CC/GK bằng `Template_DiemTho_QuaTrinh.xlsx` (không có cột CK). App tính CLO quá trình, xuất `final_grades_report_process.xlsx` (3 sheet: `BANG_DIEM_QUA_TRINH`, `TONG_HOP_LO` bản chỉ có bảng CLO, `CANH_BAO`) và lưu **snapshot điểm thô đã áp điểm danh** vào `userData/runs`.
+2. **Giai đoạn cuối kỳ:** nhập CK (kèm `Mã đề` nếu học phần nhiều đề CK) bằng `Template_DiemTho_CuoiKy.xlsx`. App đọc snapshot quá trình, ghép dữ liệu theo **Mã SV**, rồi chạy lại toàn bộ engine với Config đầy đủ để xuất báo cáo 6 sheet và báo cáo đề thi.
+
+Quy tắc của luồng hai giai đoạn:
+
+- File cuối kỳ **lặp lại Họ/Tên/Ngày sinh** để tự đủ danh tính. Lệch họ tên/ngày sinh so với file quá trình chỉ cảnh báo; app giữ danh tính từ file quá trình.
+- `Mã đề` của file cuối kỳ chỉ gắn cho **đầu điểm CK**, không đè mã đề chung của CC/GK (các đầu điểm này có thể dùng đề khác, ví dụ GKT/D1, GTX/D2).
+- SV chỉ có trong file quá trình: giữ nguyên, mọi cột CK để trống (tính 0) + cảnh báo. SV chỉ có trong file cuối kỳ là **lỗi** vì thiếu dữ liệu quá trình.
+- Điểm danh chỉ áp một lần ở giai đoạn quá trình; giai đoạn cuối kỳ không đọc lại cột buổi.
+- Config thay đổi giữa 2 giai đoạn: cảnh báo nhưng **vẫn tính lại toàn bộ** từ raw đã ghép bằng Config hiện tại.
+- Snapshot quá trình lưu raw (sau khi áp điểm danh); snapshot cuối kỳ giữ shape cũ để màn Sinh viên/Báo cáo không đổi.
+
+### 4. Quy ước ô trống và giá trị đặc biệt
 
 Sinh viên vắng thi, bỏ trống câu, hay được 0 điểm là ba trường hợp khác nhau, ảnh hưởng đến cả điểm lẫn p, d, α:
 
@@ -242,6 +258,7 @@ Sinh viên vắng thi, bỏ trống câu, hay được 0 điểm là ba trườn
 - Phụ lục 3 không có cột điểm chữ. Cột "Bằng chữ" của TBC CLO được hiểu là **đọc số thành chữ** (6,7 → "Sáu phẩy bảy"; 10 → "Mười"; 0,5 → "Không phẩy năm"), cần tự viết hàm đọc số tiếng Việt **[Quyết định #6]**. Điểm chữ A/B/C để tùy chọn, mặc định tắt.
 - Địa danh/ngày ở chân bảng (Mẫu xls ghi "Hải Phòng") để cấu hình được.
 - Biểu đồ trong file Excel là **ảnh PNG** do app vẽ bằng Chart.js rồi chèn vào bằng ExcelJS (ExcelJS không tạo được biểu đồ Excel gốc). Dữ liệu nguồn của biểu đồ vẫn nằm ở bảng bên cạnh.
+- **Báo cáo quá trình** `final_grades_report_process.xlsx` (chỉ sinh ở luồng nhập điểm 2 giai đoạn) gồm 3 sheet: `BANG_DIEM_QUA_TRINH`, `TONG_HOP_LO` (chỉ bảng CLO, không PLO/điểm học phần/biểu đồ) và `CANH_BAO`; dùng để QLĐT duyệt kết quả quá trình trước khi nhập điểm cuối kỳ.
 
 ### 2. Output 2: `exam_analysis_report.xlsx` (PDF để `[v1.1]`)
 
@@ -329,6 +346,9 @@ Những chỗ văn bản chưa nói rõ đã được chọn như sau. Tất c�
 | 10  | Cùng một đầu điểm có nhiều mã đề                  | Câu được khai `maDe` cụ thể chỉ tính cho SV cùng đề; câu `maDe = ALL` tính cho mọi SV; SV không khai mã đề (~ `ALL`) tính với mọi câu. Điểm ô $s(j,k)$ luôn bỏ câu của đề SV không làm (khác với cảnh báo "chưa nhập điểm" từ validator)         | Nhất quán với psychometrics (mỗi đề chỉ thống kê SV làm đề đó); fixture `mockMultiDe` bẫy regression |
 | 11  | Điểm thô còn lỗi (mức error)                      | `pipeline:run` chặn cứng — không xuất báo cáo khi có điểm âm/vượt cận, mã SV trùng/thiếu; cảnh báo (warning) không chặn                                                                                                                          | UI vẫn hiển thị danh sách lỗi ngay tại bước đọc điểm thô                                             |
 | 12  | Mọi cặp (đầu điểm, CLO) phải khai trong `CAU_HOI` | Kể cả cột điểm trực tiếp thang 10 (CC, TD): khai như một câu hỏi `diemToiDa = 10, maDe = ALL`. Nhánh "cột điểm trực tiếp" trong `calculateCellScores` chỉ giữ làm fallback an toàn, validator ghi đè cấu hình                                    | Chốt tạm thời; muốn cho phép cột trực tiếp thuần thì gỡ check cặp trong `crossSheetValidator`        |
+| 13  | Cột `Mã đề` khi học phần có nhiều đề CK           | Config có > 1 mã đề CK ⇒ file cuối kỳ **bắt buộc** cột `Mã đề`; mỗi dòng có điểm CK phải khai mã đề (`ALL` hợp lệ). Một đề duy nhất thì cột tùy chọn                                                                                             | `maDeValidator`; parser truyền `requireMaDe` khi `hasMultipleFinalExamVariants(config)`               |
+| 14  | Ghép điểm quá trình với điểm cuối kỳ               | Ghép theo **Mã SV** (không theo số dòng). Trùng/thiếu Mã SV là lỗi; SV chỉ có ở file quá trình nhận CK trống (tính 0) + cảnh báo; SV chỉ có ở file cuối kỳ là lỗi                                                                                 | `mergeRawGrades`; điểm danh/CC lấy từ file quá trình; `Mã đề` CK lưu riêng theo đầu điểm (`maDeTheoDauDiem`) để không lọc mất câu GK |
+| 15  | Config thay đổi giữa 2 giai đoạn                   | Chỉ **cảnh báo** (so `configSignature`), vẫn tính lại toàn bộ bằng Config hiện tại từ raw đã ghép                                                                                                                                               | Giai đoạn 2 luôn tính lại từ raw thô, không cộng dồn kết quả quá trình                               |
 
 ---
 

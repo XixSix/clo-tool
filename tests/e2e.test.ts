@@ -7,10 +7,12 @@ import {
   applyAttendance,
   buildFinalGradesWorkbook,
   buildExamAnalysisWorkbook,
+  buildProcessGradesWorkbook,
   calculateAllExamPsychometrics,
   calculateEvaluation,
   parseCourseConfig,
   parseRawGrades,
+  processConfig,
   roundHalfUp,
   validateConfig,
   validateRawGrades,
@@ -210,6 +212,29 @@ describe('Xuất Excel', () => {
 
     const detail = reloaded.getWorksheet('CHI_TIET_CLO')!
     expect(detail.getCell(1, 4).text).toBe('CC – CLO1')
+  })
+
+  it('báo cáo quá trình chỉ có 3 sheet và không có biểu đồ', () => {
+    const phaseCfg = processConfig(config)
+    const processResult = calculateEvaluation(phaseCfg, rawFile.students)
+    const wb = buildProcessGradesWorkbook(phaseCfg, processResult)
+
+    expect(wb.worksheets.map((ws) => ws.name)).toEqual([
+      'BANG_DIEM_QUA_TRINH',
+      'TONG_HOP_LO',
+      'CANH_BAO'
+    ])
+    expect((wb as unknown as { media: unknown[] }).media.length).toBe(0)
+
+    // CLO5 chỉ thi cuối kỳ nên không xuất hiện trong tổng hợp quá trình
+    const summarySheet = wb.getWorksheet('TONG_HOP_LO')!
+    expect([4, 5, 6, 7, 8].map((row) => summarySheet.getCell(row, 1).text)).toEqual([
+      'CLO1',
+      'CLO2',
+      'CLO3',
+      'CLO4',
+      ''
+    ])
   })
 
   it('báo cáo đề thi có đủ 3 sheet', async () => {

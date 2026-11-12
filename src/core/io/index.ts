@@ -12,3 +12,6 @@
 export * from './configParser'
 export * from './rawGradesParser'
 export * from './templateGenerator'
+export * from './phaseConfig'
+export * from './mergeRawGrades'
+export * from './configSignature'

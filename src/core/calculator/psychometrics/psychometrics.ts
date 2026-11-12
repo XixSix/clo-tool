@@ -235,12 +235,11 @@ export function calculateAllExamPsychometrics(
     const studentsOfExam =
       maDe === 'ALL'
         ? students
-        : students.filter(
-            (st) =>
-              (st.scores.maDe ?? 'ALL') === maDe ||
-              st.scores.maDe === undefined ||
-              st.scores.maDe === 'ALL'
-          )
+        : students.filter((st) => {
+            // Mã đề có thể khai riêng theo đầu điểm (ghép 2 giai đoạn)
+            const studentDe = st.scores.maDeTheoDauDiem?.[maDauDiem] ?? st.scores.maDe
+            return studentDe === maDe || studentDe === undefined || studentDe === 'ALL'
+          })
 
     results.push(
       calculateExamPsychometrics(

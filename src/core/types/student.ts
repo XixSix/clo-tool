@@ -39,6 +39,12 @@ export interface StudentInfo {
 /** 5. Dữ liệu làm bài & điểm thô của sinh viên */
 export interface StudentScores {
   maDe?: string
+  /**
+   * Mã đề riêng theo từng mã đầu điểm (dùng khi ghép 2 giai đoạn: CK lấy mã đề từ
+   * file cuối kỳ, còn CC/GK giữ nguyên từ file quá trình). Thiếu khóa nào thì
+   * dùng `maDe` chung như hành vi cũ.
+   */
+  maDeTheoDauDiem?: Record<string, string>
   diemCacCot: Record<string, number | 'VT' | null | undefined>
   ghiChu?: string
 }
