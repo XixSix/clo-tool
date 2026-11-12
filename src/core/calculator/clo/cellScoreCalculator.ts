@@ -41,7 +41,9 @@ export function calculateCellScores(
     // Lọc câu hỏi theo mã đề của SV: câu maDe 'ALL' áp dụng cho mọi SV;
     // SV có mã đề riêng chỉ tính câu của đề đó; SV maDe 'ALL' (làm mọi đề)
     // được tính với mọi câu. Nhất quán với cách psychometrics lọc SV theo đề.
-    const studentDe = student.scores.maDe ?? 'ALL'
+    // Mã đề có thể khai riêng theo đầu điểm (ghép 2 giai đoạn: CK khác CC/GK).
+    const studentDe =
+      student.scores.maDeTheoDauDiem?.[p.maDauDiem] ?? student.scores.maDe ?? 'ALL'
     const questions = (cellQuestionsMap.get(cellKey) ?? []).filter((q) => {
       const qDe = q.maDe ?? 'ALL'
       return qDe === 'ALL' || studentDe === 'ALL' || qDe === studentDe

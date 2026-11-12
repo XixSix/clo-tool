@@ -188,6 +188,75 @@ describe('parseRawGrades', () => {
       'Giá trị "abc" không phải là điểm số hợp lệ'
     )
   })
+
+  it('đọc file quá trình (không có cột CK) và file cuối kỳ (có cột Mã đề)', async () => {
+    const config = buildMockConfig()
+    const { students, attendance } = buildMockClass(3)
+
+    const processPath = join(dir, 'raw-process.xlsx')
+    await writeRawGradesTemplate(processPath, config, {
+      students,
+      attendance,
+      sessions: MOCK_SESSION_LABELS.map((label) => ({ label })),
+      phase: 'process'
+    })
+    const processFile = await parseRawGrades(processPath, config, { phase: 'process' })
+    expect(processFile.students).toHaveLength(3)
+    expect(processFile.students[0].scores.diemCacCot.GTX_C1).toBeDefined()
+    expect(processFile.students[0].scores.diemCacCot.CK_C1).toBeUndefined()
+
+    const finalPath = join(dir, 'raw-final.xlsx')
+    await writeRawGradesTemplate(finalPath, config, { students, phase: 'final' })
+    const finalFile = await parseRawGrades(finalPath, config, { phase: 'final' })
+    expect(finalFile.students[0].scores.maDe).toBe('ALL')
+    expect(finalFile.students[0].scores.diemCacCot.CK_C1).toBeDefined()
+    expect(finalFile.students[0].scores.diemCacCot.CC).toBeUndefined()
+  })
+
+  it('học phần nhiều đề CK: thiếu cột Mã đề là lỗi', async () => {
+    const config = buildMockConfig()
+    config.cauHoi = config.cauHoi.map((q) =>
+      q.maDauDiem === 'CK' && q.maCotDiem === 'CK_C1' ? { ...q, maDe: 'D4' } : q
+    )
+
+    const { students } = buildMockClass(3)
+    const path = join(dir, 'raw-final-no-made-column.xlsx')
+    await writeRawGradesTemplate(path, config, { students, phase: 'final' })
+
+    const wb = new ExcelJS.Workbook()
+    await wb.xlsx.readFile(path)
+    wb.getWorksheet('NHAP_LIEU')!.getRow(4).getCell(6).value = 'Mã số đề'
+    await wb.xlsx.writeFile(path)
+
+    await expect(parseRawGrades(path, config, { phase: 'final', requireMaDe: true })).rejects.toThrow(
+      'Thiếu cột "Ma_De"'
+    )
+  })
+
+  it('học phần nhiều đề CK: dòng có điểm CK nhưng thiếu Mã đề là lỗi validate', async () => {
+    const config = buildMockConfig()
+    config.cauHoi = config.cauHoi.map((q) =>
+      q.maDauDiem === 'CK' && q.maCotDiem === 'CK_C1' ? { ...q, maDe: 'D4' } : q
+    )
+
+    const { students } = buildMockClass(3)
+    const rows = students.map((row, index) =>
+      index === 1 ? { ...row, scores: { ...row.scores, maDe: undefined } } : row
+    )
+    const path = join(dir, 'raw-final-missing-made.xlsx')
+    await writeRawGradesTemplate(path, config, { students: rows, phase: 'final' })
+
+    const file = await parseRawGrades(path, config, { phase: 'final', requireMaDe: true })
+    const issues = validateRawGrades(config, file, { phase: 'final', requireMaDe: true })
+    expect(
+      issues.some(
+        (issue) =>
+          issue.level === 'error' &&
+          issue.message.includes(rows[1].student.maSv) &&
+          issue.message.includes('thiếu mã đề')
+      )
+    ).toBe(true)
+  })
 })
 
 describe('validator', () => {

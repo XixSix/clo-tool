@@ -539,6 +539,9 @@ function buildWarningSheet(
 ): void {
   const ws = wb.addWorksheet('CANH_BAO')
   setWidths(ws, [8, 18, 16, 45, 40])
+  // Báo cáo quá trình chỉ có một phần CLO trong kế hoạch; không cảnh báo các
+  // CLO chưa được đo ở giai đoạn này (chúng có giá trị 0 tạm thời).
+  const measuredClos = new Set(config.keHoachDanhGia.map((item) => item.clo))
 
   ws.mergeCells(1, 1, 1, 5)
   ws.getCell(1, 1).value = 'CẢNH BÁO & DỮ LIỆU CẦN KIỂM TRA'
@@ -595,6 +598,7 @@ function buildWarningSheet(
       pushRow('warning', st.maSv, `SV ${st.hoTen} (${st.maSv}): ${issue.message}`)
     }
     for (const [clo, score] of Object.entries(st.cloScores)) {
+      if (!measuredClos.has(clo)) continue
       if (score < config.quyTac.nguong_dat_clo) {
         pushRow(
           'warning',
@@ -608,6 +612,71 @@ function buildWarningSheet(
   if (stt === 1) {
     ws.getCell(headerRow + 1, 1).value = 'Không có cảnh báo.'
     styleCell(ws.getCell(headerRow + 1, 1))
+  }
+}
+
+/** Sheet TONG_HOP_LO bản quá trình: chỉ CLO, không PLO/điểm HP/biểu đồ */
+function buildProcessSummarySheet(
+  wb: ExcelJS.Workbook,
+  config: CourseConfig,
+  result: EvaluationResult
+): void {
+  const ws = wb.addWorksheet('TONG_HOP_LO')
+  const summary = result.summary
+  setWidths(ws, [18, 10, 12, 12, 14, 10, 10, 10])
+
+  ws.mergeCells(1, 1, 1, 8)
+  ws.getCell(1, 1).value = 'TỔNG HỢP MỨC ĐỘ ĐẠP ỨNG CHUẨN ĐẦU RA HỌC PHẦN - GIAI ĐOẠN QUÁ TRÌNH'
+  styleTitle(ws, 1, 8)
+
+  const headerRow = 3
+  ;['CLO', 'Đạt', '% Đạt', 'Không đạt', '% Không đạt', 'TB', 'Thấp nhất', 'Cao nhất'].forEach(
+    (h, idx) => {
+      ws.getCell(headerRow, idx + 1).value = h
+    }
+  )
+  styleHeaderRow(ws, headerRow, 8)
+
+  let rowNumber = headerRow + 1
+  // Chỉ tổng hợp các CLO thực sự được đo ở giai đoạn này (báo cáo quá trình
+  // không có CLO chỉ thi cuối kỳ).
+  const measuredCodes = new Set(config.keHoachDanhGia.map((item) => item.clo))
+  for (const clo of config.cloList) {
+    if (!measuredCodes.has(clo.maClo)) continue
+    const stat = summary.cloStats[clo.maClo]
+    if (!stat) continue
+    const row = ws.getRow(rowNumber)
+    row.getCell(1).value = clo.maClo
+    row.getCell(2).value = stat.passedCount
+    row.getCell(3).value = stat.passedPercent
+    row.getCell(4).value = stat.failedCount
+    row.getCell(5).value = stat.failedPercent
+    row.getCell(6).value = stat.mean
+    row.getCell(7).value = stat.min
+    row.getCell(8).value = stat.max
+    for (let c = 1; c <= 8; c++) {
+      styleCell(row.getCell(c), {
+        align: c === 1 ? 'left' : 'center',
+        fill: stat.isBelowThreshold ? 'FFFDE2E2' : undefined,
+        bold: stat.isBelowThreshold
+      })
+      row.getCell(c).border = BORDER_THIN
+    }
+    rowNumber++
+  }
+
+  rowNumber += 1
+  const info = [
+    `Tổng số SV: ${summary.totalStudents}`,
+    `SV thiếu dữ liệu: ${summary.missingDataStudents}`,
+    ...summary.generalWarnings,
+    'PLO và điểm học phần chỉ tính ở giai đoạn cuối kỳ.'
+  ]
+  for (const text of info) {
+    ws.mergeCells(rowNumber, 1, rowNumber, 8)
+    ws.getCell(rowNumber, 1).value = text
+    styleCell(ws.getCell(rowNumber, 1), { size: 10 })
+    rowNumber++
   }
 }
 
@@ -654,5 +723,43 @@ export async function writeFinalGradesReport(
   } = {}
 ): Promise<void> {
   const wb = buildFinalGradesWorkbook(config, result, options)
+  await wb.xlsx.writeFile(filePath)
+}
+
+export interface ProcessReportOptions {
+  context?: ReportContext
+  issues?: ValidationIssue[]
+}
+
+/**
+ * Báo cáo giai đoạn quá trình (CC/GK): 3 sheet, không PLO/điểm HP/psychometrics.
+ *
+ * `config` phải là config đã lọc quá trình (`processConfig`); `result` là kết quả
+ * `calculateEvaluation` chạy trên chính config đó.
+ */
+export function buildProcessGradesWorkbook(
+  config: CourseConfig,
+  result: EvaluationResult,
+  options: ProcessReportOptions = {}
+): ExcelJS.Workbook {
+  const wb = new ExcelJS.Workbook()
+  wb.creator = 'Phần mềm CLO/PLO - Đại học Thành Đông'
+  wb.created = new Date()
+
+  const ctx = options.context ?? {}
+  buildCloGradeSheet(wb, config, result.students, 'process', ctx)
+  buildProcessSummarySheet(wb, config, result)
+  buildWarningSheet(wb, config, result, options.issues ?? [])
+
+  return wb
+}
+
+export async function writeProcessGradesReport(
+  filePath: string,
+  config: CourseConfig,
+  result: EvaluationResult,
+  options: ProcessReportOptions = {}
+): Promise<void> {
+  const wb = buildProcessGradesWorkbook(config, result, options)
   await wb.xlsx.writeFile(filePath)
 }

@@ -6,9 +6,21 @@ const api: CloApi = {
   pickFile: (kind) => ipcRenderer.invoke('dialog:pick-file', kind),
   pickDirectory: () => ipcRenderer.invoke('dialog:pick-directory'),
   parseConfig: (configPath) => ipcRenderer.invoke('config:parse', configPath),
-  parseRawGrades: (configPath, rawPath) => ipcRenderer.invoke('raw:parse', configPath, rawPath),
+  parseRawGrades: (configPath, rawPath, phase) =>
+    ipcRenderer.invoke('raw:parse', configPath, rawPath, phase),
   runPipeline: (configPath, rawPath, outputDir, sessionId) =>
     ipcRenderer.invoke('pipeline:run', configPath, rawPath, outputDir, sessionId),
+  runProcess: (configPath, rawPath, outputDir, sessionId) =>
+    ipcRenderer.invoke('pipeline:runProcess', configPath, rawPath, outputDir, sessionId),
+  runFinal: (configPath, finalRawPath, outputDir, processRunId, sessionId) =>
+    ipcRenderer.invoke(
+      'pipeline:runFinal',
+      configPath,
+      finalRawPath,
+      outputDir,
+      processRunId,
+      sessionId
+    ),
   getRunSnapshot: (runId) => ipcRenderer.invoke('runs:get', runId),
   deleteRunSnapshot: (runId) => ipcRenderer.invoke('runs:delete', runId),
   exportPdf: (defaultName) => ipcRenderer.invoke('export:pdf', defaultName),

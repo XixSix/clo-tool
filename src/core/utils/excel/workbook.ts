@@ -68,6 +68,8 @@ export interface ReadTableOptions {
   maxScanRows?: number
   /** Tạo loại lỗi phù hợp với từng loại file (Config / điểm thô) */
   makeError?: (message: string) => Error
+  /** Cột được dò để đọc nếu có, nhưng không bắt buộc phải xuất hiện trong file */
+  optionalColumns?: string[]
 }
 
 /**
@@ -83,15 +85,20 @@ export function readTable(
   options: ReadTableOptions = {}
 ): TableReadResult {
   const makeError = options.makeError ?? ((message: string) => new Error(message))
-  const header = findHeaderRow(ws, columns, options.maxScanRows)
+  const optionalColumns = (options.optionalColumns ?? []).filter(
+    (column) => !columns.includes(column)
+  )
+  const expectedColumns = [...columns, ...optionalColumns]
+  const header = findHeaderRow(ws, expectedColumns, options.maxScanRows)
   if (!header) {
     throw makeError(
       `Không tìm thấy hàng tiêu đề của sheet ${sheetName}. Cần tối thiểu các cột: ${columns.join(', ')}`
     )
   }
 
-  if (header.match.missing.length > 0) {
-    const missing = header.match.missing
+  const missingRequired = header.match.missing.filter((column) => columns.includes(column))
+  if (missingRequired.length > 0) {
+    const missing = missingRequired
       .map((column) => {
         const suggestion = header.match.suggestions[column]
         return suggestion ? `"${column}" (gợi ý: "${suggestion}")` : `"${column}"`
