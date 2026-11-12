@@ -4,6 +4,23 @@ Mọi thay đổi đáng chú ý của phần mềm được ghi ở đây. Đ�
 [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/), phiên bản theo
 [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [1.0.5] - 2026-11-12
+
+### Thêm
+
+- **Nhập điểm 2 giai đoạn** (tùy chọn): giai đoạn quá trình nhập CC/GK và xuất báo cáo
+  quá trình để duyệt; giai đoạn cuối kỳ nhập CK (kèm Mã đề khi có nhiều đề), ghép với dữ
+  liệu quá trình theo Mã SV rồi tính lại toàn bộ CLO/PLO, điểm học phần và phân tích đề thi.
+- Template điểm thô riêng `Template_DiemTho_QuaTrinh.xlsx` (CC/GK + điểm danh) và
+  `Template_DiemTho_CuoiKy.xlsx` (CK + Mã đề), đi kèm nút tạo file mẫu.
+- Snapshot lần chạy quá trình được lưu lại để mở app sau vẫn chạy tiếp được giai đoạn cuối kỳ.
+
+### Sửa
+
+- File điểm thô có thể thiếu cột của giai đoạn còn lại: parser chỉ đòi cột bắt buộc theo
+  giai đoạn, cột `Mã đề` là tùy chọn trừ khi Config có nhiều đề CK.
+- `Mã đề` của câu hỏi CK giờ được đọc và kiểm tra đúng (trước đây bị bỏ qua do thiếu cột).
+
 ## [1.0.4] - 2026-11-10
 
 ### Sửa
