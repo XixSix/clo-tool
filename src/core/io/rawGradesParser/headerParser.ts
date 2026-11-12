@@ -3,6 +3,9 @@
  *
  * File điểm thô dùng chung `readTable` với Config: header cố định một hàng,
  * thiếu cột bắt buộc thì dừng ngay — không hỗ trợ layout lộn xộn.
+ *
+ * `Ma_De` là cột tùy chọn (file một đề không cần); khi cuối kỳ có nhiều mã đề,
+ * parser truyền `requireMaDe` để bắt buộc cột này.
  */
 
 import type ExcelJS from 'exceljs'
@@ -17,16 +20,23 @@ export interface RawHeaderResult {
   scoreColumns: string[]
 }
 
+export interface ParseRawGradesHeaderOptions {
+  requireMaDe?: boolean
+}
+
 export function parseRawGradesHeader(
   ws: ExcelJS.Worksheet,
-  config: CourseConfig
+  config: CourseConfig,
+  options: ParseRawGradesHeaderOptions = {}
 ): RawHeaderResult {
   const scoreColumns = scoreColumnsFromConfig(config)
   const columns = [...RAW_GRADES_COLUMNS, ...scoreColumns]
+  if (options.requireMaDe) columns.push('Ma_De')
 
   const table = readTable(ws, columns, ws.name, {
     maxScanRows: 30,
-    makeError: (message) => new RawGradesParseError(message)
+    makeError: (message) => new RawGradesParseError(message),
+    optionalColumns: options.requireMaDe ? [] : ['Ma_De']
   })
 
   return {

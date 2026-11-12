@@ -7,7 +7,9 @@ import type {
   ClassEvaluationSummary,
   CourseConfig,
   ExamPsychometrics,
-  ProcessedStudentResult
+  GradePhase,
+  ProcessedStudentResult,
+  RawGrades
 } from '../core/types'
 
 export type IssueLevelDto = 'error' | 'warning'
@@ -56,6 +58,7 @@ export interface ConfigSummaryDto {
 export interface RawSummaryDto {
   ok: boolean
   filePath: string
+  phase?: GradePhase
   studentCount: number
   sessionCount: number
   missingDataCount: number
@@ -84,10 +87,14 @@ export interface CloStatDto {
 export interface RunResultDto {
   ok: boolean
   outputDir: string
+  /** Giai đoạn vừa chạy; bỏ trống với luồng một file cũ */
+  phase?: GradePhase
   /** Mã lần chạy đã lưu snapshot (chỉ có khi lưu thành công) */
   runId?: string
   finalReportPath?: string
   examReportPath?: string
+  /** Báo cáo giai đoạn quá trình (chỉ có khi chạy `runProcess`) */
+  processReportPath?: string
   studentCount: number
   passedCount: number
   passedPercent: number
@@ -105,6 +112,10 @@ export interface SampleResultDto {
   dir: string
   configPath?: string
   rawPath?: string
+  /** File điểm thô giai đoạn quá trình (CC/GK) */
+  processRawPath?: string
+  /** File điểm thô giai đoạn cuối kỳ (CK + Mã đề) */
+  finalRawPath?: string
   error?: string
 }
 
@@ -148,10 +159,16 @@ export interface RunSnapshotDto {
   sessionId: string
   ts: number
   label?: string
+  /** Giai đoạn của snapshot; dữ liệu cũ không có trường này */
+  phase?: GradePhase
   config: CourseConfig
   students: ProcessedStudentResult[]
   summary: ClassEvaluationSummary
   exams: ExamPsychometrics[]
+  /** Điểm thô đã áp điểm danh — chỉ snapshot quá trình lưu để ghép ở giai đoạn cuối */
+  rawGrades?: RawGrades
+  /** Dấu vân tay Config lúc chạy quá trình, dùng phát hiện Config bị đổi */
+  configSignature?: string
 }
 
 /** Một môn học đang quản lý trong app */
@@ -168,6 +185,10 @@ export interface SessionDto {
   configPath?: string
   rawPath?: string
   outDir?: string
+  /** Mã snapshot kết quả giai đoạn quá trình (để chạy tiếp giai đoạn cuối kỳ) */
+  processRunId?: string
+  /** Báo cáo Excel giai đoạn quá trình đã xuất */
+  processReportPath?: string
   addedAt: number
   /** Mở lần gần nhất — để xếp "Môn học hiện tại" */
   lastOpenedAt: number
@@ -199,11 +220,30 @@ export interface CloApi {
   pickFile: (kind: FilePickKind['kind']) => Promise<string | null>
   pickDirectory: () => Promise<string | null>
   parseConfig: (configPath: string) => Promise<ConfigSummaryDto>
-  parseRawGrades: (configPath: string, rawPath: string) => Promise<RawSummaryDto>
+  parseRawGrades: (
+    configPath: string,
+    rawPath: string,
+    phase?: GradePhase
+  ) => Promise<RawSummaryDto>
   runPipeline: (
     configPath: string,
     rawPath: string,
     outputDir: string,
+    sessionId?: string
+  ) => Promise<RunResultDto>
+  /** Giai đoạn quá trình: tính CLO từ CC/GK, xuất báo cáo và lưu snapshot */
+  runProcess: (
+    configPath: string,
+    rawPath: string,
+    outputDir: string,
+    sessionId?: string
+  ) => Promise<RunResultDto>
+  /** Giai đoạn cuối kỳ: ghép điểm CK vào snapshot quá trình rồi tính lại toàn bộ */
+  runFinal: (
+    configPath: string,
+    finalRawPath: string,
+    outputDir: string,
+    processRunId: string,
     sessionId?: string
   ) => Promise<RunResultDto>
   /** Tải snapshot chi tiết của 1 lần chạy (null nếu chưa có / dữ liệu cũ) */
