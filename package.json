@@ -1,6 +1,6 @@
 {
   "name": "clo-tool",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Phần mềm đo lường & đánh giá chuẩn đầu ra học phần (CLO/PLO) - Đại học Thành Đông",
   "main": "./out/main/index.js",
   "type": "module",
