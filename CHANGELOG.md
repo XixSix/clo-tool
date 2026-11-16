@@ -6,8 +6,28 @@ Mọi thay đổi đáng chú ý của phần mềm được ghi ở đây. Đ�
 
 ## [Unreleased]
 
+## [1.0.6] - 2026-11-16
+
+### Thêm
+
+- Màn **Học phần** được làm lại: ba tab cấp cao Thông tin & CLO / Kế hoạch & Đề thi /
+  Ma trận PLO, thanh Lưu cố định, lỗi và cảnh báo hiển thị ngay cạnh trường/bảng kèm bảng
+  tóm tắt toàn bộ vấn đề của cấu hình.
+- **Bản nháp cấu hình môn** tự lưu trên máy sau mỗi lần sửa, kể cả khi cấu hình còn lỗi;
+  mở lại màn sẽ tiếp tục từ bản nháp, còn nút Lưu chỉ ghi cấu hình chính thức khi hết lỗi.
+- Màn **Lịch sử** trong sidebar xem lịch sử chạy của mọi môn.
+- Modal thêm môn kiểm tra lỗi ngay khi nhập và cảnh báo mã môn trùng.
+
+### Sửa
+
+- File điểm thô hai giai đoạn: parser nhận đúng cột Họ/Tên tách riêng, cột `Mã đề` chỉ bắt
+  buộc ở giai đoạn cuối kỳ.
+- Không còn ghi file build `tsconfig.node.tsbuildinfo` vào kho mã nguồn.
+
 ### Bỏ
 
+- **Nhập cấu hình từ Excel**: gỡ `Template_Config.xlsx` và đường IPC `config:parse`; cấu
+  hình học phần chỉ khai báo trong app.
 - **Kiểm định đề thi / psychometrics**: gỡ độ khó p, độ phân biệt d, Cronbach α, báo cáo
   `exam_analysis_report.xlsx` cùng màn hình/nút xuất tương ứng. Ứng dụng chỉ còn tính điểm
   CLO/PLO theo QĐ450 (xem `AGENTS.md`, mục "Tính năng đã bị loại bỏ").
