@@ -22,7 +22,10 @@ export function RunSelector({
   runId: string
   onSelect: (id: string) => void
 }): React.ReactElement {
-  const runs = session.history.filter((r) => r.runId).slice().reverse()
+  const runs = session.history
+    .filter((r) => r.runId)
+    .slice()
+    .reverse()
   const current = runs.find((r) => r.runId === runId)
 
   return (
@@ -43,7 +46,7 @@ export function RunSelector({
               className="flex-col items-start gap-0.5"
             >
               <span className="text-xs font-medium">{formatDateTime(run.ts)}</span>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-muted-foreground text-xs">
                 {run.studentCount} SV · {formatPercent(run.passedPercent)} đạt · TB{' '}
                 {formatScore(run.meanCourseScore)}
               </span>

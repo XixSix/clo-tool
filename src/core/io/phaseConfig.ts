@@ -9,31 +9,26 @@
  * Lưu ý: KHÔNG chạy validator kế hoạch (tổng trọng số = 100%) trên config đã lọc.
  */
 
-import type { CourseConfig, QuestionColumn } from '../types'
+import type { Course } from '../types'
 import type { GradePhase } from '../types/phase'
 
 /** Lọc kế hoạch đánh giá và câu hỏi theo giai đoạn, giữ nguyên phần còn lại. */
-export function phaseConfig(config: CourseConfig, phase: GradePhase): CourseConfig {
-  const keHoachDanhGia = config.keHoachDanhGia.filter((item) =>
-    phase === 'final' ? item.nhom === 'CK' : item.nhom !== 'CK'
+export function phaseConfig(course: Course, phase: GradePhase): Course {
+  const dotDanhGia = course.dotDanhGia.filter((dot) =>
+    phase === 'final' ? dot.nhom === 'CK' : dot.nhom !== 'CK'
   )
 
-  const cellKeys = new Set(keHoachDanhGia.map((item) => cellKeyOf(item.maDauDiem, item.clo)))
-  const cauHoi: QuestionColumn[] = config.cauHoi.filter((question) =>
-    cellKeys.has(cellKeyOf(question.maDauDiem, question.clo))
-  )
-
-  return { ...config, keHoachDanhGia, cauHoi }
+  return { ...course, dotDanhGia }
 }
 
-/** Cấu hình chỉ còn các đầu điểm quá trình (CC/GK). */
-export function processConfig(config: CourseConfig): CourseConfig {
-  return phaseConfig(config, 'process')
+/** Cấu hình chỉ còn các đợt đánh giá quá trình (CC/GK). */
+export function processConfig(course: Course): Course {
+  return phaseConfig(course, 'process')
 }
 
-/** Cấu hình chỉ còn các đầu điểm cuối kỳ (CK). */
-export function finalConfig(config: CourseConfig): CourseConfig {
-  return phaseConfig(config, 'final')
+/** Cấu hình chỉ còn các đợt đánh giá cuối kỳ (CK). */
+export function finalConfig(course: Course): Course {
+  return phaseConfig(course, 'final')
 }
 
 /**
@@ -42,26 +37,22 @@ export function finalConfig(config: CourseConfig): CourseConfig {
  * `ALL` không phải một đề riêng nên bị loại. Trường hợp CK nhập bằng cột điểm
  * trực tiếp (không có câu hỏi) thì không thể biểu diễn nhiều đề nên danh sách rỗng.
  */
-export function finalExamVariants(config: CourseConfig): string[] {
+export function finalExamVariants(course: Course): string[] {
   const ckCodes = new Set(
-    config.keHoachDanhGia
-      .filter((item) => item.nhom === 'CK')
-      .map((item) => item.maDauDiem.trim())
+    course.dotDanhGia.filter((dot) => dot.nhom === 'CK').map((dot) => dot.id)
   )
   const variants = new Set<string>()
-  for (const question of config.cauHoi) {
-    if (!ckCodes.has(question.maDauDiem.trim())) continue
-    const maDe = question.maDe?.trim()
-    if (maDe && maDe.toUpperCase() !== 'ALL') variants.add(maDe)
+  for (const dot of course.dotDanhGia) {
+    if (!ckCodes.has(dot.id)) continue
+    for (const variant of dot.maDeList) {
+      const maDe = variant.maDe?.trim()
+      if (maDe && maDe.toUpperCase() !== 'ALL') variants.add(maDe)
+    }
   }
   return Array.from(variants)
 }
 
 /** Cuối kỳ có nhiều hơn một mã đề cần phân biệt không. */
-export function hasMultipleFinalExamVariants(config: CourseConfig): boolean {
-  return finalExamVariants(config).length > 1
-}
-
-function cellKeyOf(maDauDiem: string, clo: string): string {
-  return `${maDauDiem.trim()}|${clo.trim()}`
+export function hasMultipleFinalExamVariants(course: Course): boolean {
+  return finalExamVariants(course).length > 1
 }

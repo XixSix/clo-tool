@@ -1,20 +1,14 @@
-import * as React from "react"
+import * as React from 'react'
 
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils'
 
-const defaultStates = [
-  "default",
-  "hover",
-  "focus",
-  "active",
-  "disabled",
-] as const
+const defaultStates = ['default', 'hover', 'focus', 'active', 'disabled'] as const
 
 export function StateMatrix<Row extends string>({
   rows,
   states = defaultStates,
   render,
-  className,
+  className
 }: {
   rows: readonly Row[]
   states?: readonly string[]
@@ -22,7 +16,7 @@ export function StateMatrix<Row extends string>({
   className?: string
 }) {
   return (
-    <div className={cn("w-full overflow-x-auto", className)}>
+    <div className={cn('w-full overflow-x-auto', className)}>
       <table className="w-full border-separate border-spacing-x-2 border-spacing-y-3">
         <thead>
           <tr>
@@ -31,7 +25,7 @@ export function StateMatrix<Row extends string>({
               <th
                 key={state}
                 scope="col"
-                className="text-left font-mono text-xs font-normal text-muted-foreground"
+                className="text-muted-foreground text-left font-mono text-xs font-normal"
               >
                 {state}
               </th>
@@ -43,7 +37,7 @@ export function StateMatrix<Row extends string>({
             <tr key={row}>
               <th
                 scope="row"
-                className="pr-4 text-left font-mono text-xs font-normal text-muted-foreground"
+                className="text-muted-foreground pr-4 text-left font-mono text-xs font-normal"
               >
                 {row}
               </th>
@@ -60,12 +54,12 @@ export function StateMatrix<Row extends string>({
 
 // Spread onto a component to pin a state without interaction.
 export function previewState(state: string) {
-  if (state === "disabled") {
+  if (state === 'disabled') {
     return { disabled: true }
   }
 
-  if (["hover", "focus", "active"].includes(state)) {
-    return { "data-preview": state }
+  if (['hover', 'focus', 'active'].includes(state)) {
+    return { 'data-preview': state }
   }
 
   return {}

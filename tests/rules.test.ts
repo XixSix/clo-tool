@@ -2,9 +2,6 @@ import { describe, it, expect } from 'vitest'
 import {
   roundHalfUp,
   roundStep,
-  classifyDifficulty,
-  classifyDiscrimination,
-  classifyReliability,
   DEFAULT_BUSINESS_RULES
 } from '@core/rules'
 
@@ -43,59 +40,17 @@ describe('Rules & Math Module', () => {
     })
   })
 
-  describe('Phân loại chỉ số độ khó p', () => {
-    it('phải phân loại đúng theo bảng QĐ450 Điều 5.1', () => {
-      expect(classifyDifficulty(0.85)).toBe('Dễ')
-      expect(classifyDifficulty(0.8)).toBe('Dễ')
-      expect(classifyDifficulty(0.7)).toBe('Trung bình')
-      expect(classifyDifficulty(0.6)).toBe('Trung bình')
-      expect(classifyDifficulty(0.5)).toBe('Tương đối khó')
-      expect(classifyDifficulty(0.4)).toBe('Tương đối khó')
-      expect(classifyDifficulty(0.3)).toBe('Khó')
-      expect(classifyDifficulty(0.2)).toBe('Khó')
-      expect(classifyDifficulty(0.15)).toBe('Rất khó')
-    })
-  })
-
-  describe('Phân loại chỉ số độ phân biệt d', () => {
-    it('phải phân loại đúng theo bảng QĐ450 Điều 5.2', () => {
-      expect(classifyDiscrimination(0.75)).toBe('Rất tốt')
-      expect(classifyDiscrimination(0.7)).toBe('Rất tốt')
-      expect(classifyDiscrimination(0.5)).toBe('Tốt')
-      expect(classifyDiscrimination(0.4)).toBe('Tốt')
-      expect(classifyDiscrimination(0.3)).toBe('Đủ độ phân biệt')
-      expect(classifyDiscrimination(0.2)).toBe('Đủ độ phân biệt')
-      expect(classifyDiscrimination(0.1)).toBe('Yếu')
-      expect(classifyDiscrimination(0.0)).toBe('Yếu')
-      expect(classifyDiscrimination(-0.15)).toBe('Nên loại bỏ')
-    })
-  })
-
-  describe('Phân loại độ tin cậy Cronbach alpha', () => {
-    it('phải phân loại đúng theo bảng QĐ450 Điều 5.3', () => {
-      expect(classifyReliability(0.9)).toBe('Rất cao')
-      expect(classifyReliability(0.85)).toBe('Rất cao')
-      expect(classifyReliability(0.82)).toBe('Cao')
-      expect(classifyReliability(0.8)).toBe('Cao')
-      expect(classifyReliability(0.75)).toBe('Đủ độ tin cậy')
-      expect(classifyReliability(0.7)).toBe('Đủ độ tin cậy')
-      expect(classifyReliability(0.65)).toBe('Yếu')
-      expect(classifyReliability(0.6)).toBe('Không đủ độ tin cậy')
-      expect(classifyReliability(0.55)).toBe('Không đủ độ tin cậy')
-    })
-  })
-
   describe('Quy tắc nghiệp vụ mặc định', () => {
     it('phải cài đặt đúng 8 quyết định nghiệp vụ đã chốt', () => {
-      expect(DEFAULT_BUSINESS_RULES.hp_method).toBe('QD450')
-      expect(DEFAULT_BUSINESS_RULES.nguong_dat_clo).toBe(4.0)
-      expect(DEFAULT_BUSINESS_RULES.nguong_dat_plo).toBe(4.0)
-      expect(DEFAULT_BUSINESS_RULES.clo_bo_phan).toBe('mean_of_ratios')
-      expect(DEFAULT_BUSINESS_RULES.rounding_mode).toBe('chain')
-      expect(DEFAULT_BUSINESS_RULES.tinh_sv_vang_thi).toBe(true)
-      expect(DEFAULT_BUSINESS_RULES.canh_bao_cc_don_le).toBe(true)
-      expect(DEFAULT_BUSINESS_RULES.ty_le_nhom_27).toBe(0.27)
-      expect(DEFAULT_BUSINESS_RULES.nguong_co_mau_n).toBe(30)
+      expect(DEFAULT_BUSINESS_RULES.phuongThucTinhHp).toBe('QD450')
+      expect(DEFAULT_BUSINESS_RULES.nguongDatClo).toBe(4.0)
+      expect(DEFAULT_BUSINESS_RULES.nguongDatPlo).toBe(4.0)
+      expect(DEFAULT_BUSINESS_RULES.cachTinhCloBoPhan).toBe('mean_of_ratios')
+      expect(DEFAULT_BUSINESS_RULES.cheDoLamTron).toBe('chain')
+      expect(DEFAULT_BUSINESS_RULES.tinhSvVangThi).toBe(true)
+      expect(DEFAULT_BUSINESS_RULES.canhBaoCcDonLe).toBe(true)
+      expect(DEFAULT_BUSINESS_RULES.tyLeNhom27).toBe(0.27)
+      expect(DEFAULT_BUSINESS_RULES.nguongCoMauN).toBe(30)
     })
   })
 })

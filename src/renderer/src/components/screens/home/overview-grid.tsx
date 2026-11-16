@@ -8,7 +8,10 @@ import {
   ChartTooltipContent,
   type ChartConfig
 } from '@renderer/components/ui/chart'
-import type { AttentionItem, PassByCourseItem } from '@renderer/components/screens/home/overview-data'
+import type {
+  AttentionItem,
+  PassByCourseItem
+} from '@renderer/components/screens/home/overview-data'
 
 const passChartConfig = {
   pass: { label: '% đạt', color: 'var(--chart-1)' }
@@ -30,24 +33,24 @@ export function OverviewGrid({
 }): React.ReactElement {
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-      <div className="rounded-xl bg-card p-4 ring-1 ring-foreground/10">
+      <div className="bg-card ring-foreground/10 rounded-xl p-4 ring-1">
         <div className="flex items-baseline justify-between gap-2">
           <div>
             <p className="text-sm font-semibold">Tỷ lệ đạt theo môn</p>
-            <p className="text-[11px] text-muted-foreground/70">
+            <p className="text-muted-foreground/70 text-[11px]">
               Lần chạy gần nhất · vạch đứt là ngưỡng 50%
             </p>
           </div>
-          <span className="text-[11px] text-muted-foreground/60">{sessionCount} môn</span>
+          <span className="text-muted-foreground/60 text-[11px]">{sessionCount} môn</span>
         </div>
 
         {loading ? (
           <Skeleton className="mt-3 h-[190px] rounded-lg" />
         ) : passByCourse.length === 0 ? (
           <div className="flex h-[190px] flex-col items-center justify-center gap-1 text-center">
-            <ChartColumn className="size-5 text-muted-foreground/40" />
+            <ChartColumn className="text-muted-foreground/40 size-5" />
             <p className="text-xs font-medium">Chưa có dữ liệu để vẽ</p>
-            <p className="text-[11px] text-muted-foreground/70">
+            <p className="text-muted-foreground/70 text-[11px]">
               Chạy Nhập điểm cho ít nhất một môn học
             </p>
           </div>
@@ -91,16 +94,16 @@ export function OverviewGrid({
         )}
       </div>
 
-      <div className="flex flex-col rounded-xl bg-card p-4 ring-1 ring-foreground/10">
+      <div className="bg-card ring-foreground/10 flex flex-col rounded-xl p-4 ring-1">
         <div className="flex items-baseline justify-between gap-2">
           <div>
             <p className="text-sm font-semibold">Cần chú ý</p>
-            <p className="text-[11px] text-muted-foreground/70">
+            <p className="text-muted-foreground/70 text-[11px]">
               Môn chưa nhập điểm hoặc tỷ lệ đạt dưới 50%
             </p>
           </div>
           {attention.length > 0 ? (
-            <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-medium text-destructive">
+            <span className="bg-destructive/10 text-destructive rounded-full px-2 py-0.5 text-[11px] font-medium">
               {attention.length}
             </span>
           ) : null}
@@ -113,9 +116,9 @@ export function OverviewGrid({
           </div>
         ) : attention.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-1 py-8 text-center">
-            <CircleCheck className="size-5 text-success" />
+            <CircleCheck className="text-success size-5" />
             <p className="text-xs font-medium">Không có môn nào cần chú ý</p>
-            <p className="text-[11px] text-muted-foreground/70">
+            <p className="text-muted-foreground/70 text-[11px]">
               Mọi môn đã có dữ liệu và tỷ lệ đạt từ 50% trở lên
             </p>
           </div>
@@ -126,18 +129,18 @@ export function OverviewGrid({
                 key={item.id}
                 type="button"
                 onClick={() => onOpenAttention(item)}
-                className="flex items-center gap-2.5 rounded-lg px-2 py-2 text-left transition hover:bg-muted/60"
+                className="hover:bg-muted/60 flex items-center gap-2.5 rounded-lg px-2 py-2 text-left transition"
               >
                 {item.level === 'warning' ? (
-                  <TriangleAlert className="size-4 shrink-0 text-destructive" />
+                  <TriangleAlert className="text-destructive size-4 shrink-0" />
                 ) : (
-                  <BookOpen className="size-4 shrink-0 text-muted-foreground/60" />
+                  <BookOpen className="text-muted-foreground/60 size-4 shrink-0" />
                 )}
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[12.5px] font-medium">{item.title}</p>
-                  <p className="truncate text-[11px] text-muted-foreground/70">{item.hint}</p>
+                  <p className="text-muted-foreground/70 truncate text-[11px]">{item.hint}</p>
                 </div>
-                <ChevronRight className="size-3.5 shrink-0 text-muted-foreground/50" />
+                <ChevronRight className="text-muted-foreground/50 size-3.5 shrink-0" />
               </button>
             ))}
           </div>

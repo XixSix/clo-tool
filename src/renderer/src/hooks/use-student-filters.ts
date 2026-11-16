@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { normalizeText } from '@renderer/lib/text'
 import type { RunSnapshotDto } from '../../../shared/ipc'
-import type { ProcessedStudentResult } from '@core/types'
+import { buildStudentViews, type ProcessedStudentResultView } from '@renderer/lib/result-view'
 
 export type FilterId = 'all' | 'pass' | 'fail' | 'absent' | 'missing' | 'warning'
 
@@ -15,7 +15,7 @@ export const FILTER_LABELS: Record<FilterId, string> = {
 }
 
 export interface StudentRow {
-  student: ProcessedStudentResult
+  student: ProcessedStudentResultView
   passedClos: number
   totalClos: number
 }
@@ -35,11 +35,11 @@ export interface StudentFilters {
 export function useStudentFilters(snapshot: RunSnapshotDto | null): StudentFilters {
   const [filter, setFilter] = useState<FilterId>('all')
   const [query, setQuery] = useState('')
-  const threshold = snapshot?.config.quyTac.nguong_dat_clo ?? 4
+  const threshold = snapshot?.config.quyTac.nguongDatClo ?? 4
 
   const rows = useMemo<StudentRow[]>(() => {
     if (!snapshot) return []
-    return snapshot.students.map((student) => {
+    return buildStudentViews(snapshot).map((student) => {
       const cloCodes = Object.keys(student.cloScores)
       const passedClos = cloCodes.filter(
         (code) => (student.cloScores[code] ?? 0) >= threshold

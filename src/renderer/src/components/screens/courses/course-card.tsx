@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { ChartColumn, EllipsisVertical, Trash2, Upload, Users } from 'lucide-react'
+import { ChartColumn, EllipsisVertical, Settings2, Trash2, Upload, Users } from 'lucide-react'
 import {
   Card,
   CardContent,
@@ -20,6 +20,7 @@ import { formatDateTime, formatPercent, formatScore } from '@renderer/lib/format
 import type { ScreenId } from '@renderer/lib/navigation'
 import type { SessionDto } from '../../../../../shared/ipc'
 import { DeleteCourseDialog } from '@renderer/components/screens/courses/delete-course-dialog'
+import type { CourseDetailTab } from '@renderer/components/screens/courses/course-editor-types'
 
 /** Thẻ một môn trong danh sách môn học. */
 export function CourseCard({
@@ -31,7 +32,7 @@ export function CourseCard({
   session: SessionDto
   isActive: boolean
   onOpen: (session: SessionDto, screen: ScreenId) => void
-  onDetail: (session: SessionDto) => void
+  onDetail: (session: SessionDto, tab?: CourseDetailTab) => void
 }): React.ReactElement {
   const { removeSession } = useWorkspace()
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -40,14 +41,16 @@ export function CourseCard({
   return (
     <Card
       className={
-        isActive ? 'ring-2 ring-foreground/20 transition hover:shadow-md' : 'transition hover:shadow-md'
+        isActive
+          ? 'ring-foreground/20 ring-2 transition hover:shadow-md'
+          : 'transition hover:shadow-md'
       }
     >
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
           <button
             type="button"
-            onClick={() => onDetail(session)}
+            onClick={() => onDetail(session, 'info-clo')}
             className="truncate text-left font-mono text-base font-medium hover:underline"
             title="Xem chi tiết môn học"
           >
@@ -55,11 +58,18 @@ export function CourseCard({
           </button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="-my-2 -mr-2 size-7 text-muted-foreground">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-muted-foreground -my-2 -mr-2 size-7"
+              >
                 <EllipsisVertical />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onDetail(session, 'info-clo')}>
+                <Settings2 /> Cấu hình môn
+              </DropdownMenuItem>
               <DropdownMenuItem variant="destructive" onClick={() => setConfirmDelete(true)}>
                 <Trash2 /> Xoá môn
               </DropdownMenuItem>
@@ -83,7 +93,7 @@ export function CourseCard({
               <span className="text-muted-foreground">Đạt học phần</span>
               <span className="font-medium">{formatPercent(lastRun.passedPercent)}</span>
             </div>
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <div className="text-muted-foreground flex items-center justify-between text-xs">
               <span>
                 {lastRun.studentCount} sinh viên · TB {formatScore(lastRun.meanCourseScore)}
               </span>
@@ -91,11 +101,15 @@ export function CourseCard({
             </div>
           </div>
         ) : (
-          <p className="text-xs text-muted-foreground">Chưa nhập điểm lần nào</p>
+          <p className="text-muted-foreground text-xs">Chưa nhập điểm lần nào</p>
         )}
       </CardContent>
 
-      <CardFooter className="gap-2">
+      <CardFooter className="flex-wrap gap-2">
+        <Button variant="outline" size="sm" onClick={() => onDetail(session, 'info-clo')}>
+          <Settings2 data-icon="inline-start" />
+          Cấu hình
+        </Button>
         <Button variant="outline" size="sm" onClick={() => onOpen(session, 'students')}>
           <Users data-icon="inline-start" />
           Sinh viên

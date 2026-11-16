@@ -1,18 +1,19 @@
 import { useState, type ChangeEvent, type Dispatch, type SetStateAction } from 'react'
-import { hasBridge } from '@renderer/lib/theme'
 import { newSessionId } from '@renderer/hooks/workspace'
-import { semesterOptionOf, type SemesterOption } from '@renderer/lib/semester'
-import type { ConfigSummaryDto, SessionDto } from '../../../shared/ipc'
+import type { SemesterOption } from '@renderer/lib/semester'
+import type {
+  CourseFormField,
+  CourseFormValues
+} from '@renderer/lib/course-form-validation'
+import type { SessionDto } from '../../../shared/ipc'
 
-export interface CourseFormState {
-  maHp: string
-  courseName: string
-  soTinChi: string
+export type CourseFormState = CourseFormValues & {
   lop: string
   hocKy: string
   namHoc: string
-  configPath: string
 }
+
+export type CourseFormTouched = Partial<Record<CourseFormField, boolean>>
 
 const EMPTY_FORM: CourseFormState = {
   maHp: '',
@@ -20,73 +21,49 @@ const EMPTY_FORM: CourseFormState = {
   soTinChi: '3',
   lop: '',
   hocKy: '',
-  namHoc: '',
-  configPath: ''
+  namHoc: ''
 }
 
-/** State + thao tác của hộp thoại "Thêm môn học" (điền tay hoặc đọc trước từ file Config). */
+const VALIDATED_FIELDS: CourseFormField[] = ['maHp', 'courseName', 'soTinChi']
+
+/** State + thao tác của hộp thoại "Thêm môn học" (thông tin cơ bản, cấu hình CLO/PLO nhập sau). */
 export function useCourseForm(): {
   form: CourseFormState
   setForm: Dispatch<SetStateAction<CourseFormState>>
-  config: ConfigSummaryDto | null
   hocKyOption: SemesterOption
   setHocKyOption: (option: SemesterOption) => void
-  busy: boolean
-  error: string
-  bridgeReady: boolean
+  touched: CourseFormTouched
+  markTouched: (field: CourseFormField) => void
   field: <K extends keyof CourseFormState>(
     key: K
   ) => {
     value: string
     onChange: (e: ChangeEvent<HTMLInputElement>) => void
+    onBlur: () => void
   }
-  pickConfig: () => Promise<void>
   makeSession: () => SessionDto | null
   reset: () => void
 } {
-  const bridgeReady = hasBridge()
   const [form, setForm] = useState<CourseFormState>(EMPTY_FORM)
-  const [config, setConfig] = useState<ConfigSummaryDto | null>(null)
   const [hocKyOption, setHocKyOption] = useState<SemesterOption>('')
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState('')
+  const [touched, setTouched] = useState<CourseFormTouched>({})
 
-  function field<K extends keyof CourseFormState>(
-    key: K
-  ): { value: string; onChange: (e: ChangeEvent<HTMLInputElement>) => void } {
+  function markTouched(key: CourseFormField): void {
+    setTouched((t) => ({ ...t, [key]: true }))
+  }
+
+  function field<K extends keyof CourseFormState>(key: K): {
+    value: string
+    onChange: (e: ChangeEvent<HTMLInputElement>) => void
+    onBlur: () => void
+  } {
     return {
       value: form[key],
       onChange: (e: ChangeEvent<HTMLInputElement>) =>
-        setForm((f) => ({ ...f, [key]: e.target.value }))
-    }
-  }
-
-  async function pickConfig(): Promise<void> {
-    setError('')
-    setBusy(true)
-    try {
-      const p = await window.api.pickFile('config')
-      if (!p) return
-      const summary = await window.api.parseConfig(p)
-      const importedHocKy = summary.hocKy?.trim() || ''
-      const nextHocKy = form.hocKy || importedHocKy
-      if (nextHocKy) setHocKyOption(semesterOptionOf(nextHocKy))
-      setForm((f) => ({
-        ...f,
-        configPath: p,
-        // Pre-fill từ file Config nếu đang trống
-        maHp: f.maHp || summary.maHp || '',
-        courseName: f.courseName || summary.courseName || '',
-        soTinChi: summary.soTinChi ? String(summary.soTinChi) : f.soTinChi,
-        lop: f.lop || summary.lop || '',
-        hocKy: nextHocKy,
-        namHoc: f.namHoc || summary.namHoc || ''
-      }))
-      setConfig(summary)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Không đọc được file Config.')
-    } finally {
-      setBusy(false)
+        setForm((f) => ({ ...f, [key]: e.target.value })),
+      onBlur: () => {
+        if (VALIDATED_FIELDS.includes(key as CourseFormField)) markTouched(key as CourseFormField)
+      }
     }
   }
 
@@ -102,8 +79,6 @@ export function useCourseForm(): {
       lop: form.lop.trim() || undefined,
       hocKy: form.hocKy.trim() || undefined,
       namHoc: form.namHoc.trim() || undefined,
-      cloCount: config?.ok ? config.cloList.length : undefined,
-      configPath: form.configPath || undefined,
       addedAt: now,
       lastOpenedAt: now,
       history: []
@@ -112,22 +87,18 @@ export function useCourseForm(): {
 
   function reset(): void {
     setForm(EMPTY_FORM)
-    setConfig(null)
     setHocKyOption('')
-    setError('')
+    setTouched({})
   }
 
   return {
     form,
     setForm,
-    config,
     hocKyOption,
     setHocKyOption,
-    busy,
-    error,
-    bridgeReady,
+    touched,
+    markTouched,
     field,
-    pickConfig,
     makeSession,
     reset
   }

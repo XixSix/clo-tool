@@ -1,11 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useWorkspace } from '@renderer/hooks/workspace'
-import type {
-  ConfigSummaryDto,
-  RawSummaryDto,
-  RunResultDto,
-  SessionDto
-} from '../../../shared/ipc'
+import type { GradeSheetSummaryDto, RunResultDto, SessionDto } from '../../../shared/ipc'
+import type { Course } from '@core/types'
+import { normalizeStoredCourse } from '@renderer/components/screens/courses/course-adapter'
 
 export interface ImportStep {
   title: string
@@ -16,10 +13,9 @@ export interface ImportStep {
 export interface ImportPipeline {
   bridgeReady: boolean
   active: SessionDto | null
-  configPath: string
-  config: ConfigSummaryDto | null
-  rawPath: string
-  raw: RawSummaryDto | null
+  courseConfig: Course | null
+  gradeSheetPath: string
+  gradeSheet: GradeSheetSummaryDto | null
   outDir: string
   result: RunResultDto | null
   busy: string | null
@@ -28,64 +24,76 @@ export interface ImportPipeline {
   missing: string[]
   steps: ImportStep[]
   activeIndex: number
-  pickConfig: () => Promise<void>
-  pickRaw: () => Promise<void>
+  pickGradeSheet: () => Promise<void>
   pickOutput: () => Promise<void>
   run: () => Promise<void>
   reset: () => void
 }
 
+function loadLocalConfig(sessionId: string): Course | null {
+  const key = `course-config-${sessionId}`
+  const saved = sessionStorage.getItem(key)
+  if (!saved) return null
+  try {
+    return normalizeStoredCourse(JSON.parse(saved))
+  } catch {
+    return null
+  }
+}
+
 /**
- * Toàn bộ state + thao tác của luồng "Nhập điểm": chọn Config → chọn điểm thô → chọn thư mục → chạy.
- * Tách khỏi component để phần render chỉ còn bố cục.
+ * Toàn bộ state + thao tác của luồng "Nhập điểm": chọn điểm thô → chọn thư mục → chạy.
+ * Cấu hình môn học được lưu trữ bền vững qua IPC userData/configs/${sessionId}.json.
  */
-export function useImportPipeline(
-  active: SessionDto | null,
-  bridgeReady: boolean
-): ImportPipeline {
+export function useImportPipeline(active: SessionDto | null, bridgeReady: boolean): ImportPipeline {
   const { archiveRun, patchSession } = useWorkspace()
 
-  // Prefill từ môn hiện tại — component được remount qua key khi đổi môn
-  const [configPath, setConfigPath] = useState(active?.configPath ?? '')
-  const [config, setConfig] = useState<ConfigSummaryDto | null>(null)
-  const [rawPath, setRawPath] = useState(active?.rawPath ?? '')
-  const [raw, setRaw] = useState<RawSummaryDto | null>(null)
+  const [loadedConfig, setLoadedConfig] = useState<{
+    sessionId: string
+    config: Course | null
+  } | null>(null)
+
+  useEffect(() => {
+    let canceled = false
+    if (!active) return
+
+    window.api?.getCourseConfig?.(active.id).then((saved) => {
+      if (canceled) return
+      const cfg = saved?.config ?? loadLocalConfig(active.id)
+      setLoadedConfig({ sessionId: active.id, config: cfg })
+    })
+
+    return () => {
+      canceled = true
+    }
+  }, [active])
+
+  const courseConfig = active
+    ? loadedConfig?.sessionId === active.id
+      ? loadedConfig.config
+      : loadLocalConfig(active.id)
+    : null
+
+  const [gradeSheetPath, setGradeSheetPath] = useState(active?.gradeSheetPath ?? '')
+  const [gradeSheet, setGradeSheet] = useState<GradeSheetSummaryDto | null>(null)
   const [outDir, setOutDir] = useState(active?.outDir ?? '')
   const [result, setResult] = useState<RunResultDto | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState('')
 
-  async function pickConfig(): Promise<void> {
-    setError('')
-    setBusy('config')
-    try {
-      const p = await window.api.pickFile('config')
-      if (!p) return
-      setConfigPath(p)
-      setRaw(null)
-      setRawPath('')
-      setResult(null)
-      setConfig(await window.api.parseConfig(p))
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Không đọc được file Config.')
-    } finally {
-      setBusy(null)
-    }
-  }
-
-  async function pickRaw(): Promise<void> {
-    if (!configPath) {
-      setError('Hãy chọn file Config trước.')
+  async function pickGradeSheet(): Promise<void> {
+    if (!courseConfig) {
+      setError('Môn học chưa có cấu hình. Hãy vào chi tiết môn để cấu hình CLO/PLO.')
       return
     }
     setError('')
-    setBusy('raw')
+    setBusy('grade-sheet')
     try {
-      const p = await window.api.pickFile('raw')
+      const p = await window.api.pickFile()
       if (!p) return
-      setRawPath(p)
+      setGradeSheetPath(p)
       setResult(null)
-      setRaw(await window.api.parseRawGrades(configPath, p))
+      setGradeSheet(await window.api.parseGradeSheet(courseConfig, p))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Không đọc được file điểm.')
     } finally {
@@ -104,36 +112,36 @@ export function useImportPipeline(
   }
 
   async function run(): Promise<void> {
-    if (!configPath || !rawPath || !outDir) {
-      setError('Cần chọn đủ: file Config, file điểm thô và thư mục lưu báo cáo.')
+    if (!courseConfig) {
+      setError('Môn học chưa có cấu hình. Hãy vào chi tiết môn để cấu hình CLO/PLO.')
+      return
+    }
+    if (!gradeSheetPath || !outDir) {
+      setError('Cần chọn đủ: file bảng điểm và thư mục lưu báo cáo.')
       return
     }
     setError('')
     setBusy('run')
     setResult(null)
     try {
-      const res = await window.api.runPipeline(configPath, rawPath, outDir, active?.id)
+      const res = await window.api.runPipeline(courseConfig, gradeSheetPath, outDir, active?.id)
       setResult(res)
       if (res.ok) {
         archiveRun({
           runId: res.runId,
           ts: Date.now(),
-          configPath,
-          rawPath,
+          gradeSheetPath,
           outputDir: outDir,
           finalReportPath: res.finalReportPath,
-          examReportPath: res.examReportPath,
           studentCount: res.studentCount,
           passedPercent: res.passedPercent,
           meanCourseScore: res.meanCourseScore
         })
-        // Ghi nhớ đường dẫn để lần sau mở màn là có sẵn
         if (active) {
           patchSession(active.id, {
-            configPath,
-            rawPath,
+            gradeSheetPath,
             outDir,
-            cloCount: config?.ok ? config.cloList.length : active.cloCount,
+            cloCount: courseConfig.cloList.length,
             lastOpenedAt: Date.now()
           })
         }
@@ -151,30 +159,30 @@ export function useImportPipeline(
   function reset(): void {
     if (busy) return
     setError('')
-    setConfigPath('')
-    setConfig(null)
-    setRawPath('')
-    setRaw(null)
+    setGradeSheetPath('')
+    setGradeSheet(null)
     setResult(null)
   }
 
-  const canRun = Boolean(configPath && rawPath && outDir) && !busy && bridgeReady
+  const canRun = Boolean(courseConfig && gradeSheetPath && outDir) && !busy && bridgeReady
   const missing = [
-    !configPath ? 'file Config' : null,
-    !rawPath ? 'file điểm thô' : null,
+    !courseConfig ? 'cấu hình môn học' : null,
+    !gradeSheetPath ? 'file bảng điểm' : null,
     !outDir ? 'thư mục lưu báo cáo' : null
   ].filter((item): item is string => item !== null)
 
   const steps: ImportStep[] = [
     {
-      title: 'File Config',
-      hint: config?.ok ? `${config.maHp} · ${config.cloList.length} CLO` : 'Chọn cấu trúc học phần',
-      done: Boolean(config?.ok)
+      title: 'Cấu hình môn',
+      hint: courseConfig
+        ? `${courseConfig.cloList.length} CLO · ${courseConfig.dotDanhGia.length} đầu điểm`
+        : 'Chưa cấu hình (vào chi tiết môn)',
+      done: Boolean(courseConfig)
     },
     {
-      title: 'Điểm thô',
-      hint: raw?.ok ? `${raw.studentCount} sinh viên` : 'Chọn file điểm',
-      done: Boolean(raw?.ok)
+      title: 'Bảng điểm',
+      hint: gradeSheet?.ok ? `${gradeSheet.studentCount} sinh viên` : 'Chọn file bảng điểm',
+      done: Boolean(gradeSheet?.ok)
     },
     {
       title: 'Xuất báo cáo',
@@ -182,15 +190,14 @@ export function useImportPipeline(
       done: Boolean(result?.ok)
     }
   ]
-  const activeIndex = !config?.ok ? 0 : !raw?.ok ? 1 : 2
+  const activeIndex = !courseConfig ? 0 : !gradeSheet?.ok ? 1 : 2
 
   return {
     bridgeReady,
     active,
-    configPath,
-    config,
-    rawPath,
-    raw,
+    courseConfig,
+    gradeSheetPath,
+    gradeSheet,
     outDir,
     result,
     busy,
@@ -199,8 +206,7 @@ export function useImportPipeline(
     missing,
     steps,
     activeIndex,
-    pickConfig,
-    pickRaw,
+    pickGradeSheet,
     pickOutput,
     run,
     reset

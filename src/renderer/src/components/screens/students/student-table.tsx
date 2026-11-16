@@ -12,7 +12,7 @@ import {
 } from '@renderer/components/ui/table'
 import { formatScore } from '@renderer/lib/format'
 import type { StudentRow } from '@renderer/hooks/use-student-filters'
-import type { ProcessedStudentResult } from '@core/types'
+import type { ProcessedStudentResultView } from '@renderer/lib/result-view'
 
 function ScoreCell({ value }: { value: number | undefined }): React.ReactElement {
   return <span className="font-mono text-[13px] tabular-nums">{formatScore(value)}</span>
@@ -26,10 +26,10 @@ export function StudentTable({
 }: {
   rows: StudentRow[]
   loading: boolean
-  onSelect: (student: ProcessedStudentResult) => void
+  onSelect: (student: ProcessedStudentResultView) => void
 }): React.ReactElement {
   return (
-    <div className="overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10">
+    <div className="bg-card ring-foreground/10 overflow-hidden rounded-xl ring-1">
       <Table>
         <TableHeader>
           <TableRow>
@@ -57,7 +57,7 @@ export function StudentTable({
             ))
           ) : rows.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={11} className="h-32 text-center text-sm text-muted-foreground">
+              <TableCell colSpan={11} className="text-muted-foreground h-32 text-center text-sm">
                 Không tìm thấy sinh viên phù hợp bộ lọc.
               </TableCell>
             </TableRow>
@@ -68,12 +68,12 @@ export function StudentTable({
                 className="cursor-pointer"
                 onClick={() => onSelect(student)}
               >
-                <TableCell className="text-xs text-muted-foreground">{student.tt}</TableCell>
+                <TableCell className="text-muted-foreground text-xs">{student.tt}</TableCell>
                 <TableCell className="font-mono text-[13px]">{student.maSv}</TableCell>
                 <TableCell>
                   <p className="text-[13px] font-medium">{student.hoTen}</p>
                   {student.maDe ? (
-                    <p className="text-[11px] text-muted-foreground">Đề {student.maDe}</p>
+                    <p className="text-muted-foreground text-[11px]">Đề {student.maDe}</p>
                   ) : null}
                 </TableCell>
                 <TableCell className="text-right">
@@ -108,12 +108,12 @@ export function StudentTable({
                     <TriangleAlert
                       className={
                         student.isAbsentFinal || student.hasMissingData
-                          ? 'mx-auto size-4 text-destructive'
-                          : 'mx-auto size-4 text-warning'
+                          ? 'text-destructive mx-auto size-4'
+                          : 'text-warning mx-auto size-4'
                       }
                     />
                   ) : (
-                    <span className="text-xs text-muted-foreground">—</span>
+                    <span className="text-muted-foreground text-xs">—</span>
                   )}
                 </TableCell>
               </TableRow>

@@ -1,69 +1,24 @@
-import {
-  applyAttendance,
-  hasMultipleFinalExamVariants,
-  parseCourseConfig,
-  parseRawGrades,
-  phaseConfig,
-  validateConfig,
-  validateRawGrades
-} from '@core/index'
-import type { CourseConfig, GradePhase, RawGrades, ValidationIssue } from '@core/types'
-import { readRunSnapshot } from './runs'
+import { parseGradeSheet, validateCourse, validateGradeSheet } from '@core/index'
+import type { Course, GradeSheetData, ValidationIssue } from '@core/types'
 
 export interface LoadedConfig {
-  config?: CourseConfig
-  issues: ValidationIssue[]
-  error?: string
-}
-
-export async function loadConfig(configPath: string): Promise<LoadedConfig> {
-  try {
-    const config = await parseCourseConfig(configPath)
-    return { config, issues: validateConfig(config) }
-  } catch (error) {
-    return {
-      issues: [],
-      error: error instanceof Error ? error.message : 'Lỗi không xác định khi đọc Config.'
-    }
-  }
-}
-
-export interface LoadedRawGrades {
-  file: RawGrades
+  config: Course
   issues: ValidationIssue[]
 }
 
-export async function loadRawGrades(
-  config: CourseConfig,
-  rawPath: string,
-  phase?: GradePhase
-): Promise<LoadedRawGrades> {
-  // 1. Parse → 2. Validate dữ liệu gốc → 3. Tính điểm danh (trừ giai đoạn cuối kỳ).
-  const effectiveConfig = phase ? phaseConfig(config, phase) : config
-  const requireMaDe = phase === 'final' && hasMultipleFinalExamVariants(config)
-  const file = await parseRawGrades(rawPath, config, { phase, requireMaDe })
-  const validation = validateRawGrades(effectiveConfig, file, { phase, requireMaDe })
-  if (phase === 'final') {
-    return { file, issues: validation }
-  }
-  const applied = applyAttendance(file, config)
-
-  return {
-    file: applied.file,
-    issues: [...validation, ...applied.issues]
-  }
+/** Cấu hình học phần do ứng dụng dựng trong bộ nhớ (không đọc từ file Excel). */
+export function loadConfig(course: Course): LoadedConfig {
+  return { config: course, issues: validateCourse(course) }
 }
 
-/** Snapshot quá trình hợp lệ để chạy tiếp giai đoạn cuối kỳ. */
-export async function loadProcessSnapshot(
-  runId: string
-): Promise<{ rawGrades?: RawGrades; configSignature?: string; error?: string }> {
-  const snapshot = await readRunSnapshot(runId)
-  if (!snapshot || snapshot.phase !== 'process' || !snapshot.rawGrades) {
-    return {
-      error:
-        'Không tìm thấy dữ liệu giai đoạn quá trình. Vui lòng chạy lại giai đoạn quá trình trước.'
-    }
-  }
-  return { rawGrades: snapshot.rawGrades, configSignature: snapshot.configSignature }
+export interface LoadedGradeSheet {
+  file: GradeSheetData
+  issues: ValidationIssue[]
+}
+
+export async function loadGradeSheet(course: Course, gradeSheetPath: string): Promise<LoadedGradeSheet> {
+  const file = await parseGradeSheet(gradeSheetPath, course)
+  const issues = validateGradeSheet(course, file)
+
+  return { file, issues }
 }

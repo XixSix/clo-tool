@@ -5,22 +5,29 @@
  * duy nhất là so sánh bằng/khác giữa snapshot quá trình và Config hiện tại.
  */
 
-import type { CourseConfig } from '../types'
+import type { Course } from '../types'
 
 const SIGNED_KEYS = [
-  'courseInfo',
+  'id',
+  'maHp',
+  'tenHp',
+  'soTinChi',
+  'hinhThucThi',
+  'loaiHp',
+  'giangVien',
+  'namHoc',
   'cloList',
-  'keHoachDanhGia',
-  'cauHoi',
-  'maTranPlo',
-  'diemDanh',
+  'ploList',
+  'ploThanhPhanList',
+  'piList',
+  'dotDanhGia',
   'quyTac'
 ] as const
 
-export function configSignature(config: CourseConfig): string {
+export function configSignature(course: Course): string {
   const payload: Record<string, unknown> = {}
   for (const key of SIGNED_KEYS) {
-    payload[key] = config[key] ?? null
+    payload[key] = (course as unknown as Record<string, unknown>)[key] ?? null
   }
   return stableStringify(payload)
 }
