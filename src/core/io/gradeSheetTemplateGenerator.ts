@@ -1,9 +1,10 @@
-/** Sinh Template_DiemTho.xlsx. */
+/** Sinh Template_DiemTho.xlsx (một file), Template_DiemTho_QuaTrinh.xlsx và Template_DiemTho_CuoiKy.xlsx (nhập điểm 2 giai đoạn). */
 
 import ExcelJS from 'exceljs'
-import type { Course, SheetStudentRow } from '../types'
+import type { Course, SheetStudentRow, GradePhase } from '../types'
 import { scoreColumns, maxScoreByColumn } from '../utils/courseModel'
 import { setWidths, styleCell, styleHeaderRow, styleTitle, BORDER_THIN } from '../exporter/style'
+import { phaseConfig } from './phaseConfig'
 
 const INPUT_FILL = 'FFFEF9C3'
 
@@ -16,6 +17,8 @@ export interface GradeSheetTemplateOptions {
   namHoc?: string
   sessions?: { label?: string; tenBuoi?: string; date?: Date }[]
   attendance?: Record<string, Record<string, string>>
+  /** `both` (mặc định) = template một file như cũ; `process`/`final` = template từng giai đoạn */
+  phase?: GradePhase | 'both'
 }
 
 export function buildGradeSheetWorkbook(
@@ -27,20 +30,41 @@ export function buildGradeSheetWorkbook(
   wb.created = new Date()
 
   const ws = wb.addWorksheet('NHAP_LIEU')
+  const phase = options.phase ?? 'both'
+  const effectiveCourse = phase === 'both' ? course : phaseConfig(course, phase)
+  const includeMaDe = phase === 'final'
   const sessions = (
-    options.sessions ??
-    Array.from({ length: 12 }, (_, i) => ({ tenBuoi: `Buổi ${i + 1}`, label: `Buổi ${i + 1}` }))
+    phase === 'final'
+      ? []
+      : (options.sessions ??
+        Array.from({ length: 12 }, (_, i) => ({ tenBuoi: `Buổi ${i + 1}`, label: `Buổi ${i + 1}` })))
   ).map((s) => ({ tenBuoi: s.tenBuoi ?? ('label' in s ? (s as { label: string }).label : '') }))
-  const columns = scoreColumns(course)
-  const maxScoreByCol = maxScoreByColumn(course)
 
-  const colCount = 5 + sessions.length + columns.length + 1
+  const columns = scoreColumns(effectiveCourse)
+  const maxScoreByCol = maxScoreByColumn(effectiveCourse)
+
+  const sessionStart = 6 + (includeMaDe ? 1 : 0)
+  const scoreStart = 5 + (includeMaDe ? 1 : 0) + sessions.length
+  const headers = [
+    'TT',
+    'Mã SV',
+    'Họ',
+    'Tên',
+    'Ngày sinh',
+    ...(includeMaDe ? ['Mã đề'] : []),
+    ...sessions.map((s) => s.tenBuoi),
+    ...columns,
+    'Ghi chú'
+  ]
+  const colCount = headers.length
+
   setWidths(ws, [
     6,
     14,
     18,
     12,
     13,
+    ...(includeMaDe ? [10] : []),
     ...Array(sessions.length).fill(7),
     ...columns.map(() => 13),
     20
@@ -48,7 +72,12 @@ export function buildGradeSheetWorkbook(
 
   // Tiêu đề
   ws.mergeCells(1, 1, 1, colCount)
-  ws.getCell(1, 1).value = 'ĐIỂM DANH + NHẬP ĐIỂM – TỰ ĐỘNG TÍNH CLO'
+  ws.getCell(1, 1).value =
+    phase === 'final'
+      ? 'NHẬP ĐIỂM CUỐI KỲ – TỰ ĐỘNG TÍNH CLO'
+      : phase === 'process'
+        ? 'ĐIỂM DANH + NHẬP ĐIỂM QUÁ TRÌNH – TỰ ĐỘNG TÍNH CLO'
+        : 'ĐIỂM DANH + NHẬP ĐIỂM – TỰ ĐỘNG TÍNH CLO'
   styleTitle(ws, 1, colCount)
 
   // Thông tin lớp
@@ -73,16 +102,6 @@ export function buildGradeSheetWorkbook(
 
   // Header bảng
   const headerRow = 4
-  const headers = [
-    'TT',
-    'Mã SV',
-    'Họ',
-    'Tên',
-    'Ngày sinh',
-    ...sessions.map((s) => s.tenBuoi),
-    ...columns,
-    'Ghi chú'
-  ]
   headers.forEach((h, idx) => {
     ws.getCell(headerRow, idx + 1).value = h
   })
@@ -93,9 +112,8 @@ export function buildGradeSheetWorkbook(
   ws.getCell(maxRow, 1).value = 'Điểm tối đa'
   styleCell(ws.getCell(maxRow, 1), { bold: true, align: 'center' })
   sessions.forEach((_, idx) => {
-    ws.getCell(maxRow, 5 + 1 + idx).value = ''
+    ws.getCell(maxRow, sessionStart + idx).value = ''
   })
-  const scoreStart = 5 + sessions.length
   columns.forEach((maCot, idx) => {
     ws.getCell(maxRow, scoreStart + idx + 1).value = maxScoreByCol.get(maCot) ?? ''
     styleCell(ws.getCell(maxRow, scoreStart + idx + 1), { bold: true, align: 'center' })
@@ -116,10 +134,18 @@ export function buildGradeSheetWorkbook(
     row.getCell(3).value = ho
     row.getCell(4).value = ten
     row.getCell(5).value = st.sinhVien.ngaySinh ?? ''
+    if (includeMaDe) {
+      row.getCell(6).value = st.diem.maDeTheoDauDiem?.[Object.keys(st.diem.maDeTheoDauDiem)[0]] ?? ''
+      row.getCell(6).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: INPUT_FILL }
+      }
+    }
 
     const symbols = st.diemDanh ?? options.attendance?.[st.sinhVien.maSv] ?? {}
     sessions.forEach((s, sIdx) => {
-      row.getCell(6 + sIdx).value = symbols[s.tenBuoi] ?? ''
+      row.getCell(sessionStart + sIdx).value = symbols[s.tenBuoi] ?? ''
     })
     columns.forEach((maCot, cIdx) => {
       const value = st.diem.diemCacCot[maCot]
@@ -146,12 +172,27 @@ export function buildGradeSheetWorkbook(
 
   // Ghi chú hướng dẫn
   rowNumber += 1
-  const notes = [
-    'Ô màu vàng là ô cần nhập. Giữ nguyên tên cột để app đọc đúng.',
-    'Điểm danh: X = có mặt, OL = online, M = muộn/về sớm, V-CP = vắng có phép, V = vắng.',
-    'Điểm chuyên cần tự tính từ điểm danh. Ô trống = chưa nhập; "VT" = vắng thi.',
-    'Chấp nhận cả dấu phẩy (2,5) và dấu chấm (2.5).'
-  ]
+  const notes =
+    phase === 'final'
+      ? [
+          'Ô màu vàng là ô cần nhập. Giữ nguyên tên cột để app đọc đúng.',
+          'Mã đề: nhập mã đề SV đã làm, hoặc "ALL" nếu học phần một đề / SV làm mọi đề.',
+          'Ghi "VT" nếu SV vắng thi; ô trống được tính 0 điểm ở giai đoạn cuối kỳ.',
+          'Chấp nhận cả dấu phẩy (2,5) và dấu chấm (2.5).'
+        ]
+      : phase === 'process'
+        ? [
+            'Ô màu vàng là ô cần nhập. Giữ nguyên tên cột để app đọc đúng.',
+            'Điểm danh: X = có mặt, OL = online, M = muộn/về sớm, V-CP = vắng có phép, V = vắng.',
+            'Điểm chuyên cần tự tính từ điểm danh. Chỉ nhập điểm quá trình (CC/GK); CK nhập ở file cuối kỳ.',
+            'Chấp nhận cả dấu phẩy (2,5) và dấu chấm (2.5).'
+          ]
+        : [
+            'Ô màu vàng là ô cần nhập. Giữ nguyên tên cột để app đọc đúng.',
+            'Điểm danh: X = có mặt, OL = online, M = muộn/về sớm, V-CP = vắng có phép, V = vắng.',
+            'Điểm chuyên cần tự tính từ điểm danh. Ô trống = chưa nhập; "VT" = vắng thi.',
+            'Chấp nhận cả dấu phẩy (2,5) và dấu chấm (2.5).'
+          ]
   for (const note of notes) {
     ws.mergeCells(rowNumber, 1, rowNumber, colCount)
     ws.getCell(rowNumber, 1).value = note
@@ -159,6 +200,6 @@ export function buildGradeSheetWorkbook(
     rowNumber++
   }
 
-  ws.views = [{ state: 'frozen', xSplit: 4, ySplit: headerRow }]
+  ws.views = [{ state: 'frozen', xSplit: 4 + (includeMaDe ? 1 : 0), ySplit: headerRow }]
   return wb
 }

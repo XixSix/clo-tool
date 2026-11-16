@@ -7,7 +7,7 @@ import type { Course, GradeSheetMeta } from '../../types'
 import { cellText, normalizeHeader } from '../../utils/excel'
 import { scoreColumns } from '../../utils/courseModel'
 
-export const BASE_COLUMNS = ['TT', 'Ma_SV', 'Ho', 'Ten', 'Ho_Ten', 'Ngay_Sinh', 'Ma_De', 'Ghi_Chu']
+export const BASE_COLUMNS = ['TT', 'Ma_SV', 'Ho', 'Ten', 'Ngay_Sinh', 'Ghi_Chu']
 
 export const META_LABELS: { key: keyof GradeSheetMeta; patterns: string[] }[] = [
   { key: 'tenHocPhan', patterns: ['hocphan', 'tenhocphan'] },

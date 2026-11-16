@@ -1,10 +1,12 @@
 /**
  * Dò header bảng điểm thô và kiểm tra các cột điểm khai báo trong Course.
+ *
+ * `requireMaDe`: bắt buộc cột Mã đề (dùng cho giai đoạn cuối kỳ khi có nhiều mã đề).
  */
 
 import type ExcelJS from 'exceljs'
 import type { Course } from '../../types'
-import { findHeaderRow } from '../../utils/excel'
+import { readTable } from '../../utils/excel'
 import { GradeSheetParseError } from './errors'
 import { BASE_COLUMNS, scoreColumnsFromConfig } from './helpers'
 import type { GradeSheetHeaderInfo } from './types'
@@ -14,21 +16,32 @@ export interface GradeSheetHeaderResult {
   scoreColumns: string[]
 }
 
+export interface ParseGradeSheetHeaderOptions {
+  requireMaDe?: boolean
+}
+
 export function parseGradeSheetHeader(
   ws: ExcelJS.Worksheet,
-  course: Course
+  course: Course,
+  options: ParseGradeSheetHeaderOptions = {}
 ): GradeSheetHeaderResult | null {
   const scoreColumns = scoreColumnsFromConfig(course)
-  const found = findHeaderRow(ws, [...BASE_COLUMNS, ...scoreColumns], 30)
-  if (!found) return null
+  const columns = [...BASE_COLUMNS, ...scoreColumns]
+  if (options.requireMaDe) columns.push('Ma_De')
+
+  const table = readTable(ws, columns, ws.name, {
+    maxScanRows: 30,
+    makeError: (message) => new GradeSheetParseError(message),
+    optionalColumns: options.requireMaDe ? [] : ['Ma_De']
+  })
 
   return {
     scoreColumns,
     header: {
-      rowNumber: found.rowNumber,
-      headers: found.headers,
-      mapping: found.match.mapping,
-      suggestions: found.match.suggestions
+      rowNumber: table.rowNumber,
+      headers: table.headerTexts,
+      mapping: table.mapping,
+      suggestions: table.suggestions
     }
   }
 }

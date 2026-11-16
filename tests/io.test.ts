@@ -125,7 +125,7 @@ describe('parseGradeSheet', () => {
     await wb.xlsx.writeFile(missingFile)
 
     await expect(parseGradeSheet(missingFile, course)).rejects.toThrow(
-      'Thiếu cột điểm "GKT_C01" khai báo trong cấu hình học phần.'
+      'Thiếu cột "GKT_C01" trong sheet NHAP_LIEU.'
     )
   })
 
