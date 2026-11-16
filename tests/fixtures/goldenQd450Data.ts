@@ -8,59 +8,9 @@ import type {
   AssessmentComponent,
   Course,
   ExamQuestion,
-  RawStudentRow,
+  SheetStudentRow,
   StudentCourseScoreRecord
 } from '@core/types'
-
-export const GOLDEN_T1 = {
-  case1: { correct: 62, total: 100, expectedP: 0.62 },
-  case2: { mean: 2.4, maxScore: 3, expectedP: 0.8 }
-}
-
-export const GOLDEN_T2 = {
-  n: 15,
-  groupSize: 4, // 27% của 15 làm tròn
-  topCorrect: 4,
-  bottomCorrect: 2,
-  expectedD: 0.5
-}
-
-export const GOLDEN_T3 = {
-  maxScore: 2,
-  expectedD: 0.25
-}
-
-export const GOLDEN_T4 = {
-  // Ma trận 15 SV x 5 câu (QĐ450 tr.7–8, Ví dụ 5)
-  numStudents: 15,
-  numQuestions: 5,
-  questionMeans: [2.47, 2.37, 1.43, 0.67, 0.53],
-  questionVariances: [0.1952, 0.1595, 0.1738, 0.1667, 0.1595],
-  sumQuestionVariance: 0.8548,
-  totalScoreVariance: 1.7667,
-  expectedAlpha: 0.65, // 0.6452 làm tròn 2 chữ số
-
-  // Ma trận điểm chi tiết 15 SV x 5 câu để test engine psychometrics trực tiếp
-  // Cột: [C1, C2, C3, C4, C5] với max = [3, 3, 2, 1, 1]
-  // Tổng TB = 2.47 + 2.37 + 1.43 + 0.67 + 0.53 = 7.47
-  scores: [
-    [3, 3, 2, 1, 1], // SV1
-    [3, 3, 2, 1, 1], // SV2
-    [3, 3, 2, 1, 1], // SV3
-    [3, 3, 2, 1, 1], // SV4
-    [3, 3, 2, 1, 0], // SV5
-    [3, 2, 2, 1, 1], // SV6
-    [2, 3, 1, 1, 1], // SV7
-    [2, 2, 2, 1, 0], // SV8
-    [2, 2, 1, 1, 1], // SV9
-    [2, 2, 1, 0, 1], // SV10
-    [2, 2, 1, 0, 0], // SV11
-    [2, 2, 1, 0, 0], // SV12
-    [2, 2, 1, 0, 0], // SV13
-    [3, 2, 1, 0, 0], // SV14
-    [2, 2, 0, 1, 0] // SV15
-  ]
-}
 
 export const GOLDEN_HUNG = {
   // Sinh viên Nguyễn Văn Hùng (QĐ450 tr.32–33)
@@ -345,8 +295,8 @@ export const HUNG_COURSE: Course = {
 /**
  * Hàng điểm thô của SV Nguyễn Văn Hùng
  */
-export const HUNG_STUDENT_ROW: RawStudentRow = {
-  student: {
+export const HUNG_STUDENT_ROW: SheetStudentRow = {
+  sinhVien: {
     id: 'HUNG01',
     tt: 1,
     maSv: 'HUNG01',
@@ -355,7 +305,7 @@ export const HUNG_STUDENT_ROW: RawStudentRow = {
     hoTen: 'Nguyễn Văn Hùng',
     ngaySinh: '01/01/2004'
   },
-  scores: {
+  diem: {
     diemCacCot: {
       CC: 10.0,
       TH: 7.5,

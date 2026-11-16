@@ -13,7 +13,7 @@ import {
 } from './fixtures/goldenQd450Data'
 import type { Course, StudentCourseScoreRecord } from '@core/types'
 
-const HUNG_STUDENT = HUNG_STUDENT_ROW.student
+const HUNG_STUDENT = HUNG_STUDENT_ROW.sinhVien
 
 describe('CLO Calculator Engine', () => {
   describe('Tính toán đầy đủ cho Sinh viên Nguyễn Văn Hùng (QĐ450 tr.32–33)', () => {

@@ -1,11 +1,11 @@
 /**
- * Kiểu dữ liệu nội bộ của bộ parser điểm thô.
+ * Kiểu dữ liệu nội bộ của bộ parser bảng điểm.
  */
 
-import type { RawAttendanceRecord, RawStudentRow } from '../../types'
+import type { SheetStudentRow } from '../../types'
 
-/** Header của bảng điểm thô sau khi dò theo tên cột. */
-export interface RawHeaderInfo {
+/** Header của bảng điểm sau khi dò theo tên cột. */
+export interface GradeSheetHeaderInfo {
   rowNumber: number
   headers: string[]
   mapping: Record<string, number>
@@ -15,18 +15,17 @@ export interface RawHeaderInfo {
 /** Cột điểm danh đã phát hiện trong header. */
 export interface AttendanceColumn {
   index: number
-  label: string
+  tenBuoi: string
 }
 
 /** Kết quả đọc phần dữ liệu sinh viên. */
 export interface ParsedStudentRows {
-  students: RawStudentRow[]
-  attendance: RawAttendanceRecord[]
-  studentExcelRows: number[]
+  sinhVien: SheetStudentRow[]
+  dongExcelSinhVien: number[]
 }
 
 /** Kết quả đọc hàng "Điểm tối đa". */
 export interface DeclaredMaxScoreResult {
-  scores: Record<string, number>
-  firstStudentRow: number
+  diemToiDa: Record<string, number>
+  dongSinhVienDau: number
 }

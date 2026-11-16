@@ -1,14 +1,14 @@
 import { ipcMain } from 'electron'
-import type { RawSummaryDto } from '../../shared/ipc'
+import type { GradeSheetSummaryDto } from '../../shared/ipc'
 import type { Course } from '@core/types/course'
 import { allQuestions } from '@core/index'
 import { errorMessage, hasErrors, toIssueDto } from './common'
-import { loadConfig, loadRawGrades } from './loaders'
+import { loadConfig, loadGradeSheet } from './loaders'
 
-export function registerRawGradesHandlers(): void {
+export function registerGradeSheetHandlers(): void {
   ipcMain.handle(
     'raw:parse',
-    async (_event, configSource: string | Course, rawPath: string): Promise<RawSummaryDto> => {
+    async (_event, configSource: string | Course, rawPath: string): Promise<GradeSheetSummaryDto> => {
       const loaded = await loadConfig(configSource)
       if (!loaded.config) {
         return {
@@ -25,17 +25,17 @@ export function registerRawGradesHandlers(): void {
       }
 
       try {
-        const raw = await loadRawGrades(loaded.config, rawPath)
+        const raw = await loadGradeSheet(loaded.config, rawPath)
         const ckColumns = new Set(
           allQuestions(loaded.config)
             .filter(({ dot }) => dot.nhom === 'CK')
             .map(({ cauHoi }) => cauHoi.id)
         )
-        const missingDataCount = raw.file.students.filter((student) =>
-          Object.values(student.scores.diemCacCot).some((value) => value === null)
+        const missingDataCount = raw.file.sinhVien.filter((student) =>
+          Object.values(student.diem.diemCacCot).some((value) => value === null)
         ).length
-        const absentFinalCount = raw.file.students.filter((student) =>
-          Object.entries(student.scores.diemCacCot).some(
+        const absentFinalCount = raw.file.sinhVien.filter((student) =>
+          Object.entries(student.diem.diemCacCot).some(
             ([maCot, value]) => ckColumns.has(maCot) && value === 'VT'
           )
         ).length
@@ -43,8 +43,8 @@ export function registerRawGradesHandlers(): void {
         return {
           ok: true,
           filePath: rawPath,
-          studentCount: raw.file.students.length,
-          sessionCount: raw.file.attendanceSessions.length,
+          studentCount: raw.file.sinhVien.length,
+          sessionCount: raw.file.buoiDiemDanh.length,
           missingDataCount,
           absentFinalCount,
           issues: raw.issues.map(toIssueDto),

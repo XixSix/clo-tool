@@ -35,7 +35,7 @@ export function parseDeclaredMaxScores(
         )
       }))
 
-  if (!isMaxRow) return { scores, firstStudentRow }
+  if (!isMaxRow) return { diemToiDa: scores, dongSinhVienDau: firstStudentRow }
 
   for (const maCot of maxByColumn.keys()) {
     const index = mapping[maCot]
@@ -46,5 +46,5 @@ export function parseDeclaredMaxScores(
   }
 
   firstStudentRow += 1
-  return { scores, firstStudentRow }
+  return { diemToiDa: scores, dongSinhVienDau: firstStudentRow }
 }

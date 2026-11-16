@@ -1,5 +1,5 @@
 /**
- * Chuyển dữ liệu điểm thô (RawGrades) sang model nghiệp vụ:
+ * Chuyển dữ liệu điểm thô (GradeSheetData) sang model nghiệp vụ:
  *   Student[] + StudentCourseScoreRecord[]
  *
  * Mỗi đợt đánh giá trong Course sinh ra một entry tương ứng:
@@ -13,7 +13,7 @@ import type {
   AssessmentAttendanceSession,
   Course,
   ExamVariant,
-  RawGrades,
+  GradeSheetData,
   Student,
   StudentAssessmentEntry,
   StudentCourseScoreRecord
@@ -31,30 +31,28 @@ function chooseVariant(dot: AssessmentComponent, maDe?: string): ExamVariant | u
   }
   return dot.maDeList[0]
 }
-
 function attendanceSessionsOf(
   dot: AssessmentComponent,
-  file: RawGrades
+  file: GradeSheetData
 ): AssessmentAttendanceSession[] {
   if (dot.buoiDiemDanh && dot.buoiDiemDanh.length > 0) return dot.buoiDiemDanh
-  return file.attendanceSessions.map((session) => ({
-    id: session.label,
-    tenBuoi: session.label
+  return file.buoiDiemDanh.map((tenBuoi) => ({
+    id: tenBuoi,
+    tenBuoi
   }))
 }
 
-export function buildStudentRecords(course: Course, file: RawGrades): ParsedCourseData {
-  const symbolsByMaSv = new Map(file.attendance.map((a) => [a.maSv, a.symbols]))
-  const students = file.students.map((row) => row.student)
-  const records = file.students.map((row) => {
-    const symbols = symbolsByMaSv.get(row.student.maSv) ?? {}
+export function buildStudentRecords(course: Course, file: GradeSheetData): ParsedCourseData {
+  const students = file.sinhVien.map((row) => row.sinhVien)
+  const records = file.sinhVien.map((row) => {
+    const symbols = row.diemDanh ?? {}
     const entries: StudentAssessmentEntry[] = []
 
     for (const dot of course.dotDanhGia) {
       if (dot.cachNhapDiem === 'QUESTION_SCORE') {
-        const variant = chooseVariant(dot, row.scores.maDe)
-        const deId =
-          row.scores.maDe === 'ALL' && dot.maDeList.length > 1 ? 'ALL' : (variant?.id ?? 'ALL')
+        const maDe = row.diem.maDeTheoDauDiem?.[dot.id]
+        const variant = chooseVariant(dot, maDe)
+        const deId = maDe === 'ALL' && dot.maDeList.length > 1 ? 'ALL' : (variant?.id ?? 'ALL')
         const questions =
           deId === 'ALL' ? dot.maDeList.flatMap((v) => v.cauHoi) : (variant?.cauHoi ?? [])
 
@@ -64,7 +62,7 @@ export function buildStudentRecords(course: Course, file: RawGrades): ParsedCour
           deId,
           diemTheoCau: questions.map((q) => ({
             questionId: q.id,
-            diem: row.scores.diemCacCot[q.id] ?? null
+            diem: row.diem.diemCacCot[q.id] ?? null
           }))
         })
       } else if (dot.cachNhapDiem === 'DIRECT_CLO_SCORE') {
@@ -74,8 +72,8 @@ export function buildStudentRecords(course: Course, file: RawGrades): ParsedCour
           diemTheoClo: dot.cloList.map((mapping) => ({
             cloId: mapping.cloId,
             diem:
-              row.scores.diemCacCot[`${dot.id}_${mapping.cloId}`] ??
-              row.scores.diemCacCot[dot.id] ??
+              row.diem.diemCacCot[`${dot.id}_${mapping.cloId}`] ??
+              row.diem.diemCacCot[dot.id] ??
               null
           }))
         })
@@ -93,11 +91,11 @@ export function buildStudentRecords(course: Course, file: RawGrades): ParsedCour
     }
 
     return {
-      id: `${row.student.id}_${course.id}`,
-      sinhVienId: row.student.id,
+      id: `${row.sinhVien.id}_${course.id}`,
+      sinhVienId: row.sinhVien.id,
       hocPhanId: course.id,
       diemTheoDotDanhGia: entries,
-      ghiChu: row.scores.ghiChu
+      ghiChu: row.ghiChu
     }
   })
 

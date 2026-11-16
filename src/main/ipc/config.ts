@@ -3,7 +3,7 @@ import { promises as fs } from 'node:fs'
 import * as path from 'node:path'
 import type { ConfigSummaryDto, StoredCourseConfig } from '../../shared/ipc'
 import type { Course } from '@core/types/course'
-import { writeRawGradesTemplate } from '@core/io/templateGenerator'
+import { writeGradeSheetTemplate } from '@core/io/templateGenerator'
 import { hasErrors, toIssueDto } from './common'
 import { loadConfig } from './loaders'
 
@@ -105,7 +105,7 @@ export function registerConfigHandlers(getWindow?: () => BrowserWindow | null): 
           return { ok: false }
         }
 
-        await writeRawGradesTemplate(result.filePath, course)
+        await writeGradeSheetTemplate(result.filePath, course)
         return { ok: true, path: result.filePath }
       } catch (err) {
         return {

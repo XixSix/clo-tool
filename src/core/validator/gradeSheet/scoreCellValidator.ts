@@ -2,7 +2,7 @@
  * Validate điểm từng ô của sinh viên so với điểm tối đa khai báo trong Course.
  */
 
-import type { Course, RawStudentRow, ValidationIssue } from '../../types'
+import type { Course, SheetStudentRow, ValidationIssue } from '../../types'
 import { maxScoreByColumn } from '../../utils/courseModel'
 import { isMultipleOfQuarter } from '../helpers'
 
@@ -12,21 +12,21 @@ export function buildMaxScoreByColumn(course: Course): Map<string, number> {
 }
 
 export function validateStudentScores(
-  student: RawStudentRow,
+  student: SheetStudentRow,
   row: number,
   maxByColumn: Map<string, number>
 ): ValidationIssue[] {
   const issues: ValidationIssue[] = []
-  const maSv = student.student.maSv
+  const maSv = student.sinhVien.maSv
 
-  for (const [maCot, value] of Object.entries(student.scores.diemCacCot)) {
+  for (const [maCot, value] of Object.entries(student.diem.diemCacCot)) {
     const max = maxByColumn.get(maCot)
     if (max === undefined) continue
 
     if (value === null || value === undefined) {
       issues.push({
         level: 'warning',
-        scope: 'raw_grades',
+        scope: 'grade_sheet',
         row,
         column: maCot,
         message: `SV ${maSv}: ô điểm "${maCot}" đang trống (tính 0 theo Quyết định #9).`
@@ -38,7 +38,7 @@ export function validateStudentScores(
     if (!Number.isFinite(value) || value < 0) {
       issues.push({
         level: 'error',
-        scope: 'raw_grades',
+        scope: 'grade_sheet',
         row,
         column: maCot,
         message: `SV ${maSv}: điểm "${maCot}" = ${value} không hợp lệ (phải ≥ 0).`
@@ -49,7 +49,7 @@ export function validateStudentScores(
     if (value > max) {
       issues.push({
         level: 'error',
-        scope: 'raw_grades',
+        scope: 'grade_sheet',
         row,
         column: maCot,
         message: `SV ${maSv}: điểm "${maCot}" = ${value} vượt quá điểm tối đa ${max}.`
@@ -59,7 +59,7 @@ export function validateStudentScores(
     if (!isMultipleOfQuarter(value)) {
       issues.push({
         level: 'warning',
-        scope: 'raw_grades',
+        scope: 'grade_sheet',
         row,
         column: maCot,
         message: `SV ${maSv}: điểm "${maCot}" = ${value} không phải bội của 0,25.`

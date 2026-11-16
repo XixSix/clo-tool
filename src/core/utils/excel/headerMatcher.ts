@@ -122,14 +122,11 @@ export function matchHeaders(
         }
       }
     })
+    // Gần giống chỉ là gợi ý sửa tên, không tính là đã tìm thấy cột.
     if (bestIdx >= 0 && bestDistance <= Math.max(2, Math.floor(candidates[0].length / 3))) {
-      mapping[expected] = bestIdx
       suggestions[expected] = actualHeaders[bestIdx] ?? ''
-      used.add(bestIdx)
-    } else {
-      missing.push(expected)
-      if (bestIdx >= 0) suggestions[expected] = actualHeaders[bestIdx] ?? ''
     }
+    missing.push(expected)
   }
 
   const extraColumns: { index: number; header: string }[] = []

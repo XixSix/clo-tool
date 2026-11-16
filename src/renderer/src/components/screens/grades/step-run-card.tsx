@@ -42,9 +42,7 @@ export function StepRunCard({
           <StepBadge number={3} done={Boolean(result?.ok)} />
           <div className="min-w-0 flex-1">
             <CardTitle className="text-sm">Tính toán & xuất báo cáo</CardTitle>
-            <CardDescription>
-              Sinh 2 file Excel: bảng điểm CLO/PLO và phân tích đề thi
-            </CardDescription>
+            <CardDescription>Sinh file Excel bảng điểm CLO/PLO</CardDescription>
           </div>
           {result?.ok ? <Badge variant="secondary">Đã xuất</Badge> : null}
         </div>
@@ -120,15 +118,6 @@ export function StepRunCard({
                   Bảng điểm CLO/PLO
                 </Button>
               ) : null}
-              {result.examReportPath ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.api.openPath(result.examReportPath!)}
-                >
-                  Phân tích đề thi
-                </Button>
-              ) : null}
               <Button variant="outline" size="sm" onClick={() => onScreen('students')}>
                 <Users data-icon="inline-start" />
                 Danh sách sinh viên
@@ -141,7 +130,7 @@ export function StepRunCard({
           </div>
         ) : (
           <p className="text-muted-foreground text-xs">
-            Sau khi chạy, phần biểu đồ CLO/PLO và phân tích đề thi chi tiết nằm ở màn Báo cáo.
+            Sau khi chạy, phần biểu đồ CLO/PLO chi tiết nằm ở màn Báo cáo.
           </p>
         )}
       </CardContent>

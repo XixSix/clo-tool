@@ -10,11 +10,11 @@ const STEPS = [
   },
   {
     title: '2. Nhập file điểm thô',
-    desc: 'File Template_DiemTho.xlsx chứa 1 sheet mỗi lớp: điểm danh các buổi, điểm từng cột theo cấu trúc đã khai báo. Số cột phải khớp với cấu trúc đề, và tổng tối đa cũng phải bằng 10.'
+    desc: 'File Template_DiemTho.xlsx chứa 1 sheet mỗi lớp: điểm danh các buổi, điểm từng cột theo cấu trúc đã khai báo. Khi nhập 2 giai đoạn, dùng Template_DiemTho_QuaTrinh.xlsx (CC/GK) trước để xuất báo cáo quá trình, sau khi thi dùng Template_DiemTho_CuoiKy.xlsx (CK + Mã đề) để ghép theo Mã SV và tính lại toàn bộ.'
   },
   {
     title: '3. Chạy tính toán',
-    desc: 'Bấm “Tính toán & xuất báo cáo”. Phần mềm tính điểm theo QĐ 450 với decimal ROUND_HALF_UP, sinh 2 file Excel: bảng điểm từng sinh viên theo CLO/PLO và phân tích psychometric từng đề (tần suất đạt, trung bình, Cronbach α, độ phân biệt).'
+    desc: 'Bấm “Tính toán & xuất báo cáo”. Phần mềm tính điểm theo QĐ 450 với decimal ROUND_HALF_UP và sinh file Excel bảng điểm từng sinh viên theo CLO/PLO.'
   },
   {
     title: '4. Đọc kết quả',
@@ -24,7 +24,7 @@ const STEPS = [
 
 const RULE_BADGES = [
   'Mã SV trống = tự sinh theo thứ tự xuất hiện',
-  'VT = vắng thi → 0 CK, loại khỏi p/d/α',
+  'VT = vắng thi → 0 CK',
   'Cột trống = 0 điểm, có cảnh báo',
   'Làm mọi đề = mã đề ALL'
 ]

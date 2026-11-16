@@ -51,7 +51,7 @@ export function ExportTab({
       <Card>
         <CardHeader>
           <CardTitle className="text-sm">Báo cáo Excel</CardTitle>
-          <CardDescription>Hai file chuẩn QĐ450 đã sinh ở lần chạy này</CardDescription>
+          <CardDescription>File Excel chuẩn QĐ450 đã sinh ở lần chạy này</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
           <div className="bg-muted flex items-center justify-between gap-2 rounded-lg px-3 py-2">
@@ -66,23 +66,6 @@ export function ExportTab({
               size="sm"
               disabled={!run.finalReportPath}
               onClick={() => run.finalReportPath && window.api.openPath(run.finalReportPath)}
-            >
-              <FileSpreadsheet data-icon="inline-start" />
-              Mở
-            </Button>
-          </div>
-          <div className="bg-muted flex items-center justify-between gap-2 rounded-lg px-3 py-2">
-            <div className="min-w-0">
-              <p className="text-[13px] font-medium">Phân tích đề thi</p>
-              <p className="text-muted-foreground truncate text-xs">
-                {run.examReportPath?.split(/[\\/]/).pop() ?? 'Chưa có file'}
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!run.examReportPath}
-              onClick={() => run.examReportPath && window.api.openPath(run.examReportPath)}
             >
               <FileSpreadsheet data-icon="inline-start" />
               Mở
@@ -131,7 +114,7 @@ export function ExportTab({
           {pdf.error ? <p className="text-destructive text-xs">{pdf.error}</p> : null}
           <p className="text-muted-foreground text-xs">
             CSV lấy theo bộ lọc hiện tại ở màn Sinh viên. PDF gồm thông tin học phần, kết quả chung,
-            CLO/PLO, độ tin cậy đề thi và danh sách sinh viên.
+            CLO/PLO và danh sách sinh viên.
           </p>
         </CardContent>
       </Card>
@@ -155,7 +138,7 @@ export function ExportTab({
           <div className="bg-muted rounded-lg p-3">
             <p className="text-muted-foreground text-[11px]">Quy mô</p>
             <p className="text-xs">
-              {snapshot.students.length} sinh viên · {snapshot.exams.length} đề
+              {snapshot.students.length} sinh viên
             </p>
           </div>
         </CardContent>

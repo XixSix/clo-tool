@@ -160,8 +160,8 @@ export function CourseConfigCard({ config }: CourseConfigCardProps): React.React
             variant="outline"
             size="sm"
             onClick={async () => {
-              if (window.api?.exportRawGradesTemplate) {
-                const res = await window.api.exportRawGradesTemplate(config)
+              if (window.api?.exportGradeSheetTemplate) {
+                const res = await window.api.exportGradeSheetTemplate(config)
                 if (res.ok && res.path) {
                   alert(`Đã xuất file Template điểm thô:\n${res.path}`)
                 } else if (res.error) {

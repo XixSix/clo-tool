@@ -27,3 +27,21 @@ nsis:
   createDesktopShortcut: always
 portable:
   artifactName: ${productName}-${version}-portable.${ext}
+# macOS: dmg để cài tay, zip là bắt buộc để electron-updater tự cập nhật.
+# Tên file kèm ${arch} vì build riêng cho Apple Silicon và Intel.
+mac:
+  category: public.app-category.education
+  artifactName: ${productName}-${version}-${arch}.${ext}
+  target:
+    - target: dmg
+      arch:
+        - arm64
+        - x64
+    - target: zip
+      arch:
+        - arm64
+        - x64
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist

@@ -2,15 +2,15 @@
 
 import type { Course } from '../types'
 import { writeWorkbook } from '../utils/excel'
-import { buildRawGradesWorkbook, type RawTemplateOptions } from './rawGradesTemplateGenerator'
+import { buildGradeSheetWorkbook, type GradeSheetTemplateOptions } from './gradeSheetTemplateGenerator'
 
-export { buildRawGradesWorkbook } from './rawGradesTemplateGenerator'
-export type { RawTemplateOptions } from './rawGradesTemplateGenerator'
+export { buildGradeSheetWorkbook } from './gradeSheetTemplateGenerator'
+export type { GradeSheetTemplateOptions } from './gradeSheetTemplateGenerator'
 
-export async function writeRawGradesTemplate(
+export async function writeGradeSheetTemplate(
   filePath: string,
   course: Course,
-  options: RawTemplateOptions = {}
+  options: GradeSheetTemplateOptions = {}
 ): Promise<void> {
-  await writeWorkbook(buildRawGradesWorkbook(course, options), filePath)
+  await writeWorkbook(buildGradeSheetWorkbook(course, options), filePath)
 }

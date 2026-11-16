@@ -1,5 +1,5 @@
-import { parseRawGrades, validateCourse, validateRawGrades } from '@core/index'
-import type { Course, RawGrades, ValidationIssue } from '@core/types'
+import { parseGradeSheet, validateCourse, validateGradeSheet } from '@core/index'
+import type { Course, GradeSheetData, ValidationIssue } from '@core/types'
 
 export interface LoadedConfig {
   config?: Course
@@ -22,14 +22,14 @@ export async function loadConfig(configSource: Course | string): Promise<LoadedC
   return { config: configSource, issues: validateCourse(configSource) }
 }
 
-export interface LoadedRawGrades {
-  file: RawGrades
+export interface LoadedGradeSheet {
+  file: GradeSheetData
   issues: ValidationIssue[]
 }
 
-export async function loadRawGrades(course: Course, rawPath: string): Promise<LoadedRawGrades> {
-  const file = await parseRawGrades(rawPath, course)
-  const issues = validateRawGrades(course, file)
+export async function loadGradeSheet(course: Course, rawPath: string): Promise<LoadedGradeSheet> {
+  const file = await parseGradeSheet(rawPath, course)
+  const issues = validateGradeSheet(course, file)
 
   return { file, issues }
 }

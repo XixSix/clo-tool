@@ -13,8 +13,6 @@ import { TriangleAlert } from 'lucide-react'
 import { formatPercent, formatScore } from '@renderer/lib/format'
 import { ChartCard, Kpi } from '@renderer/components/screens/reports/shared'
 import {
-  alphaConfig,
-  buildAlphaData,
   buildAttention,
   buildCloData,
   buildHistogram,
@@ -30,7 +28,6 @@ export function OverviewTab({ snapshot }: { snapshot: RunSnapshotDto }): React.R
   const summary = toSummaryView(snapshot.summary, config)
   const histogram = buildHistogram(snapshot)
   const cloData = buildCloData(snapshot)
-  const alphaData = buildAlphaData(snapshot)
   const median = medianCourseScore(snapshot)
   const attention = buildAttention(snapshot)
 
@@ -101,35 +98,6 @@ export function OverviewTab({ snapshot }: { snapshot: RunSnapshotDto }): React.R
               </Bar>
             </BarChart>
           </ChartContainer>
-        </ChartCard>
-
-        <ChartCard
-          title="Độ tin cậy đề thi"
-          description="Cronbach α theo từng đề (≥ 0.7 là đủ tin cậy)"
-        >
-          {alphaData.length === 0 ? (
-            <p className="text-muted-foreground py-8 text-center text-sm">
-              Không có dữ liệu đề thi.
-            </p>
-          ) : (
-            <ChartContainer config={alphaConfig} className="h-56 w-full">
-              <BarChart data={alphaData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                <CartesianGrid vertical={false} />
-                <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={8} />
-                <YAxis domain={[0, 1]} tickLine={false} axisLine={false} width={28} />
-                <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-                <ReferenceLine y={0.7} stroke="var(--muted-foreground)" strokeDasharray="4 4" />
-                <Bar dataKey="alpha" radius={4}>
-                  {alphaData.map((entry) => (
-                    <Cell
-                      key={entry.name}
-                      fill={entry.low ? 'var(--destructive)' : 'var(--color-alpha)'}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ChartContainer>
-          )}
         </ChartCard>
 
         <ChartCard title="Tỷ lệ đạt theo PLO" description="Chuẩn đầu ra chương trình">

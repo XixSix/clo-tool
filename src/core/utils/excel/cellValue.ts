@@ -85,3 +85,27 @@ export function rowTexts(row: ExcelJS.Row, maxColumn: number): string[] {
   }
   return result
 }
+
+/** Lấy vùng ô gộp (theo dòng) chứa ô này. Trả về null nếu ô không gộp. */
+export function getMergedRowRange(
+  ws: ExcelJS.Worksheet,
+  cell: ExcelJS.Cell | undefined
+): { top: number; bottom: number } | null {
+  if (!cell || !cell.isMerged) return null
+  const master = cell.master ?? cell
+  const row = Number(cell.row)
+  const merges = (
+    ws as unknown as { _merges?: Record<string, { model: { top: number; bottom: number } }> }
+  )._merges
+  if (!merges) return null
+  const direct = merges[master.address] ?? merges[cell.address]
+  if (direct?.model) {
+    return { top: direct.model.top, bottom: direct.model.bottom }
+  }
+  for (const r of Object.values(merges)) {
+    if (r?.model && r.model.top <= row && row <= r.model.bottom) {
+      return { top: r.model.top, bottom: r.model.bottom }
+    }
+  }
+  return null
+}

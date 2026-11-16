@@ -21,6 +21,16 @@ export interface ScoreIssue {
   cloId?: string
 }
 
+/** Điểm chuyên cần tính được từ ký hiệu điểm danh của một sinh viên. */
+export interface AttendanceScore {
+  maSv: string
+  score: number
+  soBuoi: number
+  soVangKhongPhep: number
+  soVangCoPhep: number
+  symbolsLa: string[]
+}
+
 /** Điểm của một CLO trong một đợt đánh giá. */
 export interface AssessmentCLOScore {
   cloId: string

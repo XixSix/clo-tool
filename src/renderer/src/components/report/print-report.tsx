@@ -227,50 +227,6 @@ export function PrintReport({
         )}
       </div>
 
-      {/* ===== V. Đề thi ===== */}
-      <div className="break-inside-avoid">
-        <SectionTitle>V. Độ tin cậy đề thi (Cronbach Alpha)</SectionTitle>
-        {snapshot.exams.length === 0 ? (
-          <p className="text-[10.5px] italic">Không có dữ liệu phân tích đề thi.</p>
-        ) : (
-          <table className="w-full table-fixed border-collapse text-[11px]">
-            <colgroup>
-              <col style={{ width: '10%' }} />
-              <col style={{ width: '9%' }} />
-              <col style={{ width: '7%' }} />
-              <col style={{ width: '7%' }} />
-              <col style={{ width: '11%' }} />
-              <col style={{ width: '17%' }} />
-              <col style={{ width: '39%' }} />
-            </colgroup>
-            <thead>
-              <tr>
-                <th className={th}>Đầu điểm</th>
-                <th className={th}>Mã đề</th>
-                <th className={`${th} text-center`}>Số SV</th>
-                <th className={`${th} text-center`}>Số câu</th>
-                <th className={`${th} text-center`}>Cronbach α</th>
-                <th className={th}>Mức độ tin cậy</th>
-                <th className={th}>Cảnh báo</th>
-              </tr>
-            </thead>
-            <tbody>
-              {snapshot.exams.map((exam) => (
-                <tr key={`${exam.maDauDiem}-${exam.maDe}`}>
-                  <td className={td}>{exam.maDauDiem}</td>
-                  <td className={td}>{exam.maDe}</td>
-                  <td className={`${td} text-center`}>{exam.soSinhVien}</td>
-                  <td className={`${td} text-center`}>{exam.soCauHoi}</td>
-                  <td className={`${td} text-center`}>{formatScore(exam.cronbachAlpha)}</td>
-                  <td className={td}>{exam.mucDoTinCay}</td>
-                  <td className={td}>{exam.canhBaoCoMauN ?? '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-
       {/* ===== Chữ ký ===== */}
       <div className="mt-6 flex break-inside-avoid justify-end">
         <div className="text-center text-[11px]">

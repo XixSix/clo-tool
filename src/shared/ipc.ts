@@ -6,7 +6,6 @@
 import type {
   ClassEvaluationSummary,
   Course,
-  ExamPsychometrics,
   IssueScope,
   Student,
   StudentCourseResult
@@ -56,7 +55,7 @@ export interface ConfigSummaryDto {
   error?: string
 }
 
-export interface RawSummaryDto {
+export interface GradeSheetSummaryDto {
   ok: boolean
   filePath: string
   studentCount: number
@@ -66,15 +65,6 @@ export interface RawSummaryDto {
   issues: IssueDto[]
   hasErrors: boolean
   error?: string
-}
-
-export interface ExamSummaryDto {
-  maDauDiem: string
-  maDe: string
-  n: number
-  alpha: number
-  mucDo: string
-  warning?: string
 }
 
 export interface CloStatDto {
@@ -90,7 +80,6 @@ export interface RunResultDto {
   /** Mã lần chạy đã lưu snapshot (chỉ có khi lưu thành công) */
   runId?: string
   finalReportPath?: string
-  examReportPath?: string
   studentCount: number
   passedCount: number
   passedPercent: number
@@ -98,7 +87,6 @@ export interface RunResultDto {
   absentFinalCount: number
   missingDataCount: number
   cloStats: CloStatDto[]
-  exams: ExamSummaryDto[]
   issues: IssueDto[]
   error?: string
 }
@@ -136,7 +124,6 @@ export interface RunHistoryEntryDto {
   rawPath: string
   outputDir: string
   finalReportPath?: string
-  examReportPath?: string
   studentCount: number
   passedPercent: number
   meanCourseScore: number
@@ -157,7 +144,6 @@ export interface RunSnapshotDto {
   /** Kết quả tính điểm từng sinh viên, song song với `students`. */
   results: StudentCourseResult[]
   summary: ClassEvaluationSummary
-  exams: ExamPsychometrics[]
 }
 
 /** Một môn học đang quản lý trong app */
@@ -219,11 +205,11 @@ export interface CloApi {
   parseConfig: (configPath: string) => Promise<ConfigSummaryDto>
   getCourseConfig: (sessionId: string) => Promise<StoredCourseConfig | null>
   saveCourseConfig: (sessionId: string, data: StoredCourseConfig) => Promise<void>
-  exportRawGradesTemplate: (
+  exportGradeSheetTemplate: (
     config: Course,
     defaultFileName?: string
   ) => Promise<{ ok: boolean; path?: string; error?: string }>
-  parseRawGrades: (configSource: string | Course, rawPath: string) => Promise<RawSummaryDto>
+  parseGradeSheet: (configSource: string | Course, rawPath: string) => Promise<GradeSheetSummaryDto>
   runPipeline: (
     configSource: string | Course,
     rawPath: string,

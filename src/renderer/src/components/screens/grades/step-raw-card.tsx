@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle
 } from '@renderer/components/ui/card'
-import type { RawSummaryDto } from '../../../../../shared/ipc'
+import type { GradeSheetSummaryDto } from '../../../../../shared/ipc'
 import { FilePick } from '@renderer/components/screens/grades/file-pick'
 import { IssueList } from '@renderer/components/screens/grades/issue-list'
 import { StepBadge } from '@renderer/components/screens/grades/stepper'
@@ -23,7 +23,7 @@ export function StepRawCard({
   hasConfig
 }: {
   rawPath: string
-  raw: RawSummaryDto | null
+  raw: GradeSheetSummaryDto | null
   busy: string | null
   bridgeReady: boolean
   onPick: () => void

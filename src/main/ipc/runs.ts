@@ -24,15 +24,19 @@ export async function saveRunSnapshot(snapshot: RunSnapshotDto): Promise<string>
   return file
 }
 
+/** Đọc snapshot theo runId; trả null nếu không có (dữ liệu cũ) hoặc file hỏng. */
+export async function readRunSnapshot(runId: string): Promise<RunSnapshotDto | null> {
+  try {
+    const raw = await fs.readFile(snapshotFile(runId), 'utf8')
+    return JSON.parse(raw) as RunSnapshotDto
+  } catch {
+    return null
+  }
+}
+
 export function registerRunHandlers(): void {
   ipcMain.handle('runs:get', async (_event, runId: string): Promise<RunSnapshotDto | null> => {
-    try {
-      const raw = await fs.readFile(snapshotFile(runId), 'utf8')
-      return JSON.parse(raw) as RunSnapshotDto
-    } catch {
-      // Chưa có file (dữ liệu cũ) hoặc file hỏng → coi như không có chi tiết
-      return null
-    }
+    return readRunSnapshot(runId)
   })
 
   ipcMain.handle('runs:delete', async (_event, runId: string): Promise<void> => {

@@ -32,9 +32,15 @@
 
 ## Nghiệp vụ dễ nhầm (lỗi tốn test xanh)
 
-- Quyết định #9: **cột điểm trống = 0 điểm**, giữ trọng số trong mẫu số mọi cấp (`cellScoreCalculator` tạo ô điểm 0, vẫn set `hasMissingData` + warning). `VT` = vắng thi → 0 cuối kỳ + `isAbsentFinal` + bị loại khỏi p/d/α.
+- Quyết định #9: **cột điểm trống = 0 điểm**, giữ trọng số trong mẫu số mọi cấp (`cellScoreCalculator` tạo ô điểm 0, vẫn set `hasMissingData` + warning). `VT` = vắng thi → 0 cuối kỳ + `isAbsentFinal`.
 - Validator bắt buộc **tổng điểm tối đa của mỗi đề (mã đầu điểm + mã đề) bằng 10**.
-- `maDe` semantics: `ALL` = SV làm mọi đề (tính vào mọi đề khi phân tích psychometrics); SV có mã đề riêng chỉ tính vào đề đó.
+- `maDe` semantics: `ALL` = câu áp dụng cho mọi đề; SV có mã đề riêng chỉ nhận điểm câu thuộc đề đó.
+
+## Tính năng đã bị loại bỏ — KHÔNG tạo lại
+
+- **Kiểm định đề thi / psychometrics đã bị gỡ khỏi sản phẩm** (quyết định của chủ dự án, 2026-11-16): không có độ khó p, độ phân biệt d, Cronbach α, "α nếu bỏ câu", báo cáo `exam_analysis_report.xlsx`, sheet `P_D_TUNG_CAU` / `DO_TIN_CAY`, tab/màn "Kiểm định đề thi", `examReportPath` trong DTO, và không có module `psychometrics` trong `src/core`.
+- **Why:** app chỉ phục vụ tính điểm CLO/PLO theo QĐ450; phần thống kê đề thi đã bị chủ dự án yêu cầu bỏ hẳn, không phải tạm ẩn.
+- **How to apply:** không thêm lại file, hàm, hằng số, cột Excel, UI, test hay tài liệu cho các mục trên. Dữ liệu p/d/α trong QĐ450 không cần cài đặt. `maDe` vẫn tồn tại nhưng chỉ để chọn câu theo đề khi tính điểm.
 - Bug đã ghi nhận, chưa sửa (xem `note.txt`): validator bắt buộc mọi đầu điểm phải có câu hỏi trong `CAU_HOI`, nhưng `calculateCellScores` hỗ trợ cột điểm trực tiếp (CC, TD thang 10) — mâu thuẫn thiết kế, chờ chốt cách phân giải.
 
 ## Ngôn ngữ

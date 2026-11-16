@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useWorkspace } from '@renderer/hooks/workspace'
-import type { RawSummaryDto, RunResultDto, SessionDto } from '../../../shared/ipc'
+import type { GradeSheetSummaryDto, RunResultDto, SessionDto } from '../../../shared/ipc'
 import type { Course } from '@core/types'
 import { normalizeStoredCourse } from '@renderer/components/screens/courses/course-adapter'
 
@@ -15,7 +15,7 @@ export interface ImportPipeline {
   active: SessionDto | null
   courseConfig: Course | null
   rawPath: string
-  raw: RawSummaryDto | null
+  raw: GradeSheetSummaryDto | null
   outDir: string
   result: RunResultDto | null
   busy: string | null
@@ -75,7 +75,7 @@ export function useImportPipeline(active: SessionDto | null, bridgeReady: boolea
     : null
 
   const [rawPath, setRawPath] = useState(active?.rawPath ?? '')
-  const [raw, setRaw] = useState<RawSummaryDto | null>(null)
+  const [raw, setRaw] = useState<GradeSheetSummaryDto | null>(null)
   const [outDir, setOutDir] = useState(active?.outDir ?? '')
   const [result, setResult] = useState<RunResultDto | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
@@ -93,7 +93,7 @@ export function useImportPipeline(active: SessionDto | null, bridgeReady: boolea
       if (!p) return
       setRawPath(p)
       setResult(null)
-      setRaw(await window.api.parseRawGrades(courseConfig, p))
+      setRaw(await window.api.parseGradeSheet(courseConfig, p))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Không đọc được file điểm.')
     } finally {
@@ -134,7 +134,6 @@ export function useImportPipeline(active: SessionDto | null, bridgeReady: boolea
           rawPath,
           outputDir: outDir,
           finalReportPath: res.finalReportPath,
-          examReportPath: res.examReportPath,
           studentCount: res.studentCount,
           passedPercent: res.passedPercent,
           meanCourseScore: res.meanCourseScore

@@ -289,8 +289,8 @@ export function CourseConfigEditor({
 
   const handleExportRawTemplate = async (): Promise<void> => {
     const serialized = editorToCourse(toCourseConfig(config))
-    if (window.api?.exportRawGradesTemplate) {
-      const res = await window.api.exportRawGradesTemplate(serialized)
+    if (window.api?.exportGradeSheetTemplate) {
+      const res = await window.api.exportGradeSheetTemplate(serialized)
       if (res.ok && res.path) {
         alert(`Đã xuất file Template điểm thô:\n${res.path}`)
       } else if (res.error) {

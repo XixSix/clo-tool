@@ -3,7 +3,7 @@
 Phần mềm desktop (Electron + React + TypeScript) đo lường và đánh giá chuẩn đầu ra học phần
 theo **QĐ 450/QĐ-ĐHTĐ ngày 07/8/2024**. Ứng dụng chạy **offline 100%**, không gửi dữ liệu ra ngoài.
 
-> Trạng thái: đã xong **Tuần 0–2** (core engine, đọc/ghi Excel, thống kê đề thi, xuất báo cáo)
+> Trạng thái: đã xong **Tuần 0–2** (core engine, đọc/ghi Excel, xuất báo cáo)
 > và một **giao diện thử nghiệm** một màn hình để chạy trọn quy trình.
 
 ---
@@ -23,9 +23,7 @@ Trong cửa sổ ứng dụng:
    - `Template_DiemTho.xlsx` — điểm thô 32 sinh viên + 12 buổi điểm danh
 3. Bấm **“Chọn thư mục lưu báo cáo”** (có thể chọn cùng thư mục trên).
 4. Bấm **“Tính toán & xuất báo cáo”**.
-5. Mở 2 file kết quả ngay trong app:
-   - `final_grades_report.xlsx`
-   - `exam_analysis_report.xlsx`
+5. Mở file kết quả `final_grades_report.xlsx` ngay trong app.
 
 Nếu đã có file thật, bỏ qua bước “Tạo bộ file mẫu” và chọn trực tiếp file Config + file điểm thô.
 
@@ -42,7 +40,6 @@ Kết quả nằm trong `out/demo/`:
 | `Template_Config.xlsx`      | Config mẫu 7 sheet + sheet hướng dẫn                         |
 | `Template_DiemTho.xlsx`     | Điểm thô mẫu (điểm danh, CC, TD, KT3, KT4, CK)               |
 | `final_grades_report.xlsx`  | Bảng điểm CLO/PLO, điểm học vụ, chi tiết, tổng hợp, cảnh báo |
-| `exam_analysis_report.xlsx` | p, d, Cronbach α, gợi ý cải tiến                             |
 
 Sinh lại file mẫu đi kèm app:
 
@@ -55,7 +52,7 @@ npm run gen:templates
 ## 2. Kiểm thử & kiểm tra chất lượng
 
 ```bash
-npm test          # 67 test: công thức QĐ450, psychometrics, parser, e2e
+npm test          # công thức QĐ450, parser, io, e2e
 npm run typecheck # TypeScript toàn bộ main/preload/renderer/core
 npm run lint      # ESLint
 npm run build     # Build production (electron-vite)
@@ -99,14 +96,6 @@ Học phần **KTLT101 – Kỹ thuật lập trình**, 3 tín chỉ, 3 CLO:
 | `TONG_HOP_LO`         | % đạt CLO/PLO, TB/min/max, 2 biểu đồ PNG, ô đề xuất cải tiến         |
 | `CANH_BAO`            | Lỗi dữ liệu, SV vắng thi/thiếu điểm, CLO dưới ngưỡng                 |
 
-`exam_analysis_report.xlsx`:
-
-| Sheet            | Nội dung                                                     |
-| :--------------- | :----------------------------------------------------------- |
-| `P_D_TUNG_CAU`   | Độ khó `p`, độ phân biệt `d`, mức độ, α nếu bỏ câu, cảnh báo |
-| `DO_TIN_CAY`     | Cronbach α theo từng đợt / mã đề, cảnh báo cỡ mẫu            |
-| `GOI_Y_CAI_TIEN` | 5 câu hỏi định hướng cải tiến + độ phủ CLO                   |
-
 ---
 
 ## 5. Dùng dữ liệu thật
@@ -130,11 +119,10 @@ src/
   core/               # Engine thuần TypeScript, không import Electron/React
     types/            # Kiểu dữ liệu theo miền (course, student, result, …)
     io/               # Đọc Config / điểm thô, sinh template Excel
-    calculator/       # Bộ tính toán cốt lõi (attendance, clo, plo, psychometrics)
+    calculator/       # Bộ tính toán cốt lõi (attendance, clo, plo)
       attendance/     # Điểm chuyên cần từ ký hiệu điểm danh
       clo/            # Điểm ô → CLO → nhóm → điểm học phần, thống kê lớp
       plo/            # Điểm thành phần và thống kê PLO
-      psychometrics/  # Kiểm định đề thi (p, d, Cronbach α)
     exporter/         # Xuất Excel + biểu đồ PNG
   main/               # Electron main + IPC xử lý file
   preload/            # Cầu nối an toàn ra window.api
@@ -142,7 +130,7 @@ src/
   shared/             # DTO dùng chung main ↔ renderer
 resources/templates/  # Template_Config.xlsx, Template_DiemTho.xlsx
 scripts/              # demo.ts, gen-templates.ts
-tests/                # Vitest (golden QĐ450, psychometrics, io, e2e)
+tests/                # Vitest (golden QĐ450, io, e2e)
 docs/                 # Đặc tả & kế hoạch
 ```
 
@@ -154,7 +142,6 @@ docs/                 # Đặc tả & kế hoạch
 - **#7**: CLO chỉ được đo bằng chuyên cần/thái độ → **cảnh báo**, không chặn tính điểm.
 - Ngưỡng đạt mặc định: CLO = 4,0; PLO = 4,0; học phần = 4,0 (đổi trong sheet `QUY_TAC`).
 - Làm tròn half-up từng bước (`rounding_mode = chain`) bằng `decimal.js`.
-- Cronbach α: `≤ 0,60` là **Không đủ độ tin cậy**; đề chỉ có 1 câu sẽ ghi chú “không tính được α”.
 
 ---
 

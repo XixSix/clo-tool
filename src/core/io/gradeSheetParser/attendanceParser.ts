@@ -2,18 +2,17 @@
  * Nhận diện các cột điểm danh (Buổi 1..N) trong header.
  */
 
-import type { RawAttendanceSession } from '../../types'
 import { isAttendanceHeader, isInvalidAttendanceHeader } from './helpers'
-import { RawGradesParseError } from './errors'
+import { GradeSheetParseError } from './errors'
 import type { AttendanceColumn } from './types'
 
 export interface AttendanceColumnsResult {
-  sessions: RawAttendanceSession[]
+  sessions: string[]
   columns: AttendanceColumn[]
 }
 
 export function parseAttendanceColumns(headers: string[]): AttendanceColumnsResult {
-  const sessions: RawAttendanceSession[] = []
+  const sessions: string[] = []
   const columns: AttendanceColumn[] = []
 
   headers.forEach((header, index) => {
@@ -21,10 +20,10 @@ export function parseAttendanceColumns(headers: string[]): AttendanceColumnsResu
     if (!trimmed) return
 
     if (isAttendanceHeader(trimmed)) {
-      sessions.push({ column: trimmed, label: trimmed })
-      columns.push({ index, label: trimmed })
+      sessions.push(trimmed)
+      columns.push({ index, tenBuoi: trimmed })
     } else if (isInvalidAttendanceHeader(trimmed)) {
-      throw new RawGradesParseError(
+      throw new GradeSheetParseError(
         `Cột điểm danh "${trimmed}" không đúng định dạng. Chỉ chấp nhận 3 định dạng: "Buổi <số>" (ví dụ Buổi 1), "Buổi <số> (<ngày>/<tháng>)" (ví dụ Buổi 1 (28/10)), hoặc "<ngày>/<tháng>" (ví dụ 28/10).`
       )
     }

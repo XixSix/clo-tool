@@ -6,9 +6,9 @@
  *
  * Tiện ích Excel thuần (đọc ô, mở workbook, dò tiêu đề) nằm ở `../utils/excel`.
  *
- * - rawGradesParser: parse Template_DiemTho.xlsx → RawGrades (kiểu dữ liệu thô)
- * - rawGradesTemplateGenerator: sinh Template_DiemTho.xlsx
+ * - gradeSheetParser: parse Template_DiemTho.xlsx → GradeSheetData (kiểu dữ liệu thô)
+ * - gradeSheetTemplateGenerator: sinh Template_DiemTho.xlsx
  */
 
-export * from './rawGradesParser'
+export * from './gradeSheetParser'
 export * from './templateGenerator'

@@ -2,9 +2,6 @@ import { describe, it, expect } from 'vitest'
 import {
   roundHalfUp,
   roundStep,
-  classifyDifficulty,
-  classifyDiscrimination,
-  classifyReliability,
   DEFAULT_BUSINESS_RULES
 } from '@core/rules'
 
@@ -40,48 +37,6 @@ describe('Rules & Math Module', () => {
 
     it('chế độ final_only phải giữ nguyên số gốc', () => {
       expect(roundStep(6.254, 'final_only', 1)).toBe(6.254)
-    })
-  })
-
-  describe('Phân loại chỉ số độ khó p', () => {
-    it('phải phân loại đúng theo bảng QĐ450 Điều 5.1', () => {
-      expect(classifyDifficulty(0.85)).toBe('Dễ')
-      expect(classifyDifficulty(0.8)).toBe('Dễ')
-      expect(classifyDifficulty(0.7)).toBe('Trung bình')
-      expect(classifyDifficulty(0.6)).toBe('Trung bình')
-      expect(classifyDifficulty(0.5)).toBe('Tương đối khó')
-      expect(classifyDifficulty(0.4)).toBe('Tương đối khó')
-      expect(classifyDifficulty(0.3)).toBe('Khó')
-      expect(classifyDifficulty(0.2)).toBe('Khó')
-      expect(classifyDifficulty(0.15)).toBe('Rất khó')
-    })
-  })
-
-  describe('Phân loại chỉ số độ phân biệt d', () => {
-    it('phải phân loại đúng theo bảng QĐ450 Điều 5.2', () => {
-      expect(classifyDiscrimination(0.75)).toBe('Rất tốt')
-      expect(classifyDiscrimination(0.7)).toBe('Rất tốt')
-      expect(classifyDiscrimination(0.5)).toBe('Tốt')
-      expect(classifyDiscrimination(0.4)).toBe('Tốt')
-      expect(classifyDiscrimination(0.3)).toBe('Đủ độ phân biệt')
-      expect(classifyDiscrimination(0.2)).toBe('Đủ độ phân biệt')
-      expect(classifyDiscrimination(0.1)).toBe('Yếu')
-      expect(classifyDiscrimination(0.0)).toBe('Yếu')
-      expect(classifyDiscrimination(-0.15)).toBe('Nên loại bỏ')
-    })
-  })
-
-  describe('Phân loại độ tin cậy Cronbach alpha', () => {
-    it('phải phân loại đúng theo bảng QĐ450 Điều 5.3', () => {
-      expect(classifyReliability(0.9)).toBe('Rất cao')
-      expect(classifyReliability(0.85)).toBe('Rất cao')
-      expect(classifyReliability(0.82)).toBe('Cao')
-      expect(classifyReliability(0.8)).toBe('Cao')
-      expect(classifyReliability(0.75)).toBe('Đủ độ tin cậy')
-      expect(classifyReliability(0.7)).toBe('Đủ độ tin cậy')
-      expect(classifyReliability(0.65)).toBe('Yếu')
-      expect(classifyReliability(0.6)).toBe('Không đủ độ tin cậy')
-      expect(classifyReliability(0.55)).toBe('Không đủ độ tin cậy')
     })
   })
 

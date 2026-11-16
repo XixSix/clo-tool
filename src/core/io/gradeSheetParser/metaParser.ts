@@ -3,12 +3,12 @@
  */
 
 import type ExcelJS from 'exceljs'
-import type { RawGradesMeta } from '../../types'
+import type { GradeSheetMeta } from '../../types'
 import { cellText, normalizeHeader } from '../../utils/excel'
 import { META_LABELS } from './helpers'
 
-export function parseRawGradesMeta(ws: ExcelJS.Worksheet, headerRow: number): RawGradesMeta {
-  const meta: RawGradesMeta = {}
+export function parseGradeSheetMeta(ws: ExcelJS.Worksheet, headerRow: number): GradeSheetMeta {
+  const meta: GradeSheetMeta = {}
 
   for (let r = 1; r < headerRow; r++) {
     for (let c = 1; c <= ws.columnCount; c++) {

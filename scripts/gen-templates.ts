@@ -9,7 +9,7 @@
 
 import { resolve, join } from 'node:path'
 import { mkdirSync } from 'node:fs'
-import { writeRawGradesTemplate } from '@core/index'
+import { writeGradeSheetTemplate } from '@core/index'
 import { buildMockClass, buildMockCourse, MOCK_SESSION_LABELS } from '../tests/fixtures/mockClass'
 
 async function main(): Promise<void> {
@@ -19,7 +19,7 @@ async function main(): Promise<void> {
   const course = buildMockCourse()
   const { students, attendance } = buildMockClass(10)
 
-  await writeRawGradesTemplate(join(outDir, 'Template_DiemTho.xlsx'), course, {
+  await writeGradeSheetTemplate(join(outDir, 'Template_DiemTho.xlsx'), course, {
     students,
     attendance,
     lop: '1A11_CNTT14',

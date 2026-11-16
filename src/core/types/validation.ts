@@ -15,7 +15,7 @@ export type IssueScope =
   | 'plo'
   | 'integrity'
   | 'student'
-  | 'raw_grades'
+  | 'grade_sheet'
 
 /**
  * Một lỗi / cảnh báo dữ liệu.

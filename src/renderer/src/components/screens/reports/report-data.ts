@@ -1,4 +1,4 @@
-import { formatPercent, formatScore } from '@renderer/lib/format'
+import { formatPercent } from '@renderer/lib/format'
 import type { ChartConfig } from '@renderer/components/ui/chart'
 import { buildStudentViews, toSummaryView } from '@renderer/lib/result-view'
 import type { RunSnapshotDto } from '../../../../../shared/ipc'
@@ -11,10 +11,6 @@ export const cloConfig = {
   passedPercent: { label: '% đạt', color: 'var(--chart-1)' }
 } satisfies ChartConfig
 
-export const alphaConfig = {
-  alpha: { label: 'Cronbach α', color: 'var(--chart-2)' }
-} satisfies ChartConfig
-
 export interface HistogramBin {
   range: string
   students: number
@@ -24,12 +20,6 @@ export interface CloDatum {
   code: string
   passedPercent: number
   below: boolean
-}
-
-export interface AlphaDatum {
-  name: string
-  alpha: number
-  low: boolean
 }
 
 /** Chia điểm học phần thành 10 khoảng [i, i+1) để vẽ histogram. */
@@ -59,15 +49,6 @@ export function buildCloData(snapshot: RunSnapshotDto): CloDatum[] {
   })
 }
 
-/** Cronbach α theo từng đề; α ≤ 0.6 coi là thấp. */
-export function buildAlphaData(snapshot: RunSnapshotDto): AlphaDatum[] {
-  return snapshot.exams.map((exam) => ({
-    name: `${exam.maDauDiem}·${exam.maDe}`,
-    alpha: exam.cronbachAlpha,
-    low: exam.cronbachAlpha <= 0.6
-  }))
-}
-
 /** Trung vị điểm học phần. */
 export function medianCourseScore(snapshot: RunSnapshotDto): number {
   const scores = buildStudentViews(snapshot)
@@ -89,14 +70,6 @@ export function buildAttention(snapshot: RunSnapshotDto): string[] {
     .forEach((stat) =>
       items.push(
         `${stat.maClo} chỉ đạt ${formatPercent(stat.passedPercent)} — dưới ngưỡng cảnh báo ${config.quyTac.tyLeDatCloCanhBao}%`
-      )
-    )
-
-  snapshot.exams
-    .filter((exam) => exam.cronbachAlpha <= 0.7)
-    .forEach((exam) =>
-      items.push(
-        `Đề ${exam.maDe} (${exam.maDauDiem}) có α = ${formatScore(exam.cronbachAlpha)} — ${exam.mucDoTinCay}`
       )
     )
 

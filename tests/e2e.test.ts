@@ -4,25 +4,23 @@ import { join } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import ExcelJS from 'exceljs'
 import {
-  buildExamAnalysisWorkbook,
   buildFinalGradesWorkbook,
   buildStudentRecords,
-  calculateAllExamPsychometrics,
   calculateEvaluation,
   calculateGroupScores,
   calculatePhaseCloScores,
-  parseRawGrades,
+  parseGradeSheet,
   roundHalfUp,
   validateCourse,
-  validateRawGrades,
-  writeRawGradesTemplate
+  validateGradeSheet,
+  writeGradeSheetTemplate
 } from '@core/index'
 import { buildMockClass, buildMockCourse, MOCK_SESSION_LABELS } from './fixtures/mockClass'
-import type { Course, EvaluationReport, RawGrades, Student, StudentCourseResult } from '@core/types'
+import type { Course, EvaluationReport, GradeSheetData, Student, StudentCourseResult } from '@core/types'
 
 let dir: string
 let course: Course
-let rawFile: RawGrades
+let rawFile: GradeSheetData
 let students: Student[]
 let result: EvaluationReport
 
@@ -42,7 +40,7 @@ beforeAll(async () => {
   course = buildMockCourse()
   const { students: rawStudents, attendance } = buildMockClass(32)
 
-  await writeRawGradesTemplate(rawPath, course, {
+  await writeGradeSheetTemplate(rawPath, course, {
     students: rawStudents,
     attendance,
     lop: '1A11_CNTT14',
@@ -52,7 +50,7 @@ beforeAll(async () => {
     sessions: MOCK_SESSION_LABELS.map((label) => ({ label }))
   })
 
-  rawFile = await parseRawGrades(rawPath, course)
+  rawFile = await parseGradeSheet(rawPath, course)
   const parsed = buildStudentRecords(course, rawFile)
   students = parsed.students
   result = calculateEvaluation(course, students, parsed.records)
@@ -66,7 +64,7 @@ describe('Pipeline end-to-end: Course + Điểm thô → Kết quả', () => {
   it('đọc và tính đủ 32 sinh viên, không có lỗi dữ liệu', () => {
     expect(result.sinhVien).toHaveLength(32)
     expect(validateCourse(course).filter((i) => i.level === 'error')).toHaveLength(0)
-    expect(validateRawGrades(course, rawFile).filter((i) => i.level === 'error')).toHaveLength(0)
+    expect(validateGradeSheet(course, rawFile).filter((i) => i.level === 'error')).toHaveLength(0)
   })
 
   it('điểm CLO2 của SV đầu tiên khớp công thức QĐ450', () => {
@@ -143,48 +141,13 @@ describe('Pipeline end-to-end: Course + Điểm thô → Kết quả', () => {
   })
 })
 
-describe('Psychometrics theo từng đợt và mã đề', () => {
-  it('tách đúng các đợt thi / đề, bỏ qua nhóm CC', () => {
-    const parsed = buildStudentRecords(course, rawFile)
-    const exams = calculateAllExamPsychometrics(course, parsed.students, parsed.records)
-    // 3 bài thi: GK đề TN (GKT/D1), GK đề TL (GTX/D2), CK đề TL (CK/D3)
-    expect(exams.map((e) => e.maDauDiem).sort()).toEqual(['CK', 'GKT', 'GTX'])
-
-    const ck = exams.find((e) => e.maDauDiem === 'CK')!
-    expect(ck.maDe).toBe('D3')
-    expect(ck.soSinhVien).toBe(30) // lớp 32 SV: loại SV vắng thi (SV4) và SV trống toàn bộ (SV7)
-    expect(ck.soCauHoi).toBe(5)
-    expect(ck.cronbachAlpha).toBeGreaterThanOrEqual(0)
-    expect(ck.cronbachAlpha).toBeLessThanOrEqual(1)
-    expect(ck.items).toHaveLength(5)
-    for (const item of ck.items) {
-      expect(item.doKhoP).toBeGreaterThanOrEqual(0)
-      expect(item.doKhoP).toBeLessThanOrEqual(1)
-    }
-
-    // Đề GK TN (GKT/D1): 40 câu × 0,25 điểm, đo CLO2/CLO3/CLO4
-    const gkt = exams.find((e) => e.maDauDiem === 'GKT')!
-    expect(gkt.maDe).toBe('D1')
-    expect(gkt.soCauHoi).toBe(40)
-    expect(gkt.items.map((i) => i.cau)[0]).toBe('Câu 1')
-    expect(gkt.items.map((i) => i.cau)[39]).toBe('Câu 40')
-    expect(new Set(gkt.items.map((i) => i.diemToiDa))).toEqual(new Set([0.25]))
-
-    // Đề GK TL (GTX/D2): 4 câu, 2 câu cùng đo CLO4
-    const gtx = exams.find((e) => e.maDauDiem === 'GTX')!
-    expect(gtx.maDe).toBe('D2')
-    expect(gtx.soCauHoi).toBe(4)
-    expect(gtx.items.map((i) => i.diemToiDa)).toEqual([3, 2.5, 2, 2.5])
-  })
-})
-
 describe('Xuất Excel', () => {
   it('báo cáo điểm có đủ sheet và dữ liệu đúng', async () => {
     const wb = buildFinalGradesWorkbook(course, result, {
       phase: 'both',
       rawFile,
       students,
-      issues: validateRawGrades(course, rawFile),
+      issues: validateGradeSheet(course, rawFile),
       context: { hocKy: 'HK1', namHoc: '2026-2027', lop: '1A11_CNTT14', diaDanh: 'Hải Phòng' }
     })
     expect(wb.worksheets.map((ws) => ws.name)).toEqual([
@@ -219,18 +182,5 @@ describe('Xuất Excel', () => {
 
     const detail = reloaded.getWorksheet('CHI_TIET_CLO')!
     expect(detail.getCell(1, 4).text).toBe('CC – CLO1')
-  })
-
-  it('báo cáo đề thi có đủ 3 sheet', async () => {
-    const parsed = buildStudentRecords(course, rawFile)
-    const exams = calculateAllExamPsychometrics(course, parsed.students, parsed.records)
-    const wb = buildExamAnalysisWorkbook(course, exams)
-    expect(wb.worksheets.map((ws) => ws.name)).toEqual([
-      'P_D_TUNG_CAU',
-      'DO_TIN_CAY',
-      'GOI_Y_CAI_TIEN'
-    ])
-    const buffer = await wb.xlsx.writeBuffer()
-    expect(buffer.byteLength).toBeGreaterThan(1000)
   })
 })

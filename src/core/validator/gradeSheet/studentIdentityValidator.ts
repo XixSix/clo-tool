@@ -12,11 +12,11 @@ export function validateStudentIdentity(
   const issues: ValidationIssue[] = []
 
   if (!student.maSv || student.maSv.startsWith('__MISSING_')) {
-    issues.push({ level: 'error', scope: 'raw_grades', row, column: 'Mã SV', message: 'Thiếu Mã SV.' })
+    issues.push({ level: 'error', scope: 'grade_sheet', row, column: 'Mã SV', message: 'Thiếu Mã SV.' })
   } else if (seenMaSv.has(student.maSv)) {
     issues.push({
       level: 'error',
-      scope: 'raw_grades',
+      scope: 'grade_sheet',
       row,
       column: 'Mã SV',
       message: `Mã SV "${student.maSv}" bị trùng.`
@@ -28,7 +28,7 @@ export function validateStudentIdentity(
   if (!student.hoTen || student.hoTen.trim() === '') {
     issues.push({
       level: 'error',
-      scope: 'raw_grades',
+      scope: 'grade_sheet',
       row,
       column: 'Họ và tên',
       message: 'Thiếu họ tên.'

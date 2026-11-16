@@ -3,15 +3,13 @@ import { mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import {
   buildStudentRecords,
-  calculateAllExamPsychometrics,
   calculateEvaluation,
-  writeExamAnalysisReport,
   writeFinalGradesReport
 } from '@core/index'
-import type { Course, RawGrades, ValidationIssue } from '@core/types'
-import type { CloStatDto, ExamSummaryDto, RunResultDto, RunSnapshotDto } from '../../shared/ipc'
+import type { Course, GradeSheetData, ValidationIssue } from '@core/types'
+import type { CloStatDto, RunResultDto, RunSnapshotDto } from '../../shared/ipc'
 import { errorMessage, hasErrors, toIssueDto } from './common'
-import { loadConfig, loadRawGrades } from './loaders'
+import { loadConfig, loadGradeSheet } from './loaders'
 import { saveRunSnapshot } from './runs'
 
 function newRunId(): string {
@@ -28,7 +26,6 @@ const emptyResult = (outputDir: string): RunResultDto => ({
   absentFinalCount: 0,
   missingDataCount: 0,
   cloStats: [],
-  exams: [],
   issues: []
 })
 
@@ -55,8 +52,8 @@ export function registerPipelineHandlers(): void {
 
       try {
         const course = loaded.config
-        const raw = await loadRawGrades(course, rawPath)
-        const rawFile: RawGrades = raw.file
+        const raw = await loadGradeSheet(course, rawPath)
+        const rawFile: GradeSheetData = raw.file
         const issues: ValidationIssue[] = [...loaded.issues, ...raw.issues]
         if (hasErrors(issues)) {
           return {
@@ -68,23 +65,20 @@ export function registerPipelineHandlers(): void {
 
         const { students, records } = buildStudentRecords(course, rawFile)
         const result = calculateEvaluation(course, students, records)
-        const exams = calculateAllExamPsychometrics(course, students, records)
         await mkdir(outputDir, { recursive: true })
         const finalReportPath = join(outputDir, 'final_grades_report.xlsx')
-        const examReportPath = join(outputDir, 'exam_analysis_report.xlsx')
         await writeFinalGradesReport(finalReportPath, course, result, {
           phase: 'both',
           rawFile,
           issues,
           students,
           context: {
-            hocKy: rawFile.meta.hocKy,
-            namHoc: rawFile.meta.namHoc,
-            lop: rawFile.meta.lop,
-            giangVien: rawFile.meta.giangVien
+            hocKy: rawFile.thongTin.hocKy,
+            namHoc: rawFile.thongTin.namHoc,
+            lop: rawFile.thongTin.lop,
+            giangVien: rawFile.thongTin.giangVien
           }
         })
-        await writeExamAnalysisReport(examReportPath, course, exams, issues)
 
         // Lưu snapshot chi tiết → màn Sinh viên/Báo cáo xem lại không cần chạy lại
         const candidateRunId = newRunId()
@@ -97,8 +91,7 @@ export function registerPipelineHandlers(): void {
             config: course,
             students,
             results: result.sinhVien,
-            summary: result.tongHop,
-            exams
+            summary: result.tongHop
           }
           await saveRunSnapshot(snapshot)
           savedRunId = candidateRunId
@@ -115,21 +108,12 @@ export function registerPipelineHandlers(): void {
             isBelowThreshold: stat?.duoiNguongCanhBao ?? false
           }
         })
-        const examSummaries: ExamSummaryDto[] = exams.map((exam) => ({
-          maDauDiem: exam.maDauDiem,
-          maDe: exam.maDe,
-          n: exam.soSinhVien,
-          alpha: exam.cronbachAlpha,
-          mucDo: exam.mucDoTinCay,
-          warning: exam.canhBaoCoMauN
-        }))
 
         return {
           ok: true,
           outputDir,
           runId: savedRunId,
           finalReportPath,
-          examReportPath,
           studentCount: result.tongHop.tongSinhVien,
           passedCount: result.tongHop.hocPhan.soSinhVienDat,
           passedPercent: result.tongHop.hocPhan.tyLeDat,
@@ -137,7 +121,6 @@ export function registerPipelineHandlers(): void {
           absentFinalCount: result.tongHop.soSinhVienVangThi,
           missingDataCount: result.tongHop.soSinhVienThieuDuLieu,
           cloStats,
-          exams: examSummaries,
           issues: issues.map(toIssueDto)
         }
       } catch (error) {

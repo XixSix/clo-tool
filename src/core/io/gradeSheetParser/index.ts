@@ -1,5 +1,5 @@
 /**
- * Đọc file điểm thô của lớp (.xlsx) → RawGrades.
+ * Đọc file điểm thô của lớp (.xlsx) → GradeSheetData.
  *
  * Mỗi phần việc nằm trong một module riêng:
  * - metaParser: thông tin lớp
@@ -7,35 +7,35 @@
  * - attendanceParser: cột điểm danh
  * - maxScoreParser: hàng "Điểm tối đa"
  * - studentParser: dữ liệu sinh viên
- * - toStudentRecords: chuyển RawGrades → Student + StudentCourseScoreRecord
+ * - toStudentRecords: chuyển GradeSheetData → Student + StudentCourseScoreRecord
  *
  * Parser chỉ chịu trách nhiệm đọc dữ liệu; lỗi cấu trúc hoặc ô không parse được
- * sẽ ném `RawGradesParseError` thay vì trả về issue cho validator.
+ * sẽ ném `GradeSheetParseError` thay vì trả về issue cho validator.
  */
 
-import type { Course, RawGrades } from '../../types'
+import type { Course, GradeSheetData } from '../../types'
 import { findSheet, readWorkbook } from '../../utils/excel'
 import { parseAttendanceColumns } from './attendanceParser'
-import { RawGradesParseError } from './errors'
-import { assertScoreColumns, parseRawGradesHeader } from './headerParser'
+import { GradeSheetParseError } from './errors'
+import { assertScoreColumns, parseGradeSheetHeader } from './headerParser'
 import { parseDeclaredMaxScores } from './maxScoreParser'
-import { parseRawGradesMeta } from './metaParser'
+import { parseGradeSheetMeta } from './metaParser'
 import { parseStudentRows } from './studentParser'
 
 export * from './errors'
 export * from './toStudentRecords'
 
-export async function parseRawGrades(filePath: string, course: Course): Promise<RawGrades> {
+export async function parseGradeSheet(filePath: string, course: Course): Promise<GradeSheetData> {
   const wb = await readWorkbook(filePath)
   const ws = findSheet(wb, 'NHAP_LIEU') ?? findSheet(wb, 'NHAP_LIEU_GV') ?? wb.worksheets[0]
 
   if (!ws) {
-    throw new RawGradesParseError('File điểm thô không có sheet dữ liệu.')
+    throw new GradeSheetParseError('File điểm thô không có sheet dữ liệu.')
   }
 
-  const parsedHeader = parseRawGradesHeader(ws, course)
+  const parsedHeader = parseGradeSheetHeader(ws, course)
   if (!parsedHeader) {
-    throw new RawGradesParseError(
+    throw new GradeSheetParseError(
       'Không tìm thấy hàng tiêu đề (cần có cột "Mã SV", "Họ", "Tên"...).'
     )
   }
@@ -43,7 +43,7 @@ export async function parseRawGrades(filePath: string, course: Course): Promise<
   const { header, scoreColumns } = parsedHeader
   assertScoreColumns(header, scoreColumns)
 
-  const meta = parseRawGradesMeta(ws, header.rowNumber)
+  const meta = parseGradeSheetMeta(ws, header.rowNumber)
   const { sessions, columns } = parseAttendanceColumns(header.headers)
   const maxScores = parseDeclaredMaxScores(ws, header.rowNumber, course, header.mapping)
 
@@ -51,20 +51,19 @@ export async function parseRawGrades(filePath: string, course: Course): Promise<
     ws,
     mapping: header.mapping,
     scoreColumns,
-    firstStudentRow: maxScores.firstStudentRow,
+    firstStudentRow: maxScores.dongSinhVienDau,
     attendanceColumns: columns
   })
 
-  if (rows.students.length === 0) {
-    throw new RawGradesParseError('Không đọc được sinh viên nào.')
+  if (rows.sinhVien.length === 0) {
+    throw new GradeSheetParseError('Không đọc được sinh viên nào.')
   }
 
   return {
-    meta,
-    students: rows.students,
-    attendance: rows.attendance,
-    attendanceSessions: sessions,
-    declaredMaxScores: maxScores.scores,
-    studentExcelRows: rows.studentExcelRows
+    thongTin: meta,
+    sinhVien: rows.sinhVien,
+    buoiDiemDanh: sessions,
+    diemToiDaKhaiBao: maxScores.diemToiDa,
+    dongExcelSinhVien: rows.dongExcelSinhVien
   }
 }

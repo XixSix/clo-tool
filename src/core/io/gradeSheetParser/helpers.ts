@@ -3,13 +3,13 @@
  */
 
 import type ExcelJS from 'exceljs'
-import type { Course, RawGradesMeta } from '../../types'
-import { normalizeHeader } from '../../utils/excel'
+import type { Course, GradeSheetMeta } from '../../types'
+import { cellText, normalizeHeader } from '../../utils/excel'
 import { scoreColumns } from '../../utils/courseModel'
 
 export const BASE_COLUMNS = ['TT', 'Ma_SV', 'Ho', 'Ten', 'Ho_Ten', 'Ngay_Sinh', 'Ma_De', 'Ghi_Chu']
 
-export const META_LABELS: { key: keyof RawGradesMeta; patterns: string[] }[] = [
+export const META_LABELS: { key: keyof GradeSheetMeta; patterns: string[] }[] = [
   { key: 'tenHocPhan', patterns: ['hocphan', 'tenhocphan'] },
   { key: 'maHp', patterns: ['mahocphan', 'mahp'] },
   { key: 'lop', patterns: ['lop'] },
@@ -61,4 +61,25 @@ export function columnCell(
 /** Mã SV thay thế cho dòng thiếu mã, giữ đúng quy ước cũ. */
 export function missingMaSv(row: number): string {
   return `__MISSING_${row}`
+}
+
+/** Ghép họ/tên từ các cột Ho, Ten, Ho_Ten; điền khuyết nếu thiếu cột. */
+export function parseStudentName(
+  row: ExcelJS.Row,
+  mapping: Record<string, number>
+): { ho: string; ten: string; hoTen: string } {
+  const ho = cellText(columnCell(row, mapping, 'Ho')).trim()
+  const ten = cellText(columnCell(row, mapping, 'Ten')).trim()
+  const hoTenFull = cellText(columnCell(row, mapping, 'Ho_Ten')).trim()
+  let finalHo = ho
+  let finalTen = ten
+  let finalHoTen = hoTenFull
+  if (!finalHoTen) {
+    finalHoTen = [ho, ten].filter(Boolean).join(' ')
+  } else if (!finalTen) {
+    const parts = finalHoTen.split(/\s+/)
+    finalTen = parts.length > 1 ? parts.pop()! : finalHoTen
+    finalHo = parts.join(' ')
+  }
+  return { ho: finalHo, ten: finalTen, hoTen: finalHoTen }
 }

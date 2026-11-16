@@ -3,7 +3,7 @@
 import type { BrowserWindow } from 'electron'
 import { registerDialogHandlers } from './ipc/dialogs'
 import { registerConfigHandlers } from './ipc/config'
-import { registerRawGradesHandlers } from './ipc/rawGrades'
+import { registerGradeSheetHandlers } from './ipc/gradeSheet'
 import { registerPipelineHandlers } from './ipc/pipeline'
 import { registerRunHandlers } from './ipc/runs'
 import { registerExportPdfHandler } from './ipc/exportPdf'
@@ -13,11 +13,10 @@ import { registerWorkspaceHandlers } from './ipc/workspace'
 import { registerUpdaterHandlers } from './ipc/updater'
 import { registerWindowHandlers } from './ipc/window'
 
-// This is a comment
 export function registerIpcHandlers(getWindow: () => BrowserWindow | null): void {
   registerDialogHandlers(getWindow)
   registerConfigHandlers(getWindow)
-  registerRawGradesHandlers()
+  registerGradeSheetHandlers()
   registerPipelineHandlers()
   registerRunHandlers()
   registerSampleHandlers()

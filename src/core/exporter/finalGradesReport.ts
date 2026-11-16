@@ -22,7 +22,7 @@ import { allCloMappings, cloIdsByGroup } from '../utils/courseModel'
 import type {
   Course,
   EvaluationReport,
-  RawGrades,
+  GradeSheetData,
   Student,
   StudentCourseResult,
   ValidationIssue
@@ -50,7 +50,7 @@ export interface ReportContext {
 export interface FinalGradesOptions {
   phase?: Phase | 'both'
   context?: ReportContext
-  rawFile?: RawGrades
+  rawFile?: GradeSheetData
   issues?: ValidationIssue[]
   /** Thông tin định danh sinh viên (mã SV, họ tên, ngày sinh) để in báo cáo. */
   students?: Student[]
@@ -259,11 +259,11 @@ function buildCourseGradeSheet(
   wb: ExcelJS.Workbook,
   course: Course,
   rows: StudentRow[],
-  rawFile: RawGrades | undefined,
+  rawFile: GradeSheetData | undefined,
   ctx: ReportContext
 ): void {
   const ws = wb.addWorksheet('BANG_DIEM_HOC_VU')
-  const sessions = rawFile?.attendanceSessions.map((s) => s.label) ?? []
+  const sessions = rawFile?.buoiDiemDanh ?? []
   const firstSessionColumn = 6
   const tailStart = firstSessionColumn + sessions.length
   const colCount = tailStart + 5 - 1
@@ -299,17 +299,17 @@ function buildCourseGradeSheet(
 
   const attendance = rawFile
     ? computeAttendanceScores(
-        rawFile.attendance.map((record) => ({
-          maSv: record.maSv,
-          marks: Object.entries(record.symbols).map(([label, kyHieu]) => ({
-            buoiDiemDanhId: label,
+        rawFile.sinhVien.map((row) => ({
+          maSv: row.sinhVien.maSv,
+          marks: Object.entries(row.diemDanh ?? {}).map(([tenBuoi, kyHieu]) => ({
+            buoiDiemDanhId: tenBuoi,
             kyHieu
           }))
         }))
       )
     : { scores: [], byMaSv: {} as Record<string, number>, issues: [] }
   const attendanceMap = new Map(attendance.scores.map((a) => [a.maSv, a]))
-  const symbolsBySv = new Map(rawFile?.attendance.map((a) => [a.maSv, a.symbols]) ?? [])
+  const symbolsBySv = new Map(rawFile?.sinhVien.map((r) => [r.sinhVien.maSv, r.diemDanh ?? {}]) ?? [])
 
   let rowNumber = headerRow + 1
   for (const { student, result } of rows) {

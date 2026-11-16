@@ -1,33 +1,36 @@
 /** Sinh Template_DiemTho.xlsx. */
 
 import ExcelJS from 'exceljs'
-import type { Course, RawStudentRow } from '../types'
+import type { Course, SheetStudentRow } from '../types'
 import { scoreColumns, maxScoreByColumn } from '../utils/courseModel'
 import { setWidths, styleCell, styleHeaderRow, styleTitle, BORDER_THIN } from '../exporter/style'
 
 const INPUT_FILL = 'FFFEF9C3'
 
-export interface RawTemplateOptions {
-  students?: RawStudentRow[]
+export interface GradeSheetTemplateOptions {
+  sinhVien?: SheetStudentRow[]
+  students?: SheetStudentRow[]
   lop?: string
   giangVien?: string
   hocKy?: string
   namHoc?: string
-  sessions?: { label: string; date?: Date }[]
+  sessions?: { label?: string; tenBuoi?: string; date?: Date }[]
   attendance?: Record<string, Record<string, string>>
 }
 
-export function buildRawGradesWorkbook(
+export function buildGradeSheetWorkbook(
   course: Course,
-  options: RawTemplateOptions = {}
+  options: GradeSheetTemplateOptions = {}
 ): ExcelJS.Workbook {
   const wb = new ExcelJS.Workbook()
   wb.creator = 'Phần mềm CLO/PLO - Đại học Thành Đông'
   wb.created = new Date()
 
   const ws = wb.addWorksheet('NHAP_LIEU')
-  const sessions =
-    options.sessions ?? Array.from({ length: 12 }, (_, i) => ({ label: `Buổi ${i + 1}` }))
+  const sessions = (
+    options.sessions ??
+    Array.from({ length: 12 }, (_, i) => ({ tenBuoi: `Buổi ${i + 1}`, label: `Buổi ${i + 1}` }))
+  ).map((s) => ({ tenBuoi: s.tenBuoi ?? ('label' in s ? (s as { label: string }).label : '') }))
   const columns = scoreColumns(course)
   const maxScoreByCol = maxScoreByColumn(course)
 
@@ -76,7 +79,7 @@ export function buildRawGradesWorkbook(
     'Họ',
     'Tên',
     'Ngày sinh',
-    ...sessions.map((s) => s.label),
+    ...sessions.map((s) => s.tenBuoi),
     ...columns,
     'Ghi chú'
   ]
@@ -100,26 +103,26 @@ export function buildRawGradesWorkbook(
   for (let c = 1; c <= colCount; c++) ws.getRow(maxRow).getCell(c).border = BORDER_THIN
 
   // Dữ liệu sinh viên
-  const students = options.students ?? []
+  const students = options.sinhVien ?? options.students ?? []
   let rowNumber = maxRow + 1
   for (const [idx, st] of students.entries()) {
     const row = ws.getRow(rowNumber)
-    const ho = st.student.ho || ''
-    const ten = st.student.ten || ''
+    const ho = st.sinhVien.ho || ''
+    const ten = st.sinhVien.ten || ''
 
-    row.getCell(1).value = st.student.tt || idx + 1
-    row.getCell(2).value = st.student.maSv
+    row.getCell(1).value = st.sinhVien.tt || idx + 1
+    row.getCell(2).value = st.sinhVien.maSv
     row.getCell(2).numFmt = '@'
     row.getCell(3).value = ho
     row.getCell(4).value = ten
-    row.getCell(5).value = st.student.ngaySinh ?? ''
+    row.getCell(5).value = st.sinhVien.ngaySinh ?? ''
 
-    const symbols = options.attendance?.[st.student.maSv] ?? {}
+    const symbols = st.diemDanh ?? options.attendance?.[st.sinhVien.maSv] ?? {}
     sessions.forEach((s, sIdx) => {
-      row.getCell(6 + sIdx).value = symbols[s.label] ?? ''
+      row.getCell(6 + sIdx).value = symbols[s.tenBuoi] ?? ''
     })
     columns.forEach((maCot, cIdx) => {
-      const value = st.scores.diemCacCot[maCot]
+      const value = st.diem.diemCacCot[maCot]
       row.getCell(scoreStart + cIdx + 1).value = value === null || value === undefined ? '' : value
       row.getCell(scoreStart + cIdx + 1).fill = {
         type: 'pattern',
@@ -127,7 +130,7 @@ export function buildRawGradesWorkbook(
         fgColor: { argb: INPUT_FILL }
       }
     })
-    row.getCell(colCount).value = st.scores.ghiChu ?? ''
+    row.getCell(colCount).value = st.ghiChu ?? ''
 
     for (let c = 1; c <= colCount; c++) {
       const cell = row.getCell(c)

@@ -457,7 +457,6 @@ describe('validateCrossSheet - check chéo giữa các phần', () => {
   it('cảnh báo khi tỷ lệ điểm câu hỏi trong đề lệch so với kế hoạch', () => {
     const course = mock()
     // GKT: CLO1 và CLO2 đều có tyLePhanBo trong mock, sửa điểm câu của CLO1 để lệch tỷ lệ
-    const msgs = warnings(validateCourse(course)).map((i) => i.message)
     // Sửa câu hỏi CLO1 điểm khác để tạo độ lệch tỷ lệ
     const gkt = course.dotDanhGia.find((d) => d.id === 'GKT')!
     const de1 = gkt.maDeList[0]

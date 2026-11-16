@@ -12,7 +12,6 @@ import { LichSu } from '@renderer/components/history-panel'
 import { latestDetailedRun } from '@renderer/lib/format'
 import type { ScreenId } from '@renderer/lib/navigation'
 import { OverviewTab } from '@renderer/components/screens/reports/overview-tab'
-import { ExamsTab } from '@renderer/components/screens/reports/exams-tab'
 import { ExportTab } from '@renderer/components/screens/reports/export-tab'
 
 export function BaoCao({ onScreen }: { onScreen: (s: ScreenId) => void }): React.ReactElement {
@@ -95,7 +94,6 @@ export function BaoCao({ onScreen }: { onScreen: (s: ScreenId) => void }): React
         <Tabs value={tab} onValueChange={setTab} className="gap-4">
           <TabsList>
             <TabsTrigger value="overview">Tổng quan</TabsTrigger>
-            <TabsTrigger value="exams">Phân tích đề thi</TabsTrigger>
             <TabsTrigger value="history">Lịch sử chạy</TabsTrigger>
             <TabsTrigger value="export">Xuất báo cáo</TabsTrigger>
           </TabsList>
@@ -110,14 +108,6 @@ export function BaoCao({ onScreen }: { onScreen: (s: ScreenId) => void }): React
               </div>
             ) : (
               <OverviewTab snapshot={snapshot} />
-            )}
-          </TabsContent>
-
-          <TabsContent value="exams">
-            {loading || !snapshot ? (
-              <Skeleton className="h-64 rounded-xl" />
-            ) : (
-              <ExamsTab snapshot={snapshot} />
             )}
           </TabsContent>
 
