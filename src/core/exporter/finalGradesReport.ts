@@ -50,6 +50,7 @@ export interface ReportContext {
 export interface FinalGradesOptions {
   phase?: Phase | 'both'
   context?: ReportContext
+  gradeSheetFile?: GradeSheetData
   rawFile?: GradeSheetData
   issues?: ValidationIssue[]
   /** Thông tin định danh sinh viên (mã SV, họ tên, ngày sinh) để in báo cáo. */
@@ -678,7 +679,7 @@ export function buildFinalGradesWorkbook(
   if (phase !== 'process') {
     buildCloGradeSheet(wb, course, rows, 'final', ctx, 'BANG_DIEM_CUOI_KY')
   }
-  buildCourseGradeSheet(wb, course, rows, options.rawFile, ctx)
+  buildCourseGradeSheet(wb, course, rows, options.gradeSheetFile ?? options.rawFile, ctx)
   buildCloDetailSheet(wb, course, rows)
   buildSummarySheet(wb, course, report)
   buildWarningSheet(wb, course, rows, options.issues ?? [])

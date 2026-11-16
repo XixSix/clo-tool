@@ -11,9 +11,10 @@ const api: CloApi = {
   saveCourseConfig: (sessionId, data) => ipcRenderer.invoke('config:save', sessionId, data),
   exportGradeSheetTemplate: (config, defaultFileName) =>
     ipcRenderer.invoke('config:export-template', config, defaultFileName),
-  parseGradeSheet: (configSource, rawPath) => ipcRenderer.invoke('raw:parse', configSource, rawPath),
-  runPipeline: (configSource, rawPath, outputDir, sessionId) =>
-    ipcRenderer.invoke('pipeline:run', configSource, rawPath, outputDir, sessionId),
+  parseGradeSheet: (configSource, gradeSheetPath) =>
+    ipcRenderer.invoke('grade-sheet:parse', configSource, gradeSheetPath),
+  runPipeline: (configSource, gradeSheetPath, outputDir, sessionId) =>
+    ipcRenderer.invoke('pipeline:run', configSource, gradeSheetPath, outputDir, sessionId),
   getRunSnapshot: (runId) => ipcRenderer.invoke('runs:get', runId),
   deleteRunSnapshot: (runId) => ipcRenderer.invoke('runs:delete', runId),
   exportPdf: (defaultName) => ipcRenderer.invoke('export:pdf', defaultName),

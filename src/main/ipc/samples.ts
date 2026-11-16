@@ -9,12 +9,12 @@ export function registerSampleHandlers(): void {
   ipcMain.handle('samples:create', async (_event, outputDir: string): Promise<SampleResultDto> => {
     try {
       const templateDir = join(__dirname, '..', '..', 'resources', 'templates')
-      const rawSource = join(templateDir, 'Template_DiemTho.xlsx')
-      await access(rawSource, constants.R_OK)
+      const source = join(templateDir, 'Template_DiemTho.xlsx')
+      await access(source, constants.R_OK)
       await mkdir(outputDir, { recursive: true })
-      const rawPath = join(outputDir, 'Template_DiemTho.xlsx')
-      await copyFile(rawSource, rawPath)
-      return { ok: true, dir: outputDir, rawPath }
+      const gradeSheetPath = join(outputDir, 'Template_DiemTho.xlsx')
+      await copyFile(source, gradeSheetPath)
+      return { ok: true, dir: outputDir, gradeSheetPath }
     } catch (error) {
       return {
         ok: false,

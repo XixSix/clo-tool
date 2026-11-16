@@ -13,17 +13,17 @@ import { IssueList } from '@renderer/components/screens/grades/issue-list'
 import { StepBadge } from '@renderer/components/screens/grades/stepper'
 import { StatBox } from '@renderer/components/screens/grades/stat-box'
 
-/** Bước 2 — chọn file điểm thô và xem nhanh số liệu đọc được. */
-export function StepRawCard({
-  rawPath,
-  raw,
+/** Bước 2 — chọn file bảng điểm và xem nhanh số liệu đọc được. */
+export function StepGradeSheetCard({
+  gradeSheetPath,
+  gradeSheet,
   busy,
   bridgeReady,
   onPick,
   hasConfig
 }: {
-  rawPath: string
-  raw: GradeSheetSummaryDto | null
+  gradeSheetPath: string
+  gradeSheet: GradeSheetSummaryDto | null
   busy: string | null
   bridgeReady: boolean
   onPick: () => void
@@ -33,9 +33,9 @@ export function StepRawCard({
     <Card>
       <CardHeader>
         <div className="flex items-center gap-3">
-          <StepBadge number={2} done={Boolean(raw?.ok)} />
+          <StepBadge number={2} done={Boolean(gradeSheet?.ok)} />
           <div>
-            <CardTitle className="text-sm">File điểm thô</CardTitle>
+            <CardTitle className="text-sm">Bảng điểm sinh viên</CardTitle>
             <CardDescription>Điểm danh + điểm các cột đã khai báo</CardDescription>
           </div>
         </div>
@@ -43,26 +43,26 @@ export function StepRawCard({
       <CardContent className="flex flex-col gap-3">
         <FilePick
           label={hasConfig ? 'Chọn file Template_DiemTho.xlsx…' : 'Cần cấu hình môn học trước…'}
-          path={rawPath}
+          path={gradeSheetPath}
           onClick={onPick}
           disabled={!bridgeReady || Boolean(busy) || !hasConfig}
         />
-        {busy === 'raw' ? (
+        {busy === 'grade-sheet' ? (
           <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
-            <Loader2 className="size-3 animate-spin" /> Đang đọc điểm thô…
+            <Loader2 className="size-3 animate-spin" /> Đang đọc bảng điểm…
           </p>
         ) : null}
 
-        {raw ? (
+        {gradeSheet ? (
           <div className="flex flex-col gap-2">
             <div className="grid grid-cols-2 gap-2 text-center">
-              <StatBox value={raw.studentCount} label="sinh viên" />
-              <StatBox value={raw.sessionCount} label="buổi điểm danh" />
-              <StatBox value={raw.absentFinalCount} label="vắng thi CK" tone="warning" />
-              <StatBox value={raw.missingDataCount} label="SV thiếu điểm" tone="warning" />
+              <StatBox value={gradeSheet.studentCount} label="sinh viên" />
+              <StatBox value={gradeSheet.sessionCount} label="buổi điểm danh" />
+              <StatBox value={gradeSheet.absentFinalCount} label="vắng thi CK" tone="warning" />
+              <StatBox value={gradeSheet.missingDataCount} label="SV thiếu điểm" tone="warning" />
             </div>
-            <IssueList issues={raw.issues} />
-            {raw.error ? <p className="text-destructive text-xs">{raw.error}</p> : null}
+            <IssueList issues={gradeSheet.issues} />
+            {gradeSheet.error ? <p className="text-destructive text-xs">{gradeSheet.error}</p> : null}
           </div>
         ) : null}
       </CardContent>

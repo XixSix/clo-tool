@@ -20,7 +20,7 @@ import type { Course, EvaluationReport, GradeSheetData, Student, StudentCourseRe
 
 let dir: string
 let course: Course
-let rawFile: GradeSheetData
+let gradeSheetFile: GradeSheetData
 let students: Student[]
 let result: EvaluationReport
 
@@ -35,12 +35,12 @@ function cloScore(st: StudentCourseResult, cloId: string): number {
 
 beforeAll(async () => {
   dir = mkdtempSync(join(tmpdir(), 'clo-e2e-'))
-  const rawPath = join(dir, 'raw.xlsx')
+  const gradeSheetPath = join(dir, 'grade-sheet.xlsx')
 
   course = buildMockCourse()
   const { students: rawStudents, attendance } = buildMockClass(32)
 
-  await writeGradeSheetTemplate(rawPath, course, {
+  await writeGradeSheetTemplate(gradeSheetPath, course, {
     students: rawStudents,
     attendance,
     lop: '1A11_CNTT14',
@@ -50,8 +50,8 @@ beforeAll(async () => {
     sessions: MOCK_SESSION_LABELS.map((label) => ({ label }))
   })
 
-  rawFile = await parseGradeSheet(rawPath, course)
-  const parsed = buildStudentRecords(course, rawFile)
+  gradeSheetFile = await parseGradeSheet(gradeSheetPath, course)
+  const parsed = buildStudentRecords(course, gradeSheetFile)
   students = parsed.students
   result = calculateEvaluation(course, students, parsed.records)
 })
@@ -64,7 +64,7 @@ describe('Pipeline end-to-end: Course + Điểm thô → Kết quả', () => {
   it('đọc và tính đủ 32 sinh viên, không có lỗi dữ liệu', () => {
     expect(result.sinhVien).toHaveLength(32)
     expect(validateCourse(course).filter((i) => i.level === 'error')).toHaveLength(0)
-    expect(validateGradeSheet(course, rawFile).filter((i) => i.level === 'error')).toHaveLength(0)
+    expect(validateGradeSheet(course, gradeSheetFile).filter((i) => i.level === 'error')).toHaveLength(0)
   })
 
   it('điểm CLO2 của SV đầu tiên khớp công thức QĐ450', () => {
@@ -145,9 +145,9 @@ describe('Xuất Excel', () => {
   it('báo cáo điểm có đủ sheet và dữ liệu đúng', async () => {
     const wb = buildFinalGradesWorkbook(course, result, {
       phase: 'both',
-      rawFile,
+      gradeSheetFile,
       students,
-      issues: validateGradeSheet(course, rawFile),
+      issues: validateGradeSheet(course, gradeSheetFile),
       context: { hocKy: 'HK1', namHoc: '2026-2027', lop: '1A11_CNTT14', diaDanh: 'Hải Phòng' }
     })
     expect(wb.worksheets.map((ws) => ws.name)).toEqual([

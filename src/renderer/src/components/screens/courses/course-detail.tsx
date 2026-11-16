@@ -140,12 +140,12 @@ export function CourseDetail({
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm">Tệp đang dùng</CardTitle>
-                <CardDescription>File Config, file điểm thô và thư mục báo cáo</CardDescription>
+                <CardDescription>File Config, file bảng điểm và thư mục báo cáo</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-2">
                 {[
                   { label: 'File Config', path: session.configPath },
-                  { label: 'File điểm thô', path: session.rawPath },
+                  { label: 'Bảng điểm sinh viên', path: session.gradeSheetPath ?? session.rawPath },
                   { label: 'Thư mục báo cáo', path: session.outDir }
                 ].map((item) => (
                   <div

@@ -35,7 +35,7 @@ export function registerPipelineHandlers(): void {
     async (
       _event,
       configSource: string | Course,
-      rawPath: string,
+      gradeSheetPath: string,
       outputDir: string,
       sessionId?: string
     ): Promise<RunResultDto> => {
@@ -52,31 +52,31 @@ export function registerPipelineHandlers(): void {
 
       try {
         const course = loaded.config
-        const raw = await loadGradeSheet(course, rawPath)
-        const rawFile: GradeSheetData = raw.file
-        const issues: ValidationIssue[] = [...loaded.issues, ...raw.issues]
+        const gradeSheet = await loadGradeSheet(course, gradeSheetPath)
+        const gradeSheetFile: GradeSheetData = gradeSheet.file
+        const issues: ValidationIssue[] = [...loaded.issues, ...gradeSheet.issues]
         if (hasErrors(issues)) {
           return {
             ...empty,
             issues: issues.map(toIssueDto),
-            error: 'File điểm thô còn lỗi. Vui lòng sửa các mục báo đỏ trước khi tính.'
+            error: 'Bảng điểm sinh viên còn lỗi. Vui lòng sửa các mục báo đỏ trước khi tính.'
           }
         }
 
-        const { students, records } = buildStudentRecords(course, rawFile)
+        const { students, records } = buildStudentRecords(course, gradeSheetFile)
         const result = calculateEvaluation(course, students, records)
         await mkdir(outputDir, { recursive: true })
         const finalReportPath = join(outputDir, 'final_grades_report.xlsx')
         await writeFinalGradesReport(finalReportPath, course, result, {
           phase: 'both',
-          rawFile,
+          gradeSheetFile,
           issues,
           students,
           context: {
-            hocKy: rawFile.thongTin.hocKy,
-            namHoc: rawFile.thongTin.namHoc,
-            lop: rawFile.thongTin.lop,
-            giangVien: rawFile.thongTin.giangVien
+            hocKy: gradeSheetFile.thongTin.hocKy,
+            namHoc: gradeSheetFile.thongTin.namHoc,
+            lop: gradeSheetFile.thongTin.lop,
+            giangVien: gradeSheetFile.thongTin.giangVien
           }
         })
 

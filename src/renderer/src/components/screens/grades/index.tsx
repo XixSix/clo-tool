@@ -9,7 +9,7 @@ import { useWorkspace } from '@renderer/hooks/workspace'
 import { useImportPipeline } from '@renderer/hooks/use-import-pipeline'
 import type { ScreenId } from '@renderer/lib/navigation'
 import { Stepper } from '@renderer/components/screens/grades/stepper'
-import { StepRawCard } from '@renderer/components/screens/grades/step-raw-card'
+import { StepGradeSheetCard } from '@renderer/components/screens/grades/step-grade-sheet-card'
 import { StepRunCard } from '@renderer/components/screens/grades/step-run-card'
 import { CourseConfigCard } from '@renderer/components/screens/grades/course-config-card'
 
@@ -18,8 +18,8 @@ export function NhapDiem({ onScreen }: { onScreen: (s: ScreenId) => void }): Rea
   const bridgeReady = hasBridge()
   const {
     courseConfig,
-    rawPath,
-    raw,
+    gradeSheetPath,
+    gradeSheet,
     outDir,
     result,
     busy,
@@ -28,7 +28,7 @@ export function NhapDiem({ onScreen }: { onScreen: (s: ScreenId) => void }): Rea
     missing,
     steps,
     activeIndex,
-    pickRaw,
+    pickGradeSheet,
     pickOutput,
     run,
     reset
@@ -67,7 +67,7 @@ export function NhapDiem({ onScreen }: { onScreen: (s: ScreenId) => void }): Rea
             variant="ghost"
             size="sm"
             onClick={reset}
-            disabled={Boolean(busy) || (!rawPath && !result)}
+            disabled={Boolean(busy) || (!gradeSheetPath && !result)}
           >
             Đặt lại
           </Button>
@@ -86,12 +86,12 @@ export function NhapDiem({ onScreen }: { onScreen: (s: ScreenId) => void }): Rea
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <CourseConfigCard config={courseConfig} />
-        <StepRawCard
-          rawPath={rawPath}
-          raw={raw}
+        <StepGradeSheetCard
+          gradeSheetPath={gradeSheetPath}
+          gradeSheet={gradeSheet}
           busy={busy}
           bridgeReady={bridgeReady}
-          onPick={pickRaw}
+          onPick={pickGradeSheet}
           hasConfig={Boolean(courseConfig)}
         />
       </div>

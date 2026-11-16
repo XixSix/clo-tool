@@ -14,7 +14,9 @@ export interface ImportPipeline {
   bridgeReady: boolean
   active: SessionDto | null
   courseConfig: Course | null
+  gradeSheetPath: string
   rawPath: string
+  gradeSheet: GradeSheetSummaryDto | null
   raw: GradeSheetSummaryDto | null
   outDir: string
   result: RunResultDto | null
@@ -24,6 +26,7 @@ export interface ImportPipeline {
   missing: string[]
   steps: ImportStep[]
   activeIndex: number
+  pickGradeSheet: () => Promise<void>
   pickRaw: () => Promise<void>
   pickOutput: () => Promise<void>
   run: () => Promise<void>
@@ -74,26 +77,28 @@ export function useImportPipeline(active: SessionDto | null, bridgeReady: boolea
       : loadLocalConfig(active.id)
     : null
 
-  const [rawPath, setRawPath] = useState(active?.rawPath ?? '')
-  const [raw, setRaw] = useState<GradeSheetSummaryDto | null>(null)
+  const [gradeSheetPath, setGradeSheetPath] = useState(
+    active?.gradeSheetPath ?? active?.rawPath ?? ''
+  )
+  const [gradeSheet, setGradeSheet] = useState<GradeSheetSummaryDto | null>(null)
   const [outDir, setOutDir] = useState(active?.outDir ?? '')
   const [result, setResult] = useState<RunResultDto | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState('')
 
-  async function pickRaw(): Promise<void> {
+  async function pickGradeSheet(): Promise<void> {
     if (!courseConfig) {
       setError('Môn học chưa có cấu hình. Hãy vào chi tiết môn để cấu hình CLO/PLO.')
       return
     }
     setError('')
-    setBusy('raw')
+    setBusy('grade-sheet')
     try {
-      const p = await window.api.pickFile('raw')
+      const p = await window.api.pickFile('grade-sheet')
       if (!p) return
-      setRawPath(p)
+      setGradeSheetPath(p)
       setResult(null)
-      setRaw(await window.api.parseGradeSheet(courseConfig, p))
+      setGradeSheet(await window.api.parseGradeSheet(courseConfig, p))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Không đọc được file điểm.')
     } finally {
@@ -116,22 +121,22 @@ export function useImportPipeline(active: SessionDto | null, bridgeReady: boolea
       setError('Môn học chưa có cấu hình. Hãy vào chi tiết môn để cấu hình CLO/PLO.')
       return
     }
-    if (!rawPath || !outDir) {
-      setError('Cần chọn đủ: file điểm thô và thư mục lưu báo cáo.')
+    if (!gradeSheetPath || !outDir) {
+      setError('Cần chọn đủ: file bảng điểm và thư mục lưu báo cáo.')
       return
     }
     setError('')
     setBusy('run')
     setResult(null)
     try {
-      const res = await window.api.runPipeline(courseConfig, rawPath, outDir, active?.id)
+      const res = await window.api.runPipeline(courseConfig, gradeSheetPath, outDir, active?.id)
       setResult(res)
       if (res.ok) {
         archiveRun({
           runId: res.runId,
           ts: Date.now(),
           configPath: active?.configPath || `[In-App] ${courseConfig.maHp}`,
-          rawPath,
+          gradeSheetPath,
           outputDir: outDir,
           finalReportPath: res.finalReportPath,
           studentCount: res.studentCount,
@@ -140,7 +145,7 @@ export function useImportPipeline(active: SessionDto | null, bridgeReady: boolea
         })
         if (active) {
           patchSession(active.id, {
-            rawPath,
+            gradeSheetPath,
             outDir,
             cloCount: courseConfig.cloList.length,
             lastOpenedAt: Date.now()
@@ -160,15 +165,15 @@ export function useImportPipeline(active: SessionDto | null, bridgeReady: boolea
   function reset(): void {
     if (busy) return
     setError('')
-    setRawPath('')
-    setRaw(null)
+    setGradeSheetPath('')
+    setGradeSheet(null)
     setResult(null)
   }
 
-  const canRun = Boolean(courseConfig && rawPath && outDir) && !busy && bridgeReady
+  const canRun = Boolean(courseConfig && gradeSheetPath && outDir) && !busy && bridgeReady
   const missing = [
     !courseConfig ? 'cấu hình môn học' : null,
-    !rawPath ? 'file điểm thô' : null,
+    !gradeSheetPath ? 'file bảng điểm' : null,
     !outDir ? 'thư mục lưu báo cáo' : null
   ].filter((item): item is string => item !== null)
 
@@ -181,9 +186,9 @@ export function useImportPipeline(active: SessionDto | null, bridgeReady: boolea
       done: Boolean(courseConfig)
     },
     {
-      title: 'Điểm thô',
-      hint: raw?.ok ? `${raw.studentCount} sinh viên` : 'Chọn file điểm',
-      done: Boolean(raw?.ok)
+      title: 'Bảng điểm',
+      hint: gradeSheet?.ok ? `${gradeSheet.studentCount} sinh viên` : 'Chọn file bảng điểm',
+      done: Boolean(gradeSheet?.ok)
     },
     {
       title: 'Xuất báo cáo',
@@ -191,14 +196,16 @@ export function useImportPipeline(active: SessionDto | null, bridgeReady: boolea
       done: Boolean(result?.ok)
     }
   ]
-  const activeIndex = !courseConfig ? 0 : !raw?.ok ? 1 : 2
+  const activeIndex = !courseConfig ? 0 : !gradeSheet?.ok ? 1 : 2
 
   return {
     bridgeReady,
     active,
     courseConfig,
-    rawPath,
-    raw,
+    gradeSheetPath,
+    rawPath: gradeSheetPath,
+    gradeSheet,
+    raw: gradeSheet,
     outDir,
     result,
     busy,
@@ -207,7 +214,8 @@ export function useImportPipeline(active: SessionDto | null, bridgeReady: boolea
     missing,
     steps,
     activeIndex,
-    pickRaw,
+    pickGradeSheet,
+    pickRaw: pickGradeSheet,
     pickOutput,
     run,
     reset

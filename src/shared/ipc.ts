@@ -95,7 +95,7 @@ export interface SampleResultDto {
   ok: boolean
   dir: string
   configPath?: string
-  rawPath?: string
+  gradeSheetPath?: string
   error?: string
 }
 
@@ -121,7 +121,7 @@ export interface RunHistoryEntryDto {
   /** Mốc epoch (ms) lúc chạy xong */
   ts: number
   configPath: string
-  rawPath: string
+  gradeSheetPath: string
   outputDir: string
   finalReportPath?: string
   studentCount: number
@@ -158,6 +158,7 @@ export interface SessionDto {
   giangVien?: string
   cloCount?: number
   configPath?: string
+  gradeSheetPath?: string
   rawPath?: string
   outDir?: string
   addedAt: number
@@ -173,7 +174,7 @@ export interface WorkspaceDto {
 }
 
 export interface FilePickKind {
-  kind: 'config' | 'raw'
+  kind: 'config' | 'grade-sheet'
 }
 
 /** Trạng thái tự cập nhật do main process đẩy xuống renderer */
@@ -209,10 +210,13 @@ export interface CloApi {
     config: Course,
     defaultFileName?: string
   ) => Promise<{ ok: boolean; path?: string; error?: string }>
-  parseGradeSheet: (configSource: string | Course, rawPath: string) => Promise<GradeSheetSummaryDto>
+  parseGradeSheet: (
+    configSource: string | Course,
+    gradeSheetPath: string
+  ) => Promise<GradeSheetSummaryDto>
   runPipeline: (
     configSource: string | Course,
-    rawPath: string,
+    gradeSheetPath: string,
     outputDir: string,
     sessionId?: string
   ) => Promise<RunResultDto>

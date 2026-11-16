@@ -7,13 +7,13 @@ import { loadConfig, loadGradeSheet } from './loaders'
 
 export function registerGradeSheetHandlers(): void {
   ipcMain.handle(
-    'raw:parse',
-    async (_event, configSource: string | Course, rawPath: string): Promise<GradeSheetSummaryDto> => {
+    'grade-sheet:parse',
+    async (_event, configSource: string | Course, gradeSheetPath: string): Promise<GradeSheetSummaryDto> => {
       const loaded = await loadConfig(configSource)
       if (!loaded.config) {
         return {
           ok: false,
-          filePath: rawPath,
+          filePath: gradeSheetPath,
           studentCount: 0,
           sessionCount: 0,
           missingDataCount: 0,
@@ -25,16 +25,16 @@ export function registerGradeSheetHandlers(): void {
       }
 
       try {
-        const raw = await loadGradeSheet(loaded.config, rawPath)
+        const gradeSheet = await loadGradeSheet(loaded.config, gradeSheetPath)
         const ckColumns = new Set(
           allQuestions(loaded.config)
             .filter(({ dot }) => dot.nhom === 'CK')
             .map(({ cauHoi }) => cauHoi.id)
         )
-        const missingDataCount = raw.file.sinhVien.filter((student) =>
+        const missingDataCount = gradeSheet.file.sinhVien.filter((student) =>
           Object.values(student.diem.diemCacCot).some((value) => value === null)
         ).length
-        const absentFinalCount = raw.file.sinhVien.filter((student) =>
+        const absentFinalCount = gradeSheet.file.sinhVien.filter((student) =>
           Object.entries(student.diem.diemCacCot).some(
             ([maCot, value]) => ckColumns.has(maCot) && value === 'VT'
           )
@@ -42,19 +42,19 @@ export function registerGradeSheetHandlers(): void {
 
         return {
           ok: true,
-          filePath: rawPath,
-          studentCount: raw.file.sinhVien.length,
-          sessionCount: raw.file.buoiDiemDanh.length,
+          filePath: gradeSheetPath,
+          studentCount: gradeSheet.file.sinhVien.length,
+          sessionCount: gradeSheet.file.buoiDiemDanh.length,
           missingDataCount,
           absentFinalCount,
-          issues: raw.issues.map(toIssueDto),
-          hasErrors: hasErrors(raw.issues),
+          issues: gradeSheet.issues.map(toIssueDto),
+          hasErrors: hasErrors(gradeSheet.issues),
           error: loaded.error
         }
       } catch (error) {
         return {
           ok: false,
-          filePath: rawPath,
+          filePath: gradeSheetPath,
           studentCount: 0,
           sessionCount: 0,
           missingDataCount: 0,

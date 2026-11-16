@@ -27,8 +27,8 @@ export interface LoadedGradeSheet {
   issues: ValidationIssue[]
 }
 
-export async function loadGradeSheet(course: Course, rawPath: string): Promise<LoadedGradeSheet> {
-  const file = await parseGradeSheet(rawPath, course)
+export async function loadGradeSheet(course: Course, gradeSheetPath: string): Promise<LoadedGradeSheet> {
+  const file = await parseGradeSheet(gradeSheetPath, course)
   const issues = validateGradeSheet(course, file)
 
   return { file, issues }

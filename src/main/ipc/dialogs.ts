@@ -1,10 +1,10 @@
 import { dialog, ipcMain, type BrowserWindow } from 'electron'
 
 export function registerDialogHandlers(getWindow: () => BrowserWindow | null): void {
-  ipcMain.handle('dialog:pick-file', async (_event, kind: 'config' | 'raw') => {
+  ipcMain.handle('dialog:pick-file', async (_event, kind: 'config' | 'grade-sheet') => {
     const win = getWindow()
     const options: Electron.OpenDialogOptions = {
-      title: kind === 'config' ? 'Chọn file Config học phần' : 'Chọn file điểm thô',
+      title: kind === 'config' ? 'Chọn file Config học phần' : 'Chọn file bảng điểm sinh viên',
       properties: ['openFile'],
       filters: [
         { name: 'Excel (.xlsx)', extensions: ['xlsx'] },

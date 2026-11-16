@@ -28,10 +28,10 @@ async function main(): Promise<void> {
   const course = buildMockCourse()
   const { students, attendance } = buildMockClass(10)
 
-  const rawPath = join(outDir, 'Template_DiemTho.xlsx')
+  const gradeSheetPath = join(outDir, 'Template_DiemTho.xlsx')
 
   console.log('1. Sinh file mẫu...')
-  await writeGradeSheetTemplate(rawPath, course, {
+  await writeGradeSheetTemplate(gradeSheetPath, course, {
     students,
     attendance,
     lop: '1A11_CNTT14',
@@ -40,14 +40,14 @@ async function main(): Promise<void> {
     namHoc: '2026-2027',
     sessions: MOCK_SESSION_LABELS.map((label) => ({ label }))
   })
-  console.log('   -', rawPath)
+  console.log('   -', gradeSheetPath)
 
   console.log('2. Đọc lại file vừa sinh (kiểm tra parser)...')
-  let parsedRaw: Awaited<ReturnType<typeof parseGradeSheet>>
+  let parsedGradeSheet: Awaited<ReturnType<typeof parseGradeSheet>>
   try {
-    parsedRaw = await parseGradeSheet(rawPath, course)
+    parsedGradeSheet = await parseGradeSheet(gradeSheetPath, course)
   } catch (error) {
-    console.error('Lỗi đọc điểm thô:')
+    console.error('Lỗi đọc bảng điểm:')
     console.error(error instanceof Error ? error.message : error)
     process.exitCode = 1
     return
@@ -55,8 +55,8 @@ async function main(): Promise<void> {
 
   console.log('3. Kiểm tra hợp lệ...')
   const configIssues = validateCourse(course)
-  const rawIssues = validateGradeSheet(course, parsedRaw)
-  const allIssues = [...configIssues, ...rawIssues]
+  const gradeSheetIssues = validateGradeSheet(course, parsedGradeSheet)
+  const allIssues = [...configIssues, ...gradeSheetIssues]
 
   const errors = allIssues.filter((i) => i.level === 'error')
   const warnings = allIssues.filter((i) => i.level === 'warning')
@@ -65,7 +65,7 @@ async function main(): Promise<void> {
   for (const issue of warnings.slice(0, 5)) console.log(`     [CẢNH BÁO] ${issue.message}`)
 
   console.log('4. Tính toán CLO/PLO...')
-  const { students: parsedStudents, records } = buildStudentRecords(course, parsedRaw)
+  const { students: parsedStudents, records } = buildStudentRecords(course, parsedGradeSheet)
   const result = calculateEvaluation(course, parsedStudents, records)
   const sample = result.sinhVien[0]
   const sampleStudent = parsedStudents.find((s) => s.id === sample?.sinhVienId)
@@ -80,14 +80,14 @@ async function main(): Promise<void> {
   const finalPath = join(outDir, 'final_grades_report.xlsx')
   await writeFinalGradesReport(finalPath, course, result, {
     phase: 'both',
-    rawFile: parsedRaw,
+    gradeSheetFile: parsedGradeSheet,
     issues: allIssues,
     students: parsedStudents,
     context: {
-      hocKy: parsedRaw.thongTin.hocKy ?? 'HK1',
-      namHoc: parsedRaw.thongTin.namHoc ?? '2026-2027',
-      lop: parsedRaw.thongTin.lop ?? '1A11_CNTT14',
-      giangVien: parsedRaw.thongTin.giangVien ?? 'Nguyễn Văn Giảng',
+      hocKy: parsedGradeSheet.thongTin.hocKy ?? 'HK1',
+      namHoc: parsedGradeSheet.thongTin.namHoc ?? '2026-2027',
+      lop: parsedGradeSheet.thongTin.lop ?? '1A11_CNTT14',
+      giangVien: parsedGradeSheet.thongTin.giangVien ?? 'Nguyễn Văn Giảng',
       diaDanh: 'Hải Phòng'
     }
   })
