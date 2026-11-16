@@ -3,7 +3,7 @@
 Phần mềm desktop (Electron + React + TypeScript) đo lường và đánh giá chuẩn đầu ra học phần
 theo **QĐ 450/QĐ-ĐHTĐ ngày 07/8/2024**. Ứng dụng chạy **offline 100%**, không gửi dữ liệu ra ngoài.
 
-> Trạng thái: đã xong **Tuần 0–2** (core engine, đọc/ghi Excel, thống kê đề thi, xuất báo cáo)
+> Trạng thái: đã xong **Tuần 0–2** (core engine, đọc/ghi Excel, xuất báo cáo)
 > và một **giao diện thử nghiệm** một màn hình để chạy trọn quy trình.
 
 ---
@@ -17,17 +17,14 @@ npm run dev
 
 Trong cửa sổ ứng dụng:
 
-1. Bấm **“Tạo bộ file mẫu”** → chọn một thư mục bất kỳ (ví dụ `D:\clo-test`).
-2. App tự tạo và nạp sẵn:
-   - `Template_Config.xlsx` — cấu hình học phần KTLT101
-   - `Template_DiemTho.xlsx` — điểm thô 32 sinh viên + 12 buổi điểm danh
-3. Bấm **“Chọn thư mục lưu báo cáo”** (có thể chọn cùng thư mục trên).
-4. Bấm **“Tính toán & xuất báo cáo”**.
-5. Mở 2 file kết quả ngay trong app:
-   - `final_grades_report.xlsx`
-   - `exam_analysis_report.xlsx`
-
-Nếu đã có file thật, bỏ qua bước “Tạo bộ file mẫu” và chọn trực tiếp file Config + file điểm thô.
+1. Vào màn **Học phần** → **Thêm môn học**, nhập thông tin cơ bản.
+2. Mở chi tiết môn để cấu hình CLO/PLO, kế hoạch đánh giá và câu hỏi (hoặc **Nhập JSON**
+   cấu hình đã xuất trước đó).
+3. Bấm **“Tạo bộ file mẫu”** → chọn một thư mục bất kỳ (ví dụ `D:\clo-test`) để sinh
+   `Template_DiemTho.xlsx` (điểm thô 32 sinh viên + 12 buổi điểm danh).
+4. Chọn file bảng điểm thật (nếu có), bấm **“Chọn thư mục lưu báo cáo”**, rồi
+   **“Tính toán & xuất báo cáo”**.
+5. Mở file kết quả `final_grades_report.xlsx` ngay trong app.
 
 ### Chạy demo bằng dòng lệnh (không cần mở app)
 
@@ -39,10 +36,8 @@ Kết quả nằm trong `out/demo/`:
 
 | File                        | Nội dung                                                     |
 | :-------------------------- | :----------------------------------------------------------- |
-| `Template_Config.xlsx`      | Config mẫu 7 sheet + sheet hướng dẫn                         |
 | `Template_DiemTho.xlsx`     | Điểm thô mẫu (điểm danh, CC, TD, KT3, KT4, CK)               |
 | `final_grades_report.xlsx`  | Bảng điểm CLO/PLO, điểm học vụ, chi tiết, tổng hợp, cảnh báo |
-| `exam_analysis_report.xlsx` | p, d, Cronbach α, gợi ý cải tiến                             |
 
 Sinh lại file mẫu đi kèm app:
 
@@ -55,7 +50,7 @@ npm run gen:templates
 ## 2. Kiểm thử & kiểm tra chất lượng
 
 ```bash
-npm test          # 67 test: công thức QĐ450, psychometrics, parser, e2e
+npm test          # công thức QĐ450, parser, io, e2e
 npm run typecheck # TypeScript toàn bộ main/preload/renderer/core
 npm run lint      # ESLint
 npm run build     # Build production (electron-vite)
@@ -99,14 +94,6 @@ Học phần **KTLT101 – Kỹ thuật lập trình**, 3 tín chỉ, 3 CLO:
 | `TONG_HOP_LO`         | % đạt CLO/PLO, TB/min/max, 2 biểu đồ PNG, ô đề xuất cải tiến         |
 | `CANH_BAO`            | Lỗi dữ liệu, SV vắng thi/thiếu điểm, CLO dưới ngưỡng                 |
 
-`exam_analysis_report.xlsx`:
-
-| Sheet            | Nội dung                                                     |
-| :--------------- | :----------------------------------------------------------- |
-| `P_D_TUNG_CAU`   | Độ khó `p`, độ phân biệt `d`, mức độ, α nếu bỏ câu, cảnh báo |
-| `DO_TIN_CAY`     | Cronbach α theo từng đợt / mã đề, cảnh báo cỡ mẫu            |
-| `GOI_Y_CAI_TIEN` | 5 câu hỏi định hướng cải tiến + độ phủ CLO                   |
-
 ---
 
 ## 5. Dùng dữ liệu thật
@@ -114,8 +101,8 @@ Học phần **KTLT101 – Kỹ thuật lập trình**, 3 tín chỉ, 3 CLO:
 Chỉ cần file Excel đúng cấu trúc cột như file mẫu. App dò tiêu đề theo **tên cột**
 (không theo vị trí), chấp nhận lệch dấu/khoảng trắng/hoa thường và sẽ gợi ý nếu tên cột gần giống.
 
-- **Config**: 7 sheet `HOC_PHAN`, `CLO_LIST`, `KE_HOACH_DANH_GIA`, `CAU_HOI`,
-  `MA_TRAN_PLO`, `DIEM_DANH`, `QUY_TAC`. Xem sheet `HUONG_DAN` trong file mẫu.
+- **Cấu hình học phần**: nhập trực tiếp trong app (màn chi tiết môn) hoặc **Nhập JSON**;
+  app không còn đọc file `Template_Config.xlsx`.
 - **Điểm thô**: sheet `NHAP_LIEU` hoặc `NHAP_LIEU_GV`, có các cột `TT`, `Mã SV`, `Họ`, `Tên`,
   `Ngày sinh`, `Buổi 1..N`, các cột điểm trùng mã với `CAU_HOI`, `Ghi chú`.
 - Giữ **Mã SV ở dạng văn bản** để không mất số `0` đầu.
@@ -129,20 +116,19 @@ Chỉ cần file Excel đúng cấu trúc cột như file mẫu. App dò tiêu �
 src/
   core/               # Engine thuần TypeScript, không import Electron/React
     types/            # Kiểu dữ liệu theo miền (course, student, result, …)
-    io/               # Đọc Config / điểm thô, sinh template Excel
-    calculator/       # Bộ tính toán cốt lõi (attendance, clo, plo, psychometrics)
+    io/               # Đọc bảng điểm thô, sinh template điểm thô
+    calculator/       # Bộ tính toán cốt lõi (attendance, clo, plo)
       attendance/     # Điểm chuyên cần từ ký hiệu điểm danh
       clo/            # Điểm ô → CLO → nhóm → điểm học phần, thống kê lớp
       plo/            # Điểm thành phần và thống kê PLO
-      psychometrics/  # Kiểm định đề thi (p, d, Cronbach α)
     exporter/         # Xuất Excel + biểu đồ PNG
   main/               # Electron main + IPC xử lý file
   preload/            # Cầu nối an toàn ra window.api
   renderer/           # Giao diện React
   shared/             # DTO dùng chung main ↔ renderer
-resources/templates/  # Template_Config.xlsx, Template_DiemTho.xlsx
+resources/templates/  # Template_DiemTho*.xlsx
 scripts/              # demo.ts, gen-templates.ts
-tests/                # Vitest (golden QĐ450, psychometrics, io, e2e)
+tests/                # Vitest (golden QĐ450, io, e2e)
 docs/                 # Đặc tả & kế hoạch
 ```
 
@@ -154,7 +140,6 @@ docs/                 # Đặc tả & kế hoạch
 - **#7**: CLO chỉ được đo bằng chuyên cần/thái độ → **cảnh báo**, không chặn tính điểm.
 - Ngưỡng đạt mặc định: CLO = 4,0; PLO = 4,0; học phần = 4,0 (đổi trong sheet `QUY_TAC`).
 - Làm tròn half-up từng bước (`rounding_mode = chain`) bằng `decimal.js`.
-- Cronbach α: `≤ 0,60` là **Không đủ độ tin cậy**; đề chỉ có 1 câu sẽ ghi chú “không tính được α”.
 
 ---
 
@@ -189,20 +174,15 @@ Mỗi phiên bản là **một tag `vX.Y.Z`** — tag chính là "hợp đồng"
    git push origin v1.0.2
    ```
 
-4. Push tag kích hoạt `.github/workflows/release.yml`: chạy test, build trên **Windows** và
-   **macOS** rồi đính kèm vào GitHub Release:
-   - Windows: `CLO_PLO_Evaluator-<version>-setup.exe` (có tự cập nhật),
-     `-portable.exe` (tải tay), `latest.yml` + `.blockmap`.
-   - macOS: `CLO_PLO_Evaluator-<version>-arm64.dmg` / `-x64.dmg` (tải tay) và
-     `-arm64-mac.zip` / `-x64-mac.zip` + `latest-mac.yml` (dùng cho tự cập nhật).
-     `arm64` cho Apple Silicon, `x64` cho Intel.
-5. Gộp `release/x.y.z` vào `develop` và `main` (chỉ `--ff-only`) rồi push.
+4. Push tag kích hoạt `.github/workflows/release.yml`: chạy test, build và đính kèm
+   `CLO_PLO_Evaluator-<version>-setup.exe` (có tự cập nhật), `-portable.exe` (tải tay),
+   `latest.yml` + `.blockmap` vào GitHub Release.
+5. Gộp `release/x.y.z` vào `develop` (fast-forward), rồi mở **PR `release/x.y.z` → `main`**:
+   check `guard` phải xanh (chỉ nhận nhánh `release/x.y.z`), chọn **Rebase and merge**.
+   `main` có ruleset `protect-main` nên **không push thẳng** được.
 
 Lưu ý:
 
-- Tự cập nhật chỉ áp dụng cho bản **cài đặt** (`setup.exe` trên Windows, file `.app` trong
-  `mac.zip` trên macOS); bản `portable.exe` và `.dmg` phải tải lại.
-- Build chưa ký số nên Windows SmartScreen có thể cảnh báo lần chạy đầu; trên macOS, lần mở
-  đầu cần chuột phải → **Open** (hoặc `xattr -dr com.apple.quarantine`), và tự cập nhật trên
-  macOS chỉ hoạt động sau khi app được ký + notarize bằng Apple Developer ID.
+- Tự cập nhật chỉ áp dụng cho bản **cài đặt** (`setup.exe`); bản `portable.exe` phải tải lại.
+- Build chưa ký số nên Windows SmartScreen có thể cảnh báo lần chạy đầu.
 - Workflow kiểm tra `version` trong `package.json` phải khớp tên tag, trước khi build.

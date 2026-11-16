@@ -1,8 +1,6 @@
 /**
- * Nhóm RULES: luật nghiệp vụ (QUY_TAC mặc định), số học làm tròn chuẩn QĐ450
- * và bảng phân loại p/d/α.
+ * Nhóm RULES: luật nghiệp vụ (QUY_TAC mặc định) và số học làm tròn chuẩn QĐ450.
  */
 
 export * from './defaults'
 export * from './rounding'
-export * from './classification'

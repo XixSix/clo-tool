@@ -5,6 +5,7 @@ export type ScreenId =
   | 'courses'
   | 'students'
   | 'reports'
+  | 'history'
   | 'import'
   | 'settings'
   | 'guide'
@@ -14,6 +15,7 @@ export const SCREEN_TITLES: Record<ScreenId, string> = {
   courses: 'Môn học',
   students: 'Sinh viên',
   reports: 'Báo cáo',
+  history: 'Lịch sử',
   import: 'Nhập điểm',
   settings: 'Cài đặt',
   guide: 'Hướng dẫn'

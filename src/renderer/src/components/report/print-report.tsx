@@ -1,5 +1,6 @@
 import React from 'react'
 import { formatDateTime, formatPercent, formatScore } from '@renderer/lib/format'
+import { buildStudentViews, toCourseView, toSummaryView } from '@renderer/lib/result-view'
 import type { RunHistoryEntryDto, RunSnapshotDto, SessionDto } from '../../../../shared/ipc'
 
 function SectionTitle({ children }: { children: React.ReactNode }): React.ReactElement {
@@ -26,10 +27,13 @@ export function PrintReport({
   session: SessionDto
   run: RunHistoryEntryDto
 }): React.ReactElement {
-  const { config, summary, students } = snapshot
+  const { config, summary } = snapshot
+  const courseView = toCourseView(config)
+  const summaryView = toSummaryView(summary, config)
+  const studentViews = buildStudentViews(snapshot)
   const now = new Date()
-  const cloRows = Object.values(summary.cloStats)
-  const ploRows = Object.values(summary.ploStats)
+  const cloRows = Object.values(summaryView.cloStats)
+  const ploRows = Object.values(summaryView.ploStats)
 
   return (
     <div className="print-report hidden text-[11px] leading-relaxed text-black print:block">
@@ -66,7 +70,7 @@ export function PrintReport({
             <td className={th}>Số tín chỉ</td>
             <td className={td}>{session.soTinChi}</td>
             <td className={th}>Hình thức thi</td>
-            <td className={td}>{config.courseInfo.hinhThucThi || '—'}</td>
+            <td className={td}>{courseView.courseInfo.hinhThucThi || '—'}</td>
           </tr>
           <tr>
             <td className={th}>Học kỳ</td>
@@ -82,15 +86,15 @@ export function PrintReport({
           </tr>
           <tr>
             <td className={th}>Ngưỡng đạt CLO</td>
-            <td className={td}>{formatScore(config.quyTac.nguong_dat_clo)}</td>
+            <td className={td}>{formatScore(courseView.quyTac.nguongDatClo)}</td>
             <td className={th}>Ngưỡng đạt PLO</td>
-            <td className={td}>{formatScore(config.quyTac.nguong_dat_plo)}</td>
+            <td className={td}>{formatScore(courseView.quyTac.nguongDatPlo)}</td>
           </tr>
           <tr>
             <td className={th}>Ngưỡng đạt HP</td>
-            <td className={td}>{formatScore(config.quyTac.nguong_dat_hp)}</td>
+            <td className={td}>{formatScore(courseView.quyTac.nguongDatHp)}</td>
             <td className={th}>Phương thức tính</td>
-            <td className={td}>{config.quyTac.hp_method}</td>
+            <td className={td}>{courseView.quyTac.phuongThucTinhHp}</td>
           </tr>
         </tbody>
       </table>
@@ -117,21 +121,21 @@ export function PrintReport({
         </thead>
         <tbody>
           <tr>
-            <td className={td}>{summary.totalStudents}</td>
-            <td className={td}>{summary.courseStat.passedCount}</td>
-            <td className={td}>{formatPercent(summary.courseStat.passedPercent)}</td>
-            <td className={td}>{formatScore(summary.courseStat.mean)}</td>
-            <td className={td}>{formatScore(summary.courseStat.min)}</td>
-            <td className={td}>{formatScore(summary.courseStat.max)}</td>
-            <td className={td}>{summary.absentStudents}</td>
-            <td className={td}>{summary.missingDataStudents}</td>
+            <td className={td}>{summaryView.totalStudents}</td>
+            <td className={td}>{summaryView.courseStat.passedCount}</td>
+            <td className={td}>{formatPercent(summaryView.courseStat.passedPercent)}</td>
+            <td className={td}>{formatScore(summaryView.courseStat.mean)}</td>
+            <td className={td}>{formatScore(summaryView.courseStat.min)}</td>
+            <td className={td}>{formatScore(summaryView.courseStat.max)}</td>
+            <td className={td}>{summaryView.absentStudents}</td>
+            <td className={td}>{summaryView.missingDataStudents}</td>
           </tr>
         </tbody>
       </table>
 
-      {summary.generalWarnings.length > 0 ? (
+      {summaryView.generalWarnings.length > 0 ? (
         <ul className="mt-1.5 list-disc pl-5 text-[10.5px]">
-          {summary.generalWarnings.map((warning) => (
+          {summaryView.generalWarnings.map((warning) => (
             <li key={warning}>{warning}</li>
           ))}
         </ul>
@@ -165,7 +169,8 @@ export function PrintReport({
           </thead>
           <tbody>
             {cloRows.map((stat) => {
-              const content = config.cloList.find((clo) => clo.maClo === stat.maClo)?.noiDung ?? '—'
+              const content =
+                courseView.cloList.find((clo) => clo.maClo === stat.maClo)?.noiDung ?? '—'
               return (
                 <tr key={stat.maClo}>
                   <td className={`${td} font-mono`}>{stat.maClo}</td>
@@ -177,7 +182,7 @@ export function PrintReport({
                   <td className={`${td} text-center`}>{formatScore(stat.max)}</td>
                   <td className={td}>
                     {stat.isBelowThreshold
-                      ? `Dưới ngưỡng ${formatPercent(config.quyTac.ty_le_dat_clo_canh_bao)}`
+                      ? `Dưới ngưỡng ${formatPercent(courseView.quyTac.tyLeDatCloCanhBao)}`
                       : '—'}
                   </td>
                 </tr>
@@ -215,50 +220,6 @@ export function PrintReport({
                   <td className={`${td} text-center`}>{stat.passedCount}</td>
                   <td className={`${td} text-center`}>{formatPercent(stat.passedPercent)}</td>
                   <td className={`${td} text-center`}>{formatScore(stat.mean)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      {/* ===== V. Đề thi ===== */}
-      <div className="break-inside-avoid">
-        <SectionTitle>V. Độ tin cậy đề thi (Cronbach Alpha)</SectionTitle>
-        {snapshot.exams.length === 0 ? (
-          <p className="text-[10.5px] italic">Không có dữ liệu phân tích đề thi.</p>
-        ) : (
-          <table className="w-full table-fixed border-collapse text-[11px]">
-            <colgroup>
-              <col style={{ width: '10%' }} />
-              <col style={{ width: '9%' }} />
-              <col style={{ width: '7%' }} />
-              <col style={{ width: '7%' }} />
-              <col style={{ width: '11%' }} />
-              <col style={{ width: '17%' }} />
-              <col style={{ width: '39%' }} />
-            </colgroup>
-            <thead>
-              <tr>
-                <th className={th}>Đầu điểm</th>
-                <th className={th}>Mã đề</th>
-                <th className={`${th} text-center`}>Số SV</th>
-                <th className={`${th} text-center`}>Số câu</th>
-                <th className={`${th} text-center`}>Cronbach α</th>
-                <th className={th}>Mức độ tin cậy</th>
-                <th className={th}>Cảnh báo</th>
-              </tr>
-            </thead>
-            <tbody>
-              {snapshot.exams.map((exam) => (
-                <tr key={`${exam.maDauDiem}-${exam.maDe}`}>
-                  <td className={td}>{exam.maDauDiem}</td>
-                  <td className={td}>{exam.maDe}</td>
-                  <td className={`${td} text-center`}>{exam.soSinhVien}</td>
-                  <td className={`${td} text-center`}>{exam.soCauHoi}</td>
-                  <td className={`${td} text-center`}>{formatScore(exam.cronbachAlpha)}</td>
-                  <td className={td}>{exam.mucDoTinCay}</td>
-                  <td className={td}>{exam.canhBaoCoMauN ?? '—'}</td>
                 </tr>
               ))}
             </tbody>
@@ -306,7 +267,7 @@ export function PrintReport({
             </tr>
           </thead>
           <tbody>
-            {students.map((student) => (
+            {studentViews.map((student) => (
               <tr key={student.maSv} className="break-inside-avoid">
                 <td className={`${td} text-center`}>{student.tt}</td>
                 <td className={`${td} font-mono`}>{student.maSv}</td>
@@ -333,7 +294,7 @@ export function PrintReport({
           </tbody>
         </table>
         <p className="mt-1 text-[10px] italic">
-          Tổng cộng: {students.length} sinh viên. Điểm hiển thị theo thang 10, làm tròn half-up.
+          Tổng cộng: {studentViews.length} sinh viên. Điểm hiển thị theo thang 10, làm tròn half-up.
         </p>
       </section>
     </div>

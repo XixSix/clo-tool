@@ -31,7 +31,7 @@ export function StatBox({
       >
         {value}
       </div>
-      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="text-muted-foreground text-xs">{label}</div>
     </div>
   )
 }
@@ -56,13 +56,15 @@ export function ReadyItem({
       <span
         className={cn(
           'mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full',
-          ok ? 'bg-success text-success-foreground' : 'border border-dashed border-muted-foreground/50'
+          ok
+            ? 'bg-success text-success-foreground'
+            : 'border-muted-foreground/50 border border-dashed'
         )}
       >
         {ok ? <Check className="size-3" /> : null}
       </span>
       <div className="min-w-0">
-        <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
+        <p className="text-muted-foreground text-[11px] tracking-wide uppercase">{label}</p>
         <p
           className={cn('truncate text-xs font-medium', !ok && 'text-muted-foreground')}
           title={value}

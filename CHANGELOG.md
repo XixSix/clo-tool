@@ -4,6 +4,14 @@ Mọi thay đổi đáng chú ý của phần mềm được ghi ở đây. Đ�
 [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/), phiên bản theo
 [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [Unreleased]
+
+### Bỏ
+
+- **Kiểm định đề thi / psychometrics**: gỡ độ khó p, độ phân biệt d, Cronbach α, báo cáo
+  `exam_analysis_report.xlsx` cùng màn hình/nút xuất tương ứng. Ứng dụng chỉ còn tính điểm
+  CLO/PLO theo QĐ450 (xem `AGENTS.md`, mục "Tính năng đã bị loại bỏ").
+
 ## [1.0.5] - 2026-11-12
 
 ### Thêm

@@ -14,7 +14,13 @@
  * vì 2 câu đề D2 trống góp tỷ lệ 0 vào trung bình.
  */
 
-import type { CourseConfig, QuestionColumn } from '@core/types'
+import type {
+  AssessmentComponent,
+  Course,
+  ExamQuestion,
+  Student,
+  StudentCourseScoreRecord
+} from '@core/types'
 import { DEFAULT_BUSINESS_RULES } from '@core/rules'
 
 /** Điểm tối đa mỗi câu của đề GK (cùng cấu trúc 2 đề: 2.5 × 4 = 10) */
@@ -24,78 +30,94 @@ function gkColumn(de: string, c: number): string {
   return `GK_${de}_C${c}`
 }
 
-export function buildMockMultiDeConfig(): CourseConfig {
-  const cauHoi: QuestionColumn[] = []
+function gkVariant(de: string) {
+  const cauHoi: ExamQuestion[] = GK_MAX.map((max, i) => ({
+    id: gkColumn(de, i + 1),
+    cau: `Câu ${i + 1}`,
+    // Câu 1+2 → CLO1, câu 3+4 → CLO2 (giống nhau giữa 2 đề)
+    cloId: i < 2 ? 'CLO1' : 'CLO2',
+    diemToiDa: max,
+    loai: 'TL'
+  }))
+  return { id: `GK_${de}`, maDe: de, cauHoi }
+}
 
-  // Cột chuyên cần thang 10 khai như 1 câu hỏi của ô (CC, CLO1)
-  cauHoi.push({
-    maCotDiem: 'CC',
-    maDauDiem: 'CC',
-    cau: 'Câu 1',
-    clo: 'CLO1',
-    diemToiDa: 10,
-    maDe: 'ALL'
-  })
+export function buildMockMultiDeCourse(): Course {
+  // Cột chuyên cần thang 10 nhập trực tiếp cho CLO1
+  const ccDot: AssessmentComponent = {
+    id: 'CC',
+    tenDotDanhGia: 'Điểm danh chuyên cần',
+    nhom: 'CC',
+    cachNhapDiem: 'DIRECT_CLO_SCORE',
+    trongSoPhanTram: 20,
+    cloList: [{ cloId: 'CLO1', tyLePhanBo: 100 }],
+    maDeList: []
+  }
 
-  // 2 đề của CÙNG đầu điểm GK, cùng khối câu theo CLO
-  for (const de of ['D1', 'D2']) {
-    GK_MAX.forEach((max, i) => {
-      cauHoi.push({
-        maCotDiem: gkColumn(de, i + 1),
-        maDauDiem: 'GK',
-        cau: `Câu ${i + 1}`,
-        // Câu 1+2 → CLO1, câu 3+4 → CLO2 (giống nhau giữa 2 đề)
-        clo: i < 2 ? 'CLO1' : 'CLO2',
-        diemToiDa: max,
-        maDe: de,
-        loai: 'TL'
-      })
-    })
+  // 2 đề của CÙNG đầu điểm GK — mỗi CLO chiếm 50% trọng số đợt (40% toàn khóa)
+  const gkDot: AssessmentComponent = {
+    id: 'GK',
+    tenDotDanhGia: 'Kiểm tra giữa kỳ – 2 đề cùng đầu điểm',
+    nhom: 'GK',
+    cachNhapDiem: 'QUESTION_SCORE',
+    trongSoPhanTram: 80,
+    cloList: [
+      { cloId: 'CLO1', tyLePhanBo: 50 },
+      { cloId: 'CLO2', tyLePhanBo: 50 }
+    ],
+    maDeList: [gkVariant('D1'), gkVariant('D2')]
   }
 
   return {
-    courseInfo: {
-      maHp: 'KTLT999',
-      tenHp: 'Học phần thử đa đề',
-      soTinChi: 2,
-      hinhThucThi: 'Tự luận',
-      loaiHp: 'thuong'
-    },
+    id: 'KTLT999',
+    maHp: 'KTLT999',
+    tenHp: 'Học phần thử đa đề',
+    soTinChi: 2,
+    hinhThucThi: 'Tự luận',
+    loaiHp: 'thuong',
+    giangVien: 'TS. Lê Văn C',
+    namHoc: '2025-2026',
     cloList: [
-      { maClo: 'CLO1', noiDung: 'CLO thử 1', bacNangLuc: '3/6', trongSoClo: 1 },
-      { maClo: 'CLO2', noiDung: 'CLO thử 2', bacNangLuc: '3/6', trongSoClo: 1 }
+      { id: 'CLO1', maClo: 'CLO1', noiDung: 'CLO thử 1', bacNangLuc: '3/6', trongSoClo: 1 },
+      { id: 'CLO2', maClo: 'CLO2', noiDung: 'CLO thử 2', bacNangLuc: '3/6', trongSoClo: 1 }
     ],
-    keHoachDanhGia: [
+    ploList: [
+      { id: 'PLO1', maPlo: 'PLO1', noiDung: 'PLO thử 1', ploThanhPhanIds: ['PLO1_1'] },
+      { id: 'PLO2', maPlo: 'PLO2', noiDung: 'PLO thử 2', ploThanhPhanIds: ['PLO2_1'] }
+    ],
+    ploThanhPhanList: [
       {
-        nhom: 'CC',
-        thanhPhan: 'Điểm danh chuyên cần',
-        maDauDiem: 'CC',
-        clo: 'CLO1',
-        trongSoPhanTram: 20,
-        hinhThuc: 'Điểm danh'
+        id: 'PLO1_1',
+        maPloThanhPhan: 'PLO1.1',
+        maPlo: 'PLO1',
+        noiDung: 'PLO 1.1',
+        piIds: ['PI1.1']
       },
       {
-        nhom: 'GK',
-        thanhPhan: 'Kiểm tra giữa kỳ – 2 đề cùng đầu điểm',
-        maDauDiem: 'GK',
-        clo: 'CLO1',
-        trongSoPhanTram: 40,
-        hinhThuc: 'Tự luận (câu 1+2)'
-      },
-      {
-        nhom: 'GK',
-        thanhPhan: 'Kiểm tra giữa kỳ – 2 đề cùng đầu điểm',
-        maDauDiem: 'GK',
-        clo: 'CLO2',
-        trongSoPhanTram: 40,
-        hinhThuc: 'Tự luận (câu 3+4)'
+        id: 'PLO2_1',
+        maPloThanhPhan: 'PLO2.1',
+        maPlo: 'PLO2',
+        noiDung: 'PLO 2.1',
+        piIds: ['PI2.1']
       }
     ],
-    cauHoi,
-    maTranPlo: [
-      { plo: 'PLO1', pi: 'PI1.1', clo: 'CLO1' },
-      { plo: 'PLO2', pi: 'PI2.1', clo: 'CLO2' }
+    piList: [
+      {
+        id: 'PI1.1',
+        maPi: 'PI1.1',
+        noiDung: 'Chỉ số 1.1',
+        ploThanhPhanIds: ['PLO1_1'],
+        cloIds: ['CLO1']
+      },
+      {
+        id: 'PI2.1',
+        maPi: 'PI2.1',
+        noiDung: 'Chỉ số 2.1',
+        ploThanhPhanIds: ['PLO2_1'],
+        cloIds: ['CLO2']
+      }
     ],
+    dotDanhGia: [ccDot, gkDot],
     quyTac: { ...DEFAULT_BUSINESS_RULES }
   }
 }
@@ -106,69 +128,114 @@ export function buildMockMultiDeConfig(): CourseConfig {
  * - SV-B làm đề D2 (câu D1 để trống)
  * - SV-C không khai maDe (~ ALL), làm cả 2 đề
  */
-export function buildMockMultiDeStudents() {
-  return [
+export interface MockMultiDeData {
+  students: Student[]
+  records: StudentCourseScoreRecord[]
+}
+
+export function buildMockMultiDeData(): MockMultiDeData {
+  const students: Student[] = [
     {
-      student: {
-        tt: 1,
-        maSv: 'SV001A',
-        ho: 'Sinh Viên',
-        ten: 'A',
-        hoTen: 'Sinh Viên A (làm đề D1)'
-      },
-      scores: {
-        maDe: 'D1',
-        diemCacCot: {
-          CC: 8,
-          GK_D1_C1: 2,
-          GK_D1_C2: 2,
-          GK_D1_C3: 1,
-          GK_D1_C4: 2
-          // Câu đề D2 trống -> phải không được tính vào SV này
-        } as Record<string, number | 'VT' | null>
-      }
+      id: 'SV001A',
+      tt: 1,
+      maSv: 'SV001A',
+      ho: 'Sinh Viên',
+      ten: 'A',
+      hoTen: 'Sinh Viên A (làm đề D1)'
     },
     {
-      student: {
-        tt: 2,
-        maSv: 'SV002B',
-        ho: 'Sinh Viên',
-        ten: 'B',
-        hoTen: 'Sinh Viên B (làm đề D2)'
-      },
-      scores: {
-        maDe: 'D2',
-        diemCacCot: {
-          CC: 6,
-          GK_D2_C1: 2,
-          GK_D2_C2: 1,
-          GK_D2_C3: 2.5,
-          GK_D2_C4: 2
-        } as Record<string, number | 'VT' | null>
-      }
+      id: 'SV002B',
+      tt: 2,
+      maSv: 'SV002B',
+      ho: 'Sinh Viên',
+      ten: 'B',
+      hoTen: 'Sinh Viên B (làm đề D2)'
     },
     {
-      student: {
-        tt: 3,
-        maSv: 'SV003C',
-        ho: 'Sinh Viên',
-        ten: 'C',
-        hoTen: 'Sinh Viên C (làm mọi đề)'
-      },
-      scores: {
-        //Không khai maDe => coi như ALL
-        diemCacCot: {
-          CC: 5,
-          GK_D1_C1: 2,
-          GK_D1_C2: 2,
-          GK_D1_C3: 2,
-          GK_D1_C4: 2,
-          GK_D2_C1: 2.5,
-          GK_D2_C2: 2.5,
-          GK_D2_C3: 2.5,
-          GK_D2_C4: 2.5
-        } as Record<string, number | 'VT' | null>
-      }
+      id: 'SV003C',
+      tt: 3,
+      maSv: 'SV003C',
+      ho: 'Sinh Viên',
+      ten: 'C',
+      hoTen: 'Sinh Viên C (làm mọi đề)'
     }
   ]
+
+  const records: StudentCourseScoreRecord[] = [
+    {
+      id: 'SV001A_KTLT999',
+      sinhVienId: 'SV001A',
+      hocPhanId: 'KTLT999',
+      diemTheoDotDanhGia: [
+        {
+          cachNhapDiem: 'DIRECT_CLO_SCORE',
+          dotDanhGiaId: 'CC',
+          diemTheoClo: [{ cloId: 'CLO1', diem: 8 }]
+        },
+        {
+          cachNhapDiem: 'QUESTION_SCORE',
+          dotDanhGiaId: 'GK',
+          deId: 'D1',
+          diemTheoCau: [
+            { questionId: 'GK_D1_C1', diem: 2 },
+            { questionId: 'GK_D1_C2', diem: 2 },
+            { questionId: 'GK_D1_C3', diem: 1 },
+            { questionId: 'GK_D1_C4', diem: 2 }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'SV002B_KTLT999',
+      sinhVienId: 'SV002B',
+      hocPhanId: 'KTLT999',
+      diemTheoDotDanhGia: [
+        {
+          cachNhapDiem: 'DIRECT_CLO_SCORE',
+          dotDanhGiaId: 'CC',
+          diemTheoClo: [{ cloId: 'CLO1', diem: 6 }]
+        },
+        {
+          cachNhapDiem: 'QUESTION_SCORE',
+          dotDanhGiaId: 'GK',
+          deId: 'D2',
+          diemTheoCau: [
+            { questionId: 'GK_D2_C1', diem: 2 },
+            { questionId: 'GK_D2_C2', diem: 1 },
+            { questionId: 'GK_D2_C3', diem: 2.5 },
+            { questionId: 'GK_D2_C4', diem: 2 }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'SV003C_KTLT999',
+      sinhVienId: 'SV003C',
+      hocPhanId: 'KTLT999',
+      diemTheoDotDanhGia: [
+        {
+          cachNhapDiem: 'DIRECT_CLO_SCORE',
+          dotDanhGiaId: 'CC',
+          diemTheoClo: [{ cloId: 'CLO1', diem: 5 }]
+        },
+        {
+          cachNhapDiem: 'QUESTION_SCORE',
+          dotDanhGiaId: 'GK',
+          deId: 'ALL',
+          diemTheoCau: [
+            { questionId: 'GK_D1_C1', diem: 2 },
+            { questionId: 'GK_D1_C2', diem: 2 },
+            { questionId: 'GK_D1_C3', diem: 2 },
+            { questionId: 'GK_D1_C4', diem: 2 },
+            { questionId: 'GK_D2_C1', diem: 2.5 },
+            { questionId: 'GK_D2_C2', diem: 2.5 },
+            { questionId: 'GK_D2_C3', diem: 2.5 },
+            { questionId: 'GK_D2_C4', diem: 2.5 }
+          ]
+        }
+      ]
+    }
+  ]
+
+  return { students, records }
 }

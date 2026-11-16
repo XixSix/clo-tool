@@ -5,11 +5,22 @@
  *   CC = (Σ hệ số của các buổi đã diễn ra) / (số buổi đã diễn ra) × 10
  *
  * - Buổi để trống = chưa diễn ra → không tính vào mẫu số.
- * - Ký hiệu lạ (không có trong sheet DIEM_DANH) → cảnh báo, tính hệ số 0.
+ * - Ký hiệu lạ (không có trong bảng quy đổi) → cảnh báo, tính hệ số 0.
  */
 
-import type { AttendanceRecord, AttendanceRule, AttendanceScore, ValidationIssue } from '../../types'
 import { roundHalfUp } from '../../rules'
+import { DEFAULT_ATTENDANCE_RULES } from '../../rules/defaults'
+import type {
+  AttendanceRule,
+  AttendanceScore,
+  StudentAttendanceMark,
+  ValidationIssue
+} from '../../types'
+
+export interface AttendanceInput {
+  maSv: string
+  marks: StudentAttendanceMark[]
+}
 
 export interface AttendanceComputeResult {
   scores: AttendanceScore[]
@@ -18,8 +29,8 @@ export interface AttendanceComputeResult {
 }
 
 export function computeAttendanceScores(
-  records: AttendanceRecord[],
-  rules: AttendanceRule[]
+  records: AttendanceInput[],
+  rules: AttendanceRule[] = DEFAULT_ATTENDANCE_RULES
 ): AttendanceComputeResult {
   const ruleMap = new Map(rules.map((r) => [r.kyHieu.trim().toUpperCase(), r.heSo]))
   const issues: ValidationIssue[] = []
@@ -33,8 +44,8 @@ export function computeAttendanceScores(
     let soVangCoPhep = 0
     const symbolsLa: string[] = []
 
-    for (const [, rawSymbol] of Object.entries(record.symbols)) {
-      const symbol = (rawSymbol ?? '').trim()
+    for (const mark of record.marks) {
+      const symbol = (mark.kyHieu ?? '').trim()
       if (symbol === '') continue // chưa diễn ra
       soBuoi++
       const key = symbol.toUpperCase()
@@ -51,8 +62,9 @@ export function computeAttendanceScores(
     if (symbolsLa.length > 0) {
       issues.push({
         level: 'warning',
+        scope: 'assessment',
         message: `Mã điểm danh lạ của SV ${record.maSv}: ${symbolsLa.join(', ')} (tính hệ số 0).`,
-        suggestion: 'Bổ sung ký hiệu này vào sheet DIEM_DANH của file Config.'
+        suggestion: 'Bổ sung ký hiệu này vào bảng quy đổi điểm danh.'
       })
     }
 

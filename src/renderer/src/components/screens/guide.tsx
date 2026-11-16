@@ -1,17 +1,12 @@
 import React from 'react'
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from '@renderer/components/ui/card'
+import { Card, CardDescription, CardHeader, CardTitle } from '@renderer/components/ui/card'
 import { Separator } from '@renderer/components/ui/separator'
 import { Badge } from '@renderer/components/ui/badge'
 
 const STEPS = [
   {
-    title: '1. Chuẩn bị file Config',
-    desc: 'Tạo file Template_Config.xlsx khai báo học phần: mã môn, số tín chỉ, danh sách CLO + trọng số, các đầu điểm và cấu trúc từng đề thi (mã đầu điểm, mã đề, cột điểm, trọng số). Lưu ý: mỗi mã đầu điểm + mã đề phải cho tổng điểm tối đa đúng bằng 10.'
+    title: '1. Cấu hình học phần',
+    desc: 'Vào màn Học phần, thêm môn rồi mở chi tiết để khai báo danh sách CLO + trọng số, các đầu điểm và cấu trúc từng đề thi (mã đầu điểm, mã đề, cột điểm, trọng số). Lưu ý: mỗi mã đầu điểm + mã đề phải cho tổng điểm tối đa đúng bằng 10. Có thể dùng Nhập JSON nếu đã xuất cấu hình từ trước.'
   },
   {
     title: '2. Nhập file điểm thô',
@@ -19,7 +14,7 @@ const STEPS = [
   },
   {
     title: '3. Chạy tính toán',
-    desc: 'Bấm “Tính toán & xuất báo cáo”. Phần mềm tính điểm theo QĐ 450 với decimal ROUND_HALF_UP, sinh 2 file Excel: bảng điểm từng sinh viên theo CLO/PLO và phân tích psychometric từng đề (tần suất đạt, trung bình, Cronbach α, độ phân biệt).'
+    desc: 'Bấm “Tính toán & xuất báo cáo”. Phần mềm tính điểm theo QĐ 450 với decimal ROUND_HALF_UP và sinh file Excel bảng điểm từng sinh viên theo CLO/PLO.'
   },
   {
     title: '4. Đọc kết quả',
@@ -29,7 +24,7 @@ const STEPS = [
 
 const RULE_BADGES = [
   'Mã SV trống = tự sinh theo thứ tự xuất hiện',
-  'VT = vắng thi → 0 CK, loại khỏi p/d/α',
+  'VT = vắng thi → 0 CK',
   'Cột trống = 0 điểm, có cảnh báo',
   'Làm mọi đề = mã đề ALL'
 ]
@@ -39,7 +34,7 @@ export function HuongDan(): React.ReactElement {
     <div className="max-w-3xl">
       <div className="mb-5">
         <h2 className="text-xl font-bold">Hướng dẫn nhanh</h2>
-        <p className="mt-1 text-[13px] text-muted-foreground/80">
+        <p className="text-muted-foreground/80 mt-1 text-[13px]">
           Quy trình 4 bước để tạo báo cáo đánh giá CLO/PLO cho một học phần.
         </p>
       </div>
@@ -48,14 +43,14 @@ export function HuongDan(): React.ReactElement {
         {STEPS.map((step) => (
           <Card key={step.title}>
             <CardHeader>
-              <CardTitle className="text-sm font-semibold text-primary">{step.title}</CardTitle>
+              <CardTitle className="text-primary text-sm font-semibold">{step.title}</CardTitle>
               <CardDescription className="text-[13px] leading-relaxed">{step.desc}</CardDescription>
             </CardHeader>
           </Card>
         ))}
       </div>
 
-      <h3 className="mb-2 mt-5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      <h3 className="text-muted-foreground mt-5 mb-2 text-xs font-semibold tracking-wide uppercase">
         Quy ước dữ liệu
       </h3>
       <div className="flex flex-wrap gap-2">
@@ -67,7 +62,7 @@ export function HuongDan(): React.ReactElement {
       </div>
 
       <Separator className="my-5" />
-      <p className="text-xs text-muted-foreground/70">
+      <p className="text-muted-foreground/70 text-xs">
         Chi tiết đặc tả business: <span className="font-mono">docs/ke_hoach_dac_ta_clo_plo.md</span>{' '}
         trong thư mục dự án.
       </p>

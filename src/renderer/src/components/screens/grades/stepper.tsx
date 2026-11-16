@@ -3,19 +3,13 @@ import { Check } from 'lucide-react'
 import { cn } from 'cn'
 import type { ImportStep } from '@renderer/hooks/use-import-pipeline'
 
-export function StepBadge({
-  number,
-  done
-}: {
-  number: number
-  done: boolean
-}): React.ReactElement {
+export function StepBadge({ number, done }: { number: number; done: boolean }): React.ReactElement {
   return done ? (
-    <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-success text-success-foreground">
+    <span className="bg-success text-success-foreground flex size-7 shrink-0 items-center justify-center rounded-full">
       <Check className="size-3.5" />
     </span>
   ) : (
-    <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-foreground">
+    <span className="bg-muted text-foreground flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-bold">
       {number}
     </span>
   )
@@ -30,7 +24,7 @@ export function Stepper({
   activeIndex: number
 }): React.ReactElement {
   return (
-    <div className="flex items-center gap-2 rounded-xl bg-card px-4 py-3 ring-1 ring-foreground/10">
+    <div className="bg-card ring-foreground/10 flex items-center gap-2 rounded-xl px-4 py-3 ring-1">
       {steps.map((step, index) => (
         <React.Fragment key={step.title}>
           <div className="flex min-w-0 items-center gap-2">
@@ -55,7 +49,7 @@ export function Stepper({
               >
                 {step.title}
               </p>
-              <p className="truncate text-[11px] text-muted-foreground">{step.hint}</p>
+              <p className="text-muted-foreground truncate text-[11px]">{step.hint}</p>
             </div>
           </div>
           {index < steps.length - 1 ? (

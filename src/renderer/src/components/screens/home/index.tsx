@@ -1,12 +1,5 @@
 import React from 'react'
-import {
-  BookOpen,
-  ChartColumn,
-  FileSpreadsheet,
-  FolderPlus,
-  Play,
-  Users
-} from 'lucide-react'
+import { BookOpen, ChartColumn, FileSpreadsheet, FolderPlus, Play, Users } from 'lucide-react'
 import { useWorkspace } from '@renderer/hooks/workspace'
 import { hasBridge } from '@renderer/lib/theme'
 import { formatPercent } from '@renderer/lib/format'
@@ -41,7 +34,7 @@ export function TrangChu({ onScreen }: { onScreen: (s: ScreenId) => void }): Rea
     <div className="flex flex-col gap-6">
       <div>
         <h2 className="text-[22px] font-bold">Xin chào! 👋</h2>
-        <p className="mt-1 text-[13px] text-muted-foreground/80">
+        <p className="text-muted-foreground/80 mt-1 text-[13px]">
           Chọn một môn học hoặc tạo mới để bắt đầu đánh giá CLO/PLO theo QĐ 450.
         </p>
       </div>
@@ -95,9 +88,9 @@ export function TrangChu({ onScreen }: { onScreen: (s: ScreenId) => void }): Rea
         <button
           type="button"
           onClick={createSamples}
-          className="flex items-center gap-2 rounded-lg bg-card px-3 py-2 text-xs font-medium ring-1 ring-foreground/10 transition hover:shadow-sm"
+          className="bg-card ring-foreground/10 flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium ring-1 transition hover:shadow-sm"
         >
-          <FileSpreadsheet className="size-4 text-muted-foreground" />
+          <FileSpreadsheet className="text-muted-foreground size-4" />
           Tạo bộ file mẫu KTLT101
         </button>
       </div>
@@ -113,7 +106,7 @@ export function TrangChu({ onScreen }: { onScreen: (s: ScreenId) => void }): Rea
       />
 
       {activities.length === 0 && !loading ? (
-        <p className="flex items-center gap-1.5 text-xs text-muted-foreground/60">
+        <p className="text-muted-foreground/60 flex items-center gap-1.5 text-xs">
           <BookOpen className="size-3.5" />
           Mẹo: nhấp vào môn học ở đáy thanh bên để mở nhanh màn Nhập điểm.
         </p>
