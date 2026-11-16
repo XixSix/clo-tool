@@ -3,31 +3,16 @@ import type { GradeSheetSummaryDto } from '../../shared/ipc'
 import type { Course } from '@core/types/course'
 import { allQuestions } from '@core/index'
 import { errorMessage, hasErrors, toIssueDto } from './common'
-import { loadConfig, loadGradeSheet } from './loaders'
+import { loadGradeSheet } from './loaders'
 
 export function registerGradeSheetHandlers(): void {
   ipcMain.handle(
     'grade-sheet:parse',
-    async (_event, configSource: string | Course, gradeSheetPath: string): Promise<GradeSheetSummaryDto> => {
-      const loaded = await loadConfig(configSource)
-      if (!loaded.config) {
-        return {
-          ok: false,
-          filePath: gradeSheetPath,
-          studentCount: 0,
-          sessionCount: 0,
-          missingDataCount: 0,
-          absentFinalCount: 0,
-          issues: loaded.issues.map(toIssueDto),
-          hasErrors: true,
-          error: loaded.error ?? 'Cấu hình chưa hợp lệ, không thể đọc điểm thô.'
-        }
-      }
-
+    async (_event, course: Course, gradeSheetPath: string): Promise<GradeSheetSummaryDto> => {
       try {
-        const gradeSheet = await loadGradeSheet(loaded.config, gradeSheetPath)
+        const gradeSheet = await loadGradeSheet(course, gradeSheetPath)
         const ckColumns = new Set(
-          allQuestions(loaded.config)
+          allQuestions(course)
             .filter(({ dot }) => dot.nhom === 'CK')
             .map(({ cauHoi }) => cauHoi.id)
         )
@@ -48,8 +33,7 @@ export function registerGradeSheetHandlers(): void {
           missingDataCount,
           absentFinalCount,
           issues: gradeSheet.issues.map(toIssueDto),
-          hasErrors: hasErrors(gradeSheet.issues),
-          error: loaded.error
+          hasErrors: hasErrors(gradeSheet.issues)
         }
       } catch (error) {
         return {

@@ -2,24 +2,13 @@ import { parseGradeSheet, validateCourse, validateGradeSheet } from '@core/index
 import type { Course, GradeSheetData, ValidationIssue } from '@core/types'
 
 export interface LoadedConfig {
-  config?: Course
+  config: Course
   issues: ValidationIssue[]
-  error?: string
 }
 
-/**
- * Cấu hình học phần được nhập trực tiếp trên ứng dụng dưới dạng model `Course`.
- * Không còn đọc từ file Excel cấu hình (đã bỏ phần IO config).
- */
-export async function loadConfig(configSource: Course | string): Promise<LoadedConfig> {
-  if (typeof configSource === 'string') {
-    return {
-      issues: [],
-      error:
-        'Cấu hình học phần được nhập trực tiếp trên ứng dụng, không còn đọc từ file Excel. Vui lòng mở màn Học phần để nhập cấu hình.'
-    }
-  }
-  return { config: configSource, issues: validateCourse(configSource) }
+/** Cấu hình học phần do ứng dụng dựng trong bộ nhớ (không đọc từ file Excel). */
+export function loadConfig(course: Course): LoadedConfig {
+  return { config: course, issues: validateCourse(course) }
 }
 
 export interface LoadedGradeSheet {

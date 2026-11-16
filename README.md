@@ -17,15 +17,14 @@ npm run dev
 
 Trong cửa sổ ứng dụng:
 
-1. Bấm **“Tạo bộ file mẫu”** → chọn một thư mục bất kỳ (ví dụ `D:\clo-test`).
-2. App tự tạo và nạp sẵn:
-   - `Template_Config.xlsx` — cấu hình học phần KTLT101
-   - `Template_DiemTho.xlsx` — điểm thô 32 sinh viên + 12 buổi điểm danh
-3. Bấm **“Chọn thư mục lưu báo cáo”** (có thể chọn cùng thư mục trên).
-4. Bấm **“Tính toán & xuất báo cáo”**.
+1. Vào màn **Học phần** → **Thêm môn học**, nhập thông tin cơ bản.
+2. Mở chi tiết môn để cấu hình CLO/PLO, kế hoạch đánh giá và câu hỏi (hoặc **Nhập JSON**
+   cấu hình đã xuất trước đó).
+3. Bấm **“Tạo bộ file mẫu”** → chọn một thư mục bất kỳ (ví dụ `D:\clo-test`) để sinh
+   `Template_DiemTho.xlsx` (điểm thô 32 sinh viên + 12 buổi điểm danh).
+4. Chọn file bảng điểm thật (nếu có), bấm **“Chọn thư mục lưu báo cáo”**, rồi
+   **“Tính toán & xuất báo cáo”**.
 5. Mở file kết quả `final_grades_report.xlsx` ngay trong app.
-
-Nếu đã có file thật, bỏ qua bước “Tạo bộ file mẫu” và chọn trực tiếp file Config + file điểm thô.
 
 ### Chạy demo bằng dòng lệnh (không cần mở app)
 
@@ -37,7 +36,6 @@ Kết quả nằm trong `out/demo/`:
 
 | File                        | Nội dung                                                     |
 | :-------------------------- | :----------------------------------------------------------- |
-| `Template_Config.xlsx`      | Config mẫu 7 sheet + sheet hướng dẫn                         |
 | `Template_DiemTho.xlsx`     | Điểm thô mẫu (điểm danh, CC, TD, KT3, KT4, CK)               |
 | `final_grades_report.xlsx`  | Bảng điểm CLO/PLO, điểm học vụ, chi tiết, tổng hợp, cảnh báo |
 
@@ -103,8 +101,8 @@ Học phần **KTLT101 – Kỹ thuật lập trình**, 3 tín chỉ, 3 CLO:
 Chỉ cần file Excel đúng cấu trúc cột như file mẫu. App dò tiêu đề theo **tên cột**
 (không theo vị trí), chấp nhận lệch dấu/khoảng trắng/hoa thường và sẽ gợi ý nếu tên cột gần giống.
 
-- **Config**: 7 sheet `HOC_PHAN`, `CLO_LIST`, `KE_HOACH_DANH_GIA`, `CAU_HOI`,
-  `MA_TRAN_PLO`, `DIEM_DANH`, `QUY_TAC`. Xem sheet `HUONG_DAN` trong file mẫu.
+- **Cấu hình học phần**: nhập trực tiếp trong app (màn chi tiết môn) hoặc **Nhập JSON**;
+  app không còn đọc file `Template_Config.xlsx`.
 - **Điểm thô**: sheet `NHAP_LIEU` hoặc `NHAP_LIEU_GV`, có các cột `TT`, `Mã SV`, `Họ`, `Tên`,
   `Ngày sinh`, `Buổi 1..N`, các cột điểm trùng mã với `CAU_HOI`, `Ghi chú`.
 - Giữ **Mã SV ở dạng văn bản** để không mất số `0` đầu.
@@ -118,7 +116,7 @@ Chỉ cần file Excel đúng cấu trúc cột như file mẫu. App dò tiêu �
 src/
   core/               # Engine thuần TypeScript, không import Electron/React
     types/            # Kiểu dữ liệu theo miền (course, student, result, …)
-    io/               # Đọc Config / điểm thô, sinh template Excel
+    io/               # Đọc bảng điểm thô, sinh template điểm thô
     calculator/       # Bộ tính toán cốt lõi (attendance, clo, plo)
       attendance/     # Điểm chuyên cần từ ký hiệu điểm danh
       clo/            # Điểm ô → CLO → nhóm → điểm học phần, thống kê lớp
@@ -128,7 +126,7 @@ src/
   preload/            # Cầu nối an toàn ra window.api
   renderer/           # Giao diện React
   shared/             # DTO dùng chung main ↔ renderer
-resources/templates/  # Template_Config.xlsx, Template_DiemTho.xlsx
+resources/templates/  # Template_DiemTho*.xlsx
 scripts/              # demo.ts, gen-templates.ts
 tests/                # Vitest (golden QĐ450, io, e2e)
 docs/                 # Đặc tả & kế hoạch

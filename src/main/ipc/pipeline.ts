@@ -34,24 +34,22 @@ export function registerPipelineHandlers(): void {
     'pipeline:run',
     async (
       _event,
-      configSource: string | Course,
+      course: Course,
       gradeSheetPath: string,
       outputDir: string,
       sessionId?: string
     ): Promise<RunResultDto> => {
       const empty = emptyResult(outputDir)
-      const loaded = await loadConfig(configSource)
-      if (!loaded.config || hasErrors(loaded.issues)) {
+      const loaded = loadConfig(course)
+      if (hasErrors(loaded.issues)) {
         return {
           ...empty,
           issues: loaded.issues.map(toIssueDto),
-          error:
-            loaded.error ?? 'Cấu hình môn học còn lỗi. Vui lòng sửa các mục báo đỏ trước khi tính.'
+          error: 'Cấu hình môn học còn lỗi. Vui lòng sửa các mục báo đỏ trước khi tính.'
         }
       }
 
       try {
-        const course = loaded.config
         const gradeSheet = await loadGradeSheet(course, gradeSheetPath)
         const gradeSheetFile: GradeSheetData = gradeSheet.file
         const issues: ValidationIssue[] = [...loaded.issues, ...gradeSheet.issues]

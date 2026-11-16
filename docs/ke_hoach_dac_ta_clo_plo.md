@@ -148,6 +148,10 @@ _Phương án dự phòng:_ nếu P.QLCL cho biết trường vẫn nhập đi�
 
 ## III. THIẾT KẾ ĐẦU VÀO (INPUT)
 
+> **Cập nhật:** cấu hình học phần hiện được nhập trực tiếp trong app (màn chi tiết môn, có
+> Nhập/Xuất JSON). App **không còn đọc file Excel Config**; phần mô tả sheet dưới đây giữ
+> làm đặc tả cấu trúc dữ liệu nguồn.
+
 ### 1. Input 1: File Config học phần (`config_course.xlsx`)
 
 Làm một lần cho mỗi học phần. Gồm 7 sheet:
@@ -299,7 +303,7 @@ Những chỗ văn bản chưa nói rõ đã được chọn như sau. Tất c�
 **Tuần 0: Chốt quy tắc và dữ liệu (chưa viết code ứng dụng)**
 
 - [x] Chốt tạm quyết định #1 (`hp_method = QD450`) và #7 (CLO chỉ đo bằng CC → cảnh báo, không chặn); vẫn cần P.QLCL xác nhận chính thức.
-- [x] Làm `Template_Config.xlsx` (7 sheet + hướng dẫn) và tự sinh `Template_DiemTho.xlsx` từ Config.
+- [x] Cấu hình học phần trong app (CLO, kế hoạch đánh giá, câu hỏi, quy tắc) và tự sinh `Template_DiemTho.xlsx` từ cấu hình.
 - [x] Dùng **dữ liệu mock** (KTLT101, 32 SV, 12 buổi, 3 CLO) thay cho điểm thật đã ẩn danh.
 - [x] Dựng khung dự án (Electron + TypeScript + React) và chạy được cửa sổ.
 
@@ -366,7 +370,7 @@ clo-plo-app/
 │   ├── main/                  # Electron main: hộp thoại file, đọc/ghi file, IPC
 │   ├── preload/               # Cầu nối an toàn main ↔ renderer
 │   └── renderer/              # Giao diện React (views/, components/)
-├── resources/                 # Template_Config.xlsx, mẫu Phụ lục 3, icon
+├── resources/                 # Template_DiemTho*.xlsx, mẫu Phụ lục 3, icon
 ├── tests/
 │   ├── goldenQd450.test.ts    # T5–T12 ở mục VI
 │   └── fixtures/              # Dữ liệu ví dụ trong QĐ450
@@ -394,7 +398,7 @@ Cần xác nhận hệ điều hành của giảng viên (chỉ Windows hay có 
 ## X. SẢN PHẨM BÀN GIAO
 
 - [ ] File cài đặt/chạy của ứng dụng (tên dự kiến `CLO_PLO_Evaluator`), không cần cài thêm gì.
-- [ ] `Template_Config.xlsx` kèm một học phần mẫu đã điền; `Template_DiemTho.xlsx` (do app sinh từ Config).
+- [ ] Một học phần mẫu đã cấu hình trong app; `Template_DiemTho.xlsx` (do app sinh từ cấu hình).
 - [ ] Bộ dữ liệu ví dụ SV Nguyễn Văn Hùng (QĐ450 Phụ lục 4) để GV và P.QLCL tự kiểm tra.
 - [ ] Bảng quy tắc tính (1–2 trang) đã được P.QLCL xác nhận, ứng với `QUY_TAC` mặc định.
 - [ ] Hướng dẫn sử dụng (`.pdf`, có hình minh họa).

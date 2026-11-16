@@ -15,9 +15,7 @@ export interface ImportPipeline {
   active: SessionDto | null
   courseConfig: Course | null
   gradeSheetPath: string
-  rawPath: string
   gradeSheet: GradeSheetSummaryDto | null
-  raw: GradeSheetSummaryDto | null
   outDir: string
   result: RunResultDto | null
   busy: string | null
@@ -27,7 +25,6 @@ export interface ImportPipeline {
   steps: ImportStep[]
   activeIndex: number
   pickGradeSheet: () => Promise<void>
-  pickRaw: () => Promise<void>
   pickOutput: () => Promise<void>
   run: () => Promise<void>
   reset: () => void
@@ -77,9 +74,7 @@ export function useImportPipeline(active: SessionDto | null, bridgeReady: boolea
       : loadLocalConfig(active.id)
     : null
 
-  const [gradeSheetPath, setGradeSheetPath] = useState(
-    active?.gradeSheetPath ?? active?.rawPath ?? ''
-  )
+  const [gradeSheetPath, setGradeSheetPath] = useState(active?.gradeSheetPath ?? '')
   const [gradeSheet, setGradeSheet] = useState<GradeSheetSummaryDto | null>(null)
   const [outDir, setOutDir] = useState(active?.outDir ?? '')
   const [result, setResult] = useState<RunResultDto | null>(null)
@@ -94,7 +89,7 @@ export function useImportPipeline(active: SessionDto | null, bridgeReady: boolea
     setError('')
     setBusy('grade-sheet')
     try {
-      const p = await window.api.pickFile('grade-sheet')
+      const p = await window.api.pickFile()
       if (!p) return
       setGradeSheetPath(p)
       setResult(null)
@@ -135,7 +130,6 @@ export function useImportPipeline(active: SessionDto | null, bridgeReady: boolea
         archiveRun({
           runId: res.runId,
           ts: Date.now(),
-          configPath: active?.configPath || `[In-App] ${courseConfig.maHp}`,
           gradeSheetPath,
           outputDir: outDir,
           finalReportPath: res.finalReportPath,
@@ -203,9 +197,7 @@ export function useImportPipeline(active: SessionDto | null, bridgeReady: boolea
     active,
     courseConfig,
     gradeSheetPath,
-    rawPath: gradeSheetPath,
     gradeSheet,
-    raw: gradeSheet,
     outDir,
     result,
     busy,
@@ -215,7 +207,6 @@ export function useImportPipeline(active: SessionDto | null, bridgeReady: boolea
     steps,
     activeIndex,
     pickGradeSheet,
-    pickRaw: pickGradeSheet,
     pickOutput,
     run,
     reset

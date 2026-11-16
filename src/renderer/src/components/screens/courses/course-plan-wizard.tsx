@@ -35,14 +35,19 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@renderer/components/ui/tabs'
 import { AlertCircle, CheckCircle, Plus, Sparkles, Trash2 } from 'lucide-react'
 import { cn } from 'cn'
-import { roundHalfUp } from '@core/rules'
+import type { ValidationIssue } from '@core/types/validation'
+import { allocateIntegers } from '@renderer/lib/weight-allocation'
 import type { EditorConfig, EditorPlan, EditorQuestion } from './course-editor-types'
 import { ASSESSMENT_GROUPS, QUESTION_TYPES } from './course-editor-types'
+import { IssueLines } from './validation-summary'
 
 interface PlanWizardProps {
   config: EditorConfig
   setConfig: React.Dispatch<React.SetStateAction<EditorConfig>>
   cloCodes: string[]
+  dotIssues?: Record<string, ValidationIssue[]>
+  questionIssues?: Record<string, ValidationIssue[]>
+  planGlobal?: ValidationIssue[]
 }
 
 /** Một đợt đánh giá = một mã đầu điểm, gom các dòng kế hoạch (mỗi CLO một dòng) + câu hỏi. */
@@ -113,7 +118,14 @@ function nextCotDiemCode(config: EditorConfig, maDauDiem: string): string {
   return code()
 }
 
-export function PlanWizard({ config, setConfig, cloCodes }: PlanWizardProps): React.ReactElement {
+export function PlanWizard({
+  config,
+  setConfig,
+  cloCodes,
+  dotIssues = {},
+  questionIssues = {},
+  planGlobal = []
+}: PlanWizardProps): React.ReactElement {
   const dots = groupDots(config)
   const [cloPickerNonce, setCloPickerNonce] = useState(0)
   // Giữ mã đề chưa có câu hỏi nào; nếu chỉ suy ra từ cauHoi thì tab mới biến mất ngay.
@@ -219,10 +231,12 @@ export function PlanWizard({ config, setConfig, cloCodes }: PlanWizardProps): Re
     })
   }
 
-  /** Đặt trọng số cho đợt: phân bổ theo điểm câu hỏi nếu có, hoặc chia đều (cho phép số thập phân). */
+  /** Đặt trọng số cho đợt: phân bổ số nguyên theo điểm câu hỏi nếu có, hoặc chia đều. */
   const setDotTotalWeight = (dot: Dot, total: number): void => {
     const n = dot.rows.length
     if (n === 0 || !Number.isFinite(total) || total < 0) return
+
+    const target = Math.round(total)
 
     // Tính điểm câu hỏi theo từng CLO nếu có câu hỏi
     const questions = dot.questions
@@ -237,33 +251,19 @@ export function PlanWizard({ config, setConfig, cloCodes }: PlanWizardProps): Re
 
     setConfig((c) => {
       const dotRows = c.keHoachDanhGia.filter((p) => p.maDauDiem === dot.maDauDiem)
-      let allocated = 0
+      const weights = allocateIntegers(
+        dotRows.map((row) => (totalQScore > 0 ? cloScores[row.clo] || 0 : 1)),
+        target
+      )
+      let index = 0
 
       return {
         ...c,
         keHoachDanhGia: c.keHoachDanhGia.map((p) => {
           if (p.maDauDiem !== dot.maDauDiem) return p
-          const rowIdx = dotRows.findIndex((r) => r._id === p._id)
-          const isLast = rowIdx === dotRows.length - 1
-
-          let w = 0
-          if (totalQScore > 0) {
-            if (isLast) {
-              w = roundHalfUp(total - allocated, 2)
-            } else {
-              const qScore = cloScores[p.clo] || 0
-              w = roundHalfUp((qScore / totalQScore) * total, 2)
-              allocated += w
-            }
-          } else {
-            if (isLast) {
-              w = roundHalfUp(total - allocated, 2)
-            } else {
-              w = roundHalfUp(total / dotRows.length, 2)
-              allocated += w
-            }
-          }
-          return { ...p, trongSoPhanTram: w }
+          const weight = weights[index] ?? 0
+          index += 1
+          return { ...p, trongSoPhanTram: weight }
         })
       }
     })
@@ -402,6 +402,7 @@ export function PlanWizard({ config, setConfig, cloCodes }: PlanWizardProps): Re
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {planGlobal.length > 0 ? <IssueLines issues={planGlobal} /> : null}
         {dots.length === 0 ? (
           <p className="text-muted-foreground py-4 text-center text-sm">
             Chưa có đợt đánh giá. Chọn nhóm bên dưới để thêm đợt đầu tiên.
@@ -410,6 +411,8 @@ export function PlanWizard({ config, setConfig, cloCodes }: PlanWizardProps): Re
           <div className="space-y-6">
             {dots.map((dot) => {
               const dotWeight = dot.rows.reduce((sum, p) => sum + p.trongSoPhanTram, 0)
+              const dotIssueList = dotIssues[dot.maDauDiem] ?? []
+              const dotHasError = dotIssueList.some((issue) => issue.level === 'error')
               const examCodes = [
                 'ALL',
                 ...new Set([
@@ -488,6 +491,7 @@ export function PlanWizard({ config, setConfig, cloCodes }: PlanWizardProps): Re
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    {dotIssueList.length > 0 ? <IssueLines issues={dotIssueList} /> : null}
                     {/* CLO được đo + trọng số */}
                     <div className="border-border/50 space-y-2 border-t pt-4">
                       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -510,8 +514,10 @@ export function PlanWizard({ config, setConfig, cloCodes }: PlanWizardProps): Re
                           <Input
                             type="number"
                             min="0"
+                            step="1"
                             value={dotWeight || ''}
                             placeholder="VD: 30"
+                            aria-invalid={dotHasError || undefined}
                             onChange={(e) => setDotTotalWeight(dot, Number(e.target.value) || 0)}
                             onFocus={(e) => e.target.select()}
                             className="w-24 text-right font-mono text-sm"
@@ -569,7 +575,9 @@ export function PlanWizard({ config, setConfig, cloCodes }: PlanWizardProps): Re
                                     <Input
                                       type="number"
                                       min="0"
+                                      step="1"
                                       value={row.trongSoPhanTram || ''}
+                                      aria-invalid={dotHasError || undefined}
                                       onChange={(e) => {
                                         const val = e.target.value
                                         patchCloWeight(row._id, val === '' ? 0 : Number(val))
@@ -643,6 +651,7 @@ export function PlanWizard({ config, setConfig, cloCodes }: PlanWizardProps): Re
                       <CcColumns
                         dot={dot}
                         cloCodes={cloCodes}
+                        questionIssues={questionIssues}
                         addQuestion={addQuestion}
                         patchQuestion={patchQuestion}
                         deleteQuestion={deleteQuestion}
@@ -652,6 +661,7 @@ export function PlanWizard({ config, setConfig, cloCodes }: PlanWizardProps): Re
                         dot={dot}
                         examCodes={examCodes}
                         cloCodes={cloCodes}
+                        questionIssues={questionIssues}
                         addQuestion={addQuestion}
                         patchQuestion={patchQuestion}
                         deleteQuestion={deleteQuestion}
@@ -696,11 +706,12 @@ export function PlanWizard({ config, setConfig, cloCodes }: PlanWizardProps): Re
 function CcColumns(props: {
   dot: Dot
   cloCodes: string[]
+  questionIssues: Record<string, ValidationIssue[]>
   addQuestion: (dot: Dot, maDe: string) => void
   patchQuestion: (id: string, patch: Partial<EditorQuestion>) => void
   deleteQuestion: (id: string) => void
 }): React.ReactElement {
-  const { dot, addQuestion, patchQuestion, deleteQuestion } = props
+  const { dot, questionIssues, addQuestion, patchQuestion, deleteQuestion } = props
   const dotCloCodes = dot.rows.map((row) => row.clo)
   return (
     <div className="border-border/50 space-y-3 border-t pt-4">
@@ -725,60 +736,74 @@ function CcColumns(props: {
                 </TableCell>
               </TableRow>
             ) : (
-              dot.questions.map((q, idx) => (
-                <TableRow key={q._id}>
-                  <TableCell className="text-muted-foreground text-center">{idx + 1}</TableCell>
-                  <TableCell className="text-muted-foreground font-mono text-xs">
-                    {q.maCotDiem}
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      value={q.cau}
-                      onChange={(e) => patchQuestion(q._id, { cau: e.target.value })}
-                      placeholder="VD: Điểm chuyên cần"
-                      className="text-sm"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      value={q.clo || undefined}
-                      onValueChange={(v) => patchQuestion(q._id, { clo: v })}
-                      disabled={dotCloCodes.length === 0}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Chọn CLO" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {dotCloCodes.map((code) => (
-                          <SelectItem key={code} value={code}>
-                            {code}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      type="number"
-                      min="0"
-                      max="10"
-                      step="0.1"
-                      value={q.diemToiDa || ''}
-                      onChange={(e) => {
-                        const val = e.target.value
-                        patchQuestion(q._id, { diemToiDa: val === '' ? 0 : Number(val) })
-                      }}
-                      onFocus={(e) => e.target.select()}
-                      className="w-20 text-right font-mono text-sm"
-                    />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Button variant="ghost" size="icon" onClick={() => deleteQuestion(q._id)}>
-                      <Trash2 className="text-destructive size-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
+              dot.questions.map((q, idx) => {
+                const issues = questionIssues[q.maCotDiem] ?? []
+                const hasError = issues.some((issue) => issue.level === 'error')
+                return (
+                  <React.Fragment key={q._id}>
+                    <TableRow>
+                      <TableCell className="text-muted-foreground text-center">{idx + 1}</TableCell>
+                      <TableCell className="text-muted-foreground font-mono text-xs">
+                        {q.maCotDiem}
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={q.cau}
+                          onChange={(e) => patchQuestion(q._id, { cau: e.target.value })}
+                          placeholder="VD: Điểm chuyên cần"
+                          className="text-sm"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={q.clo || undefined}
+                          onValueChange={(v) => patchQuestion(q._id, { clo: v })}
+                          disabled={dotCloCodes.length === 0}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Chọn CLO" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {dotCloCodes.map((code) => (
+                              <SelectItem key={code} value={code}>
+                                {code}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="10"
+                          step="0.1"
+                          value={q.diemToiDa || ''}
+                          aria-invalid={hasError || undefined}
+                          onChange={(e) => {
+                            const val = e.target.value
+                            patchQuestion(q._id, { diemToiDa: val === '' ? 0 : Number(val) })
+                          }}
+                          onFocus={(e) => e.target.select()}
+                          className="w-20 text-right font-mono text-sm"
+                        />
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Button variant="ghost" size="icon" onClick={() => deleteQuestion(q._id)}>
+                          <Trash2 className="text-destructive size-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                    {issues.length > 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="border-0 pt-0">
+                          <IssueLines issues={issues} />
+                        </TableCell>
+                      </TableRow>
+                    ) : null}
+                  </React.Fragment>
+                )
+              })
             )}
           </TableBody>
         </Table>
@@ -795,6 +820,7 @@ function ExamQuestions(props: {
   dot: Dot
   examCodes: string[]
   cloCodes: string[]
+  questionIssues: Record<string, ValidationIssue[]>
   addQuestion: (dot: Dot, maDe: string) => void
   patchQuestion: (id: string, patch: Partial<EditorQuestion>) => void
   deleteQuestion: (id: string) => void
@@ -805,6 +831,7 @@ function ExamQuestions(props: {
     dot,
     examCodes,
     cloCodes,
+    questionIssues,
     addQuestion,
     patchQuestion,
     deleteQuestion,
@@ -898,84 +925,100 @@ function ExamQuestions(props: {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      questions.map((q, idx) => (
-                        <TableRow key={q._id}>
-                          <TableCell className="text-muted-foreground text-center">
-                            {idx + 1}
-                          </TableCell>
-                          <TableCell className="text-muted-foreground font-mono text-xs">
-                            {q.maCotDiem}
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              value={q.cau}
-                              onChange={(e) => patchQuestion(q._id, { cau: e.target.value })}
-                              className="font-mono text-sm"
-                              placeholder="VD: Câu 1a"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Select
-                              value={q.clo || undefined}
-                              onValueChange={(v) => patchQuestion(q._id, { clo: v })}
-                              disabled={cloCodes.length === 0}
-                            >
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Chọn CLO" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {cloCodes.map((code) => (
-                                  <SelectItem key={code} value={code}>
-                                    {code}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              type="number"
-                              min="0"
-                              step="0.1"
-                              value={q.diemToiDa || ''}
-                              onChange={(e) => {
-                                const val = e.target.value
-                                patchQuestion(q._id, { diemToiDa: val === '' ? 0 : Number(val) })
-                              }}
-                              onFocus={(e) => e.target.select()}
-                              className="w-20 text-right font-mono text-sm"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Select
-                              value={q.loai || 'TL'}
-                              onValueChange={(v) =>
-                                patchQuestion(q._id, { loai: v as 'TL' | 'TN' })
-                              }
-                            >
-                              <SelectTrigger className="w-full">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {QUESTION_TYPES.map((t) => (
-                                  <SelectItem key={t.value} value={t.value}>
-                                    {t.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => deleteQuestion(q._id)}
-                            >
-                              <Trash2 className="text-destructive size-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
+                      questions.map((q, idx) => {
+                        const issues = questionIssues[q.maCotDiem] ?? []
+                        const hasError = issues.some((issue) => issue.level === 'error')
+                        return (
+                          <React.Fragment key={q._id}>
+                            <TableRow>
+                              <TableCell className="text-muted-foreground text-center">
+                                {idx + 1}
+                              </TableCell>
+                              <TableCell className="text-muted-foreground font-mono text-xs">
+                                {q.maCotDiem}
+                              </TableCell>
+                              <TableCell>
+                                <Input
+                                  value={q.cau}
+                                  onChange={(e) => patchQuestion(q._id, { cau: e.target.value })}
+                                  className="font-mono text-sm"
+                                  placeholder="VD: Câu 1a"
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <Select
+                                  value={q.clo || undefined}
+                                  onValueChange={(v) => patchQuestion(q._id, { clo: v })}
+                                  disabled={cloCodes.length === 0}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Chọn CLO" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {cloCodes.map((code) => (
+                                      <SelectItem key={code} value={code}>
+                                        {code}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </TableCell>
+                              <TableCell>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  step="0.1"
+                                  value={q.diemToiDa || ''}
+                                  aria-invalid={hasError || undefined}
+                                  onChange={(e) => {
+                                    const val = e.target.value
+                                    patchQuestion(q._id, {
+                                      diemToiDa: val === '' ? 0 : Number(val)
+                                    })
+                                  }}
+                                  onFocus={(e) => e.target.select()}
+                                  className="w-20 text-right font-mono text-sm"
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <Select
+                                  value={q.loai || 'TL'}
+                                  onValueChange={(v) =>
+                                    patchQuestion(q._id, { loai: v as 'TL' | 'TN' })
+                                  }
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {QUESTION_TYPES.map((t) => (
+                                      <SelectItem key={t.value} value={t.value}>
+                                        {t.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => deleteQuestion(q._id)}
+                                >
+                                  <Trash2 className="text-destructive size-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                            {issues.length > 0 ? (
+                              <TableRow>
+                                <TableCell colSpan={7} className="border-0 pt-0">
+                                  <IssueLines issues={issues} />
+                                </TableCell>
+                              </TableRow>
+                            ) : null}
+                          </React.Fragment>
+                        )
+                      })
                     )}
                   </TableBody>
                 </Table>

@@ -4,6 +4,7 @@ import {
   BookOpen,
   ChartColumn,
   CircleHelp,
+  History,
   House,
   Plus,
   Settings,
@@ -30,7 +31,8 @@ const MAIN_NAV: { id: ScreenId; label: string; icon: React.ElementType }[] = [
   { id: 'home', label: 'Trang chủ', icon: House },
   { id: 'courses', label: 'Môn học', icon: BookOpen },
   { id: 'students', label: 'Sinh viên', icon: Users },
-  { id: 'reports', label: 'Báo cáo', icon: ChartColumn }
+  { id: 'reports', label: 'Báo cáo', icon: ChartColumn },
+  { id: 'history', label: 'Lịch sử', icon: History }
 ]
 
 /** Chỉ chỉnh kích thước/căn giữa; trạng thái active tô màu thủ công (không dùng prop isActive của kit) */

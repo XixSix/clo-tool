@@ -5,8 +5,8 @@ import { Badge } from '@renderer/components/ui/badge'
 
 const STEPS = [
   {
-    title: '1. Chuẩn bị file Config',
-    desc: 'Tạo file Template_Config.xlsx khai báo học phần: mã môn, số tín chỉ, danh sách CLO + trọng số, các đầu điểm và cấu trúc từng đề thi (mã đầu điểm, mã đề, cột điểm, trọng số). Lưu ý: mỗi mã đầu điểm + mã đề phải cho tổng điểm tối đa đúng bằng 10.'
+    title: '1. Cấu hình học phần',
+    desc: 'Vào màn Học phần, thêm môn rồi mở chi tiết để khai báo danh sách CLO + trọng số, các đầu điểm và cấu trúc từng đề thi (mã đầu điểm, mã đề, cột điểm, trọng số). Lưu ý: mỗi mã đầu điểm + mã đề phải cho tổng điểm tối đa đúng bằng 10. Có thể dùng Nhập JSON nếu đã xuất cấu hình từ trước.'
   },
   {
     title: '2. Nhập file điểm thô',

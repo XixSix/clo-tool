@@ -1,6 +1,8 @@
 import type { ValidationIssue } from '@core/types'
 import type { IssueDto } from '../../shared/ipc'
 
+export { hasErrors } from '@core/validator/helpers'
+
 export function toIssueDto(issue: ValidationIssue): IssueDto {
   return {
     level: issue.level,
@@ -11,10 +13,6 @@ export function toIssueDto(issue: ValidationIssue): IssueDto {
     message: issue.message,
     suggestion: issue.suggestion
   }
-}
-
-export function hasErrors(issues: ValidationIssue[]): boolean {
-  return issues.some((issue) => issue.level === 'error')
 }
 
 export function errorMessage(error: unknown, fallback: string): string {

@@ -11,6 +11,7 @@ import { MonHoc } from '@renderer/components/screens/courses'
 import { NhapDiem } from '@renderer/components/screens/grades'
 import { SinhVien } from '@renderer/components/screens/students'
 import { BaoCao } from '@renderer/components/screens/reports'
+import { LichSuScreen } from '@renderer/components/screens/history'
 import { CaiDat } from '@renderer/components/screens/settings'
 import { HuongDan } from '@renderer/components/screens/guide'
 
@@ -48,6 +49,7 @@ export default function AppShell(): React.ReactElement {
             {!waitingCourse && screen === 'reports' ? (
               <BaoCao key={active?.id ?? 'none'} onScreen={setScreen} />
             ) : null}
+            {!waitingCourse && screen === 'history' ? <LichSuScreen /> : null}
             {!waitingCourse && screen === 'import' ? (
               <NhapDiem key={active?.id ?? 'none'} onScreen={setScreen} />
             ) : null}

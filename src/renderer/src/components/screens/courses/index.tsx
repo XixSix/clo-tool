@@ -10,12 +10,13 @@ import type { SessionDto } from '../../../../../shared/ipc'
 import { AddCourseDialog } from '@renderer/components/screens/courses/add-course-dialog'
 import { CourseCard } from '@renderer/components/screens/courses/course-card'
 import { CourseDetail } from '@renderer/components/screens/courses/course-detail'
+import type { CourseDetailTab } from '@renderer/components/screens/courses/course-editor-types'
 
 export function MonHoc({ onScreen }: { onScreen: (s: ScreenId) => void }): React.ReactElement {
   const { ws, loading, active, upsertSession } = useWorkspace()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [detailId, setDetailId] = useState<string | null>(null)
-  const [detailTab, setDetailTab] = useState<'info' | 'config' | 'runs'>('info')
+  const [detailTab, setDetailTab] = useState<CourseDetailTab>('info-clo')
   const openCourse = useOpenCourseScreen(onScreen)
 
   const detail = (ws?.sessions ?? []).find((s) => s.id === detailId) ?? null
@@ -31,7 +32,7 @@ export function MonHoc({ onScreen }: { onScreen: (s: ScreenId) => void }): React
     )
   }
 
-  function openDetail(session: SessionDto, tab: 'info' | 'config' | 'runs' = 'info'): void {
+  function openDetail(session: SessionDto, tab: CourseDetailTab = 'info-clo'): void {
     setDetailTab(tab)
     setDetailId(session.id)
   }
@@ -85,7 +86,12 @@ export function MonHoc({ onScreen }: { onScreen: (s: ScreenId) => void }): React
         </div>
       )}
 
-      <AddCourseDialog open={dialogOpen} onOpenChange={setDialogOpen} onSubmit={upsertSession} />
+      <AddCourseDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onSubmit={upsertSession}
+        existingCodes={(ws?.sessions ?? []).map((s) => s.maHp)}
+      />
     </div>
   )
 }

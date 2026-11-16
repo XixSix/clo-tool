@@ -17,6 +17,15 @@ export interface CourseInfo {
   loaiHp: 'thuong' | 'thuc_hanh'
 }
 
+/** Ba tab cấp cao của trang chi tiết môn (trước đây là tab con của editor). */
+export type CourseDetailTab = 'info-clo' | 'plan-exam' | 'plo'
+
+export const COURSE_DETAIL_TABS: { value: CourseDetailTab; label: string }[] = [
+  { value: 'info-clo', label: 'Thông tin & CLO' },
+  { value: 'plan-exam', label: 'Kế hoạch & Đề thi' },
+  { value: 'plo', label: 'Ma trận PLO' }
+]
+
 export interface CLODefinition {
   maClo: string
   noiDung: string

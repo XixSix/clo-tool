@@ -17,9 +17,11 @@ import type {
   PLO
 } from '@core/types/course'
 import { roundHalfUp } from '@core/rules'
+import { allocateIntegers, roundIntegers } from '../../../lib/weight-allocation'
 import type {
   CLODefinition,
   CourseConfig,
+  EditorConfig,
   EvaluationPlanItem,
   PLOMapping,
   QuestionColumn
@@ -38,6 +40,56 @@ function groupBy<T>(items: T[], key: (item: T) => string): Map<string, T[]> {
 
 function unique<T>(items: T[]): T[] {
   return Array.from(new Set(items))
+}
+
+function withoutId<T extends { _id: string }>(row: T): Omit<T, '_id'> {
+  const copy: Record<string, unknown> = { ...row }
+  delete copy._id
+  return copy as Omit<T, '_id'>
+}
+
+/** Editor → `Course` trên một đường duy nhất (bỏ _id, bỏ dòng placeholder). */
+export function editorConfigToCourse(editor: EditorConfig, meta?: CourseMetaLike): Course {
+  return editorToCourse(
+    {
+      courseInfo: editor.courseInfo,
+      cloList: editor.cloList.map(withoutId),
+      keHoachDanhGia: editor.keHoachDanhGia
+        .filter((row) => row.clo !== '__PLACEHOLDER__')
+        .map(withoutId),
+      cauHoi: editor.cauHoi.map(withoutId),
+      maTranPlo: editor.maTranPlo.map(withoutId),
+      diemDanh: editor.diemDanh,
+      quyTac: editor.quyTac
+    },
+    meta
+  )
+}
+
+/**
+ * Chuẩn hoá trọng số về số nguyên khi NẠP dữ liệu (core yêu cầu `trongSoPhanTram` nguyên).
+ * Tổng xấp xỉ 100 → phân bổ lại đúng 100; bản nháp lệch xa → chỉ làm tròn từng dòng.
+ */
+export function normalizeEditorWeights(editor: EditorConfig): EditorConfig {
+  const rows = editor.keHoachDanhGia.filter((row) => row.clo !== '__PLACEHOLDER__')
+  if (rows.length === 0) return editor
+
+  const raw = rows.map((row) =>
+    Number.isFinite(row.trongSoPhanTram) ? row.trongSoPhanTram : 0
+  )
+  const total = raw.reduce((sum, value) => sum + value, 0)
+  const weights = Math.abs(total - 100) <= 0.5 ? allocateIntegers(raw, 100) : roundIntegers(raw)
+
+  let index = 0
+  return {
+    ...editor,
+    keHoachDanhGia: editor.keHoachDanhGia.map((row) => {
+      if (row.clo === '__PLACEHOLDER__') return row
+      const next = weights[index]
+      index += 1
+      return next === row.trongSoPhanTram ? row : { ...row, trongSoPhanTram: next }
+    })
+  }
 }
 
 /** Dữ liệu môn ngoài model, gắn thêm vào Course khi lưu (giảng viên, năm học). */
@@ -270,14 +322,13 @@ export function courseToEditor(course: Course): CourseConfig {
 
 /**
  * Chuẩn hoá dữ liệu cấu hình đọc từ sessionStorage / IPC về `Course`.
- * Hỗ trợ cả dữ liệu phẳng cũ (có `courseInfo`) để không mất cấu hình đã lưu.
+ * Chấp nhận cả dạng bọc `{ config, meta }` lẫn `Course` trần.
  */
 export function normalizeStoredCourse(raw: unknown): Course | null {
   if (!raw || typeof raw !== 'object') return null
   const wrapper = raw as { config?: unknown }
   const value = wrapper.config ?? raw
   if (!value || typeof value !== 'object') return null
-  if ('courseInfo' in value) return editorToCourse(value as CourseConfig)
   if ('dotDanhGia' in value) return value as Course
   return null
 }

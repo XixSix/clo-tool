@@ -20,7 +20,7 @@ interface MergedRow {
   run: RunHistoryEntryDto
 }
 
-/** Bảng lịch sử chạy — dùng ở tab "Lịch sử chạy" của Báo cáo và trang chi tiết môn. */
+/** Bảng lịch sử chạy — dùng ở màn "Lịch sử" (toàn bộ môn) và tab "Lịch sử chạy" của Báo cáo. */
 export function LichSu({ sessionId }: { sessionId?: string }): React.ReactElement {
   const { ws } = useWorkspace()
 

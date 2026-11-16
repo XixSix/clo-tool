@@ -1,11 +1,9 @@
 import { app, dialog, ipcMain, type BrowserWindow } from 'electron'
 import { promises as fs } from 'node:fs'
 import * as path from 'node:path'
-import type { ConfigSummaryDto, StoredCourseConfig } from '../../shared/ipc'
+import type { StoredCourseConfig } from '../../shared/ipc'
 import type { Course } from '@core/types/course'
 import { writeGradeSheetTemplate } from '@core/io/templateGenerator'
-import { hasErrors, toIssueDto } from './common'
-import { loadConfig } from './loaders'
 
 function configsDir(): string {
   return path.join(app.getPath('userData'), 'configs')
@@ -17,49 +15,6 @@ function configFile(sessionId: string): string {
 }
 
 export function registerConfigHandlers(getWindow?: () => BrowserWindow | null): void {
-  ipcMain.handle('config:parse', async (_event, configPath: string): Promise<ConfigSummaryDto> => {
-    const loaded = await loadConfig(configPath)
-    if (!loaded.config) {
-      return {
-        ok: false,
-        filePath: configPath,
-        cloList: [],
-        planCount: 0,
-        totalWeight: 0,
-        ploCount: 0,
-        issues: loaded.issues.map(toIssueDto),
-        hasErrors: true,
-        error: loaded.error
-      }
-    }
-
-    const course = loaded.config
-    return {
-      ok: true,
-      filePath: configPath,
-      courseName: course.tenHp,
-      maHp: course.maHp,
-      soTinChi: course.soTinChi,
-      hinhThucThi: course.hinhThucThi,
-      cloList: course.cloList.map((clo) => ({
-        code: clo.maClo,
-        content: clo.noiDung,
-        weight: clo.trongSoClo ?? 1
-      })),
-      planCount: course.dotDanhGia.length,
-      totalWeight: course.dotDanhGia.reduce((sum, dot) => sum + dot.trongSoPhanTram, 0),
-      ploCount: course.ploList.length,
-      rules: {
-        nguongDatClo: course.quyTac.nguongDatClo,
-        nguongDatPlo: course.quyTac.nguongDatPlo,
-        nguongDatHp: course.quyTac.nguongDatHp,
-        hpMethod: course.quyTac.phuongThucTinhHp
-      },
-      issues: loaded.issues.map(toIssueDto),
-      hasErrors: hasErrors(loaded.issues)
-    }
-  })
-
   ipcMain.handle(
     'config:get',
     async (_event, sessionId: string): Promise<StoredCourseConfig | null> => {

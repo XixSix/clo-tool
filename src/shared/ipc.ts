@@ -23,38 +23,6 @@ export interface IssueDto {
   suggestion?: string
 }
 
-export interface CloInfoDto {
-  code: string
-  content: string
-  weight: number
-}
-
-export interface ConfigSummaryDto {
-  ok: boolean
-  filePath: string
-  courseName?: string
-  maHp?: string
-  soTinChi?: number
-  hinhThucThi?: string
-  lop?: string
-  giangVien?: string
-  hocKy?: string
-  namHoc?: string
-  cloList: CloInfoDto[]
-  planCount: number
-  totalWeight: number
-  ploCount: number
-  rules?: {
-    nguongDatClo: number
-    nguongDatPlo: number
-    nguongDatHp: number
-    hpMethod: string
-  }
-  issues: IssueDto[]
-  hasErrors: boolean
-  error?: string
-}
-
 export interface GradeSheetSummaryDto {
   ok: boolean
   filePath: string
@@ -94,7 +62,6 @@ export interface RunResultDto {
 export interface SampleResultDto {
   ok: boolean
   dir: string
-  configPath?: string
   gradeSheetPath?: string
   error?: string
 }
@@ -120,7 +87,6 @@ export interface RunHistoryEntryDto {
   label?: string
   /** Mốc epoch (ms) lúc chạy xong */
   ts: number
-  configPath: string
   gradeSheetPath: string
   outputDir: string
   finalReportPath?: string
@@ -157,9 +123,7 @@ export interface SessionDto {
   namHoc?: string
   giangVien?: string
   cloCount?: number
-  configPath?: string
   gradeSheetPath?: string
-  rawPath?: string
   outDir?: string
   addedAt: number
   /** Mở lần gần nhất — để xếp "Môn học hiện tại" */
@@ -171,10 +135,6 @@ export interface SessionDto {
 export interface WorkspaceDto {
   activeId: string | null
   sessions: SessionDto[]
-}
-
-export interface FilePickKind {
-  kind: 'config' | 'grade-sheet'
 }
 
 /** Trạng thái tự cập nhật do main process đẩy xuống renderer */
@@ -201,21 +161,17 @@ export interface StoredCourseConfig {
 /** API mà preload expose ra window.api */
 export interface CloApi {
   setTitleBarTheme: (theme: 'light' | 'dark') => Promise<void>
-  pickFile: (kind: FilePickKind['kind']) => Promise<string | null>
+  pickFile: () => Promise<string | null>
   pickDirectory: () => Promise<string | null>
-  parseConfig: (configPath: string) => Promise<ConfigSummaryDto>
   getCourseConfig: (sessionId: string) => Promise<StoredCourseConfig | null>
   saveCourseConfig: (sessionId: string, data: StoredCourseConfig) => Promise<void>
   exportGradeSheetTemplate: (
     config: Course,
     defaultFileName?: string
   ) => Promise<{ ok: boolean; path?: string; error?: string }>
-  parseGradeSheet: (
-    configSource: string | Course,
-    gradeSheetPath: string
-  ) => Promise<GradeSheetSummaryDto>
+  parseGradeSheet: (course: Course, gradeSheetPath: string) => Promise<GradeSheetSummaryDto>
   runPipeline: (
-    configSource: string | Course,
+    course: Course,
     gradeSheetPath: string,
     outputDir: string,
     sessionId?: string

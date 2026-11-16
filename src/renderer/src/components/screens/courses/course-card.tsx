@@ -20,6 +20,7 @@ import { formatDateTime, formatPercent, formatScore } from '@renderer/lib/format
 import type { ScreenId } from '@renderer/lib/navigation'
 import type { SessionDto } from '../../../../../shared/ipc'
 import { DeleteCourseDialog } from '@renderer/components/screens/courses/delete-course-dialog'
+import type { CourseDetailTab } from '@renderer/components/screens/courses/course-editor-types'
 
 /** Thẻ một môn trong danh sách môn học. */
 export function CourseCard({
@@ -31,7 +32,7 @@ export function CourseCard({
   session: SessionDto
   isActive: boolean
   onOpen: (session: SessionDto, screen: ScreenId) => void
-  onDetail: (session: SessionDto, tab?: 'info' | 'config' | 'runs') => void
+  onDetail: (session: SessionDto, tab?: CourseDetailTab) => void
 }): React.ReactElement {
   const { removeSession } = useWorkspace()
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -49,7 +50,7 @@ export function CourseCard({
         <div className="flex items-start justify-between gap-2">
           <button
             type="button"
-            onClick={() => onDetail(session)}
+            onClick={() => onDetail(session, 'info-clo')}
             className="truncate text-left font-mono text-base font-medium hover:underline"
             title="Xem chi tiết môn học"
           >
@@ -66,7 +67,7 @@ export function CourseCard({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onDetail(session, 'config')}>
+              <DropdownMenuItem onClick={() => onDetail(session, 'info-clo')}>
                 <Settings2 /> Cấu hình môn
               </DropdownMenuItem>
               <DropdownMenuItem variant="destructive" onClick={() => setConfirmDelete(true)}>
@@ -105,7 +106,7 @@ export function CourseCard({
       </CardContent>
 
       <CardFooter className="flex-wrap gap-2">
-        <Button variant="outline" size="sm" onClick={() => onDetail(session, 'config')}>
+        <Button variant="outline" size="sm" onClick={() => onDetail(session, 'info-clo')}>
           <Settings2 data-icon="inline-start" />
           Cấu hình
         </Button>
