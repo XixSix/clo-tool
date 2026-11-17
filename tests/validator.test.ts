@@ -144,7 +144,7 @@ describe('validateCloList - phần CLO_LIST', () => {
     const issues = validateCourse(course)
     expect(errors(issues)).toHaveLength(0)
     const wms = warnings(issues).map((w) => w.message)
-    expect(wms).toContain('CLO "CLO1" thiếu bậc năng lực (Bac_Nang_Luc).')
+    expect(wms).toContain('CLO1 thiếu bậc năng lực.')
     expect(wms).toContain(
       'Bậc năng lực "3-6" của CLO "CLO2" sai định dạng — phải dạng bậc/thang (ví dụ 3/6).'
     )
