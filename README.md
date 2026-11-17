@@ -6,6 +6,10 @@ Clove là phần mềm desktop của **Đại học Thành Đông** dùng để 
 Ứng dụng chạy **hoàn toàn offline trên máy giảng viên**: không cần mạng, không gửi dữ liệu
 sinh viên ra ngoài. Mọi file Excel đọc vào và báo cáo xuất ra đều nằm trên máy bạn.
 
+> **⬇️ [Tải bản mới nhất](https://github.com/XixSix/clo-tool/releases/latest)** &nbsp;·&nbsp;
+> **📥 [Hướng dẫn cài đặt](#1-tải-và-cài-đặt)** &nbsp;·&nbsp;
+> **❓ [Câu hỏi thường gặp](#7-câu-hỏi-thường-gặp)**
+
 ---
 
 ## 1. Tải và cài đặt
