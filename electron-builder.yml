@@ -1,5 +1,5 @@
 appId: vn.thanhdong.clo-evaluator
-productName: CLO_PLO_Evaluator
+productName: Clove
 directories:
   buildResources: resources
   output: dist
@@ -13,6 +13,7 @@ publish:
   # 'release' để auto-update thấy bản mới ngay; đổi thành 'draft' nếu muốn duyệt tay
   releaseType: release
 win:
+  icon: resources/icon.ico
   target:
     - target: portable
       arch:
@@ -30,6 +31,7 @@ portable:
 # macOS: dmg để cài tay, zip là bắt buộc để electron-updater tự cập nhật.
 # Tên file kèm ${arch} vì build riêng cho Apple Silicon và Intel.
 mac:
+  icon: resources/icon.png
   category: public.app-category.education
   artifactName: ${productName}-${version}-${arch}.${ext}
   target:

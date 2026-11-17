@@ -3,7 +3,8 @@ import type { CloApi, UpdateStatusDto } from '../shared/ipc'
 
 // Cầu nối bảo mật an toàn giữa Main Process và Renderer
 const api: CloApi = {
-  setTitleBarTheme: (theme) => ipcRenderer.invoke('window:set-titlebar-theme', theme),
+  setTitleBarTheme: (theme, background) =>
+    ipcRenderer.invoke('window:set-titlebar-theme', theme, background),
   pickFile: () => ipcRenderer.invoke('dialog:pick-file'),
   pickDirectory: () => ipcRenderer.invoke('dialog:pick-directory'),
   getCourseConfig: (sessionId) => ipcRenderer.invoke('config:get', sessionId),

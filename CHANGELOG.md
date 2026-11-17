@@ -6,6 +6,21 @@ Mọi thay đổi đáng chú ý của phần mềm được ghi ở đây. Đ�
 
 ## [Unreleased]
 
+## [1.0.7] - 2026-11-17
+
+### Thêm
+
+- **Logo Đại học Thành Đông** làm biểu tượng ứng dụng (exe, taskbar, bộ cài) và hiển thị
+  trong sidebar cùng góc phải thanh tiêu đề.
+- **Bảng màu giao diện** trong Cài đặt: Mặc định, Cappuccino, Night sands, Amber obsidian,
+  Magma obsidian; áp cho cả chế độ Sáng/Tối và đổi màu thanh tiêu đề theo bảng màu.
+- Thanh cuộn mảnh, tự đổi độ đậm theo nền sáng/tối.
+
+### Sửa
+
+- Tên hiển thị thống nhất **Clove** ở tiêu đề cửa sổ, sidebar, báo cáo in và tài liệu.
+- Cảnh báo CLO thiếu nội dung / thiếu bậc năng lực gọn hơn, bỏ tiền tố `CLO` bị lặp.
+
 ## [1.0.6] - 2026-11-16
 
 ### Thêm

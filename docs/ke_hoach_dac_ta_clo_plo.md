@@ -397,7 +397,7 @@ Cần xác nhận hệ điều hành của giảng viên (chỉ Windows hay có 
 
 ## X. SẢN PHẨM BÀN GIAO
 
-- [ ] File cài đặt/chạy của ứng dụng (tên dự kiến `CLO_PLO_Evaluator`), không cần cài thêm gì.
+- [ ] File cài đặt/chạy của ứng dụng (tên `Clove`), không cần cài thêm gì.
 - [ ] Một học phần mẫu đã cấu hình trong app; `Template_DiemTho.xlsx` (do app sinh từ cấu hình).
 - [ ] Bộ dữ liệu ví dụ SV Nguyễn Văn Hùng (QĐ450 Phụ lục 4) để GV và P.QLCL tự kiểm tra.
 - [ ] Bảng quy tắc tính (1–2 trang) đã được P.QLCL xác nhận, ứng với `QUY_TAC` mặc định.

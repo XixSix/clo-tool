@@ -56,7 +56,7 @@ export function validateCloList(course: Course): ValidationIssue[] {
         level: 'warning',
         scope: 'clo',
         targetId: clo.maClo,
-        message: `CLO "${clo.maClo}" thiếu nội dung (Noi_Dung).`
+        message: `${clo.maClo} thiếu nội dung.`
       })
     }
 
@@ -65,7 +65,7 @@ export function validateCloList(course: Course): ValidationIssue[] {
         level: 'warning',
         scope: 'clo',
         targetId: clo.maClo,
-        message: `CLO "${clo.maClo}" thiếu bậc năng lực (Bac_Nang_Luc).`
+        message: `${clo.maClo} thiếu bậc năng lực.`
       })
     } else {
       const m = /^(\d+)\/(\d+)$/.exec(clo.bacNangLuc.trim())

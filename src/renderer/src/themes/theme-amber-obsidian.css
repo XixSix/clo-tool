@@ -1,0 +1,103 @@
+/* Bảng màu Amber obsidian — nâu đinh hương + đỏ magma.
+   Nền/chữ trung tính như giao diện gốc; palette tô nhẹ sidebar, mục đang chọn,
+   nút và biểu đồ — đủ nhận ra bảng màu mà không phủ kín màn hình. */
+
+:root[data-theme='amber-obsidian'] {
+  --background: #fbfbfb;
+  --foreground: #1c1c1e;
+
+  --card: #ffffff;
+  --card-foreground: #1c1c1e;
+
+  --popover: #ffffff;
+  --popover-foreground: #1c1c1e;
+
+  --primary: #691f0c;
+  --primary-foreground: #fdeee7;
+
+  --secondary: #f2f2f2;
+  --secondary-foreground: #1c1c1e;
+
+  --muted: #f4f4f4;
+  --muted-foreground: #63636a;
+
+  --accent: color-mix(in oklab, var(--primary) 7%, #f3f3f4);
+  --accent-foreground: #1c1c1e;
+
+  --success: #2f7d52;
+  --success-foreground: #f6fbf6;
+  --warning: #8a5a0f;
+  --warning-foreground: #fff8ec;
+
+  --destructive: #b3261e;
+  --destructive-foreground: #fff7f6;
+
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #b8442a;
+
+  --sidebar: color-mix(in oklab, var(--primary) 4%, #f5f5f5);
+  --sidebar-foreground: #1c1c1e;
+  --sidebar-primary: #691f0c;
+  --sidebar-primary-foreground: #fdeee7;
+  --sidebar-accent: color-mix(in oklab, var(--primary) 20%, #efeff0);
+  --sidebar-accent-foreground: #1c1c1e;
+  --sidebar-border: #e4e4e7;
+  --sidebar-ring: #b8442a;
+
+  --chart-1: #691f0c;
+  --chart-2: #b8442a;
+  --chart-3: #d3c0b2;
+  --chart-4: #7a7a78;
+  --chart-5: #1d1816;
+}
+
+:root[data-theme='amber-obsidian'].dark {
+  --background: #1a1a1a;
+  --foreground: #ececec;
+
+  --card: #212121;
+  --card-foreground: #ececec;
+
+  --popover: #212121;
+  --popover-foreground: #ececec;
+
+  --primary: #e0795b;
+  --primary-foreground: #2a1109;
+
+  --secondary: #2a2a2a;
+  --secondary-foreground: #ececec;
+
+  --muted: #2a2a2a;
+  --muted-foreground: #a3a3a3;
+
+  --accent: color-mix(in oklab, var(--primary) 8%, #2a2a2a);
+  --accent-foreground: #ececec;
+
+  --success: #7fc39a;
+  --success-foreground: #14231a;
+  --warning: #e0ae5f;
+  --warning-foreground: #2b1f0c;
+
+  --destructive: #f28b82;
+  --destructive-foreground: #2b120c;
+
+  --border: rgb(255 255 255 / 10%);
+  --input: rgb(255 255 255 / 14%);
+  --ring: #e0795b;
+
+  --sidebar: color-mix(in oklab, var(--primary) 5%, #151515);
+  --sidebar-foreground: #ececec;
+  --sidebar-primary: #e0795b;
+  --sidebar-primary-foreground: #2a1109;
+  --sidebar-accent: color-mix(in oklab, var(--primary) 15%, #262626);
+  --sidebar-accent-foreground: #ececec;
+  --sidebar-border: rgb(255 255 255 / 10%);
+  --sidebar-ring: #e0795b;
+
+  --chart-1: #e0795b;
+  --chart-2: #dc3c0c;
+  --chart-3: #d3c0b2;
+  --chart-4: #9c8f88;
+  --chart-5: #c0aea4;
+}
