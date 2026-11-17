@@ -46,7 +46,7 @@ export function PrintReport({
           Báo cáo đánh giá chuẩn đầu ra học phần
         </h1>
         <p className="mt-0.5 text-[10px]">
-          Theo Quyết định số 450/QĐ-ĐHTĐ ngày 07/8/2024 — Hệ thống clo-tool
+          Theo Quyết định số 450/QĐ-ĐHTĐ ngày 07/8/2024 — Hệ thống Clove
         </p>
       </div>
 
