@@ -1,6 +1,6 @@
-# CLO/PLO Evaluator — Đại học Thành Đông
+# Clove — Phần mềm đánh giá CLO/PLO (Đại học Thành Đông)
 
-Phần mềm desktop (Electron + React + TypeScript) đo lường và đánh giá chuẩn đầu ra học phần
+Clove là phần mềm desktop (Electron + React + TypeScript) đo lường và đánh giá chuẩn đầu ra học phần
 theo **QĐ 450/QĐ-ĐHTĐ ngày 07/8/2024**. Ứng dụng chạy **offline 100%**, không gửi dữ liệu ra ngoài.
 
 > Trạng thái: đã xong **Tuần 0–2** (core engine, đọc/ghi Excel, xuất báo cáo)
@@ -164,21 +164,31 @@ Mỗi phiên bản là **một tag `vX.Y.Z`** — tag chính là "hợp đồng"
    npm version 1.0.2 --no-git-tag-version
    ```
 
-3. Tạo nhánh phát hành từ `develop`, commit và gắn tag:
+3. Tạo nhánh phát hành **tuyến tính trên `origin/main`** (né lỗi rebase do commit merge trên
+   `develop`), squash nội dung `develop`, tăng version và commit:
 
    ```bash
-   git switch -c release/1.0.2
+   git switch -c release/1.0.2 origin/main
+   git merge --squash origin/develop
+   git commit -m "feat: <tóm tắt thay đổi>"
+   npm version 1.0.2 --no-git-tag-version
    git commit -am "chore(release): v1.0.2"
-   git tag -a v1.0.2 -m "CLO/PLO Evaluator v1.0.2"
    git push -u origin release/1.0.2
+   ```
+
+4. Mở **PR `release/x.y.z` → `main`** và chọn **Rebase and merge**. Merge xong mới gắn tag
+   trên `main` — chính lần push tag kích hoạt `.github/workflows/release.yml` (test, build,
+   đính kèm `Clove-<version>-setup.exe` có tự cập nhật, `-portable.exe` tải tay, `latest.yml`
+   + `.blockmap` vào GitHub Release):
+
+   ```bash
+   git switch main && git pull --ff-only
+   git tag v1.0.2 -m "Clove v1.0.2"
    git push origin v1.0.2
    ```
 
-4. Push tag kích hoạt `.github/workflows/release.yml`: chạy test, build và đính kèm
-   `CLO_PLO_Evaluator-<version>-setup.exe` (có tự cập nhật), `-portable.exe` (tải tay),
-   `latest.yml` + `.blockmap` vào GitHub Release.
-5. Gộp `release/x.y.z` vào `develop` (fast-forward), rồi mở **PR `release/x.y.z` → `main`**:
-   check `guard` phải xanh (chỉ nhận nhánh `release/x.y.z`), chọn **Rebase and merge**.
+5. Chép commit version + CHANGELOG ngược về `develop` (`git cherry-pick`) rồi push thẳng —
+   không merge nhánh release vào `develop`.
    `main` có ruleset `protect-main` nên **không push thẳng** được.
 
 Lưu ý:

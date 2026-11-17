@@ -14,6 +14,7 @@ import { hasBridge } from '@renderer/lib/theme'
 import { useWorkspace } from '@renderer/hooks/workspace'
 import { COURSE_SCOPED, SCREEN_TITLES, type ScreenId } from '@renderer/lib/navigation'
 import { ThemeToggle } from '@renderer/components/shell/theme-toggle'
+import logo from '@renderer/assets/logo.png'
 
 /** Nút chuông thông báo — place holder với chấm đỏ, popover "chưa có mới" */
 function NotificationBell(): React.ReactElement {
@@ -48,9 +49,11 @@ function ProfileBadge({ onScreen }: { onScreen: (s: ScreenId) => void }): React.
           aria-label="Tài khoản"
           className="bg-card ring-border/70 hover:bg-secondary flex h-11 shrink-0 items-center gap-2.5 rounded-full py-1.5 pr-3 pl-1.5 shadow-sm ring-1 transition"
         >
-          <span className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-full text-[11px] font-bold">
-            ĐTĐ
-          </span>
+          <img
+            src={logo}
+            alt="Logo Đại học Thành Đông"
+            className="size-8 shrink-0 rounded-full bg-white object-contain ring-1 ring-black/5"
+          />
           <span className="hidden min-w-0 flex-col items-start leading-tight lg:flex">
             <span className="truncate text-[13px] font-semibold">Đại học Thành Đông</span>
             <span className="text-muted-foreground text-[11px]">Quản lý học phần</span>

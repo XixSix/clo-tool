@@ -19,7 +19,7 @@ function createWindow(): BrowserWindow {
       symbolColor: '#525252',
       height: 36
     },
-    title: 'Phần mềm Đánh giá CLO/PLO - Đại học Thành Đông',
+    title: 'Clove – Đánh giá CLO/PLO',
     webPreferences: {
       preload: join(__dirname, '../preload/index.mjs'),
       sandbox: false,

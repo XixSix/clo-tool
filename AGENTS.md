@@ -1,4 +1,4 @@
-# AGENTS.md — clo-tool (CLO/PLO Evaluator, Đại học Thành Đông)
+# AGENTS.md — Clove (CLO/PLO, Đại học Thành Đông; repo clo-tool)
 
 ## Lệnh & thứ tự verify
 

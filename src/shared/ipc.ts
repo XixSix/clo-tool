@@ -160,7 +160,7 @@ export interface StoredCourseConfig {
 
 /** API mà preload expose ra window.api */
 export interface CloApi {
-  setTitleBarTheme: (theme: 'light' | 'dark') => Promise<void>
+  setTitleBarTheme: (theme: 'light' | 'dark', background?: string) => Promise<void>
   pickFile: () => Promise<string | null>
   pickDirectory: () => Promise<string | null>
   getCourseConfig: (sessionId: string) => Promise<StoredCourseConfig | null>

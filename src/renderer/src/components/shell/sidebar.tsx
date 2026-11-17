@@ -26,6 +26,7 @@ import {
 import { cn } from 'cn'
 import { useWorkspace } from '@renderer/hooks/workspace'
 import type { ScreenId } from '@renderer/lib/navigation'
+import logo from '@renderer/assets/logo.png'
 
 const MAIN_NAV: { id: ScreenId; label: string; icon: React.ElementType }[] = [
   { id: 'home', label: 'Trang chủ', icon: House },
@@ -123,11 +124,13 @@ export function AppSidebar({
       <SidebarHeader>
         {/* Brand block — khi thu gọn chỉ còn logo ở giữa */}
         <div className="group flex items-center gap-2.5 px-1 pt-1 pb-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
-          <span className="bg-primary text-primary-foreground flex size-9 shrink-0 items-center justify-center rounded-xl text-[15px] font-bold shadow-sm">
-            C
-          </span>
+          <img
+            src={logo}
+            alt="Logo Đại học Thành Đông"
+            className="size-9 shrink-0 rounded-full bg-white object-contain shadow-sm ring-1 ring-black/5"
+          />
           <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-            <p className="truncate text-[15px] leading-tight font-bold">CLO Evaluator</p>
+            <p className="truncate text-[15px] leading-tight font-bold">Clove</p>
             <p className="text-muted-foreground truncate text-[11px]">Đại học Thành Đông</p>
           </div>
           <span className="flex-1 group-data-[collapsible=icon]:hidden" />
