@@ -1,198 +1,161 @@
-# Clove — Phần mềm đánh giá CLO/PLO (Đại học Thành Đông)
+# Clove — Hướng dẫn sử dụng
 
-Clove là phần mềm desktop (Electron + React + TypeScript) đo lường và đánh giá chuẩn đầu ra học phần
-theo **QĐ 450/QĐ-ĐHTĐ ngày 07/8/2024**. Ứng dụng chạy **offline 100%**, không gửi dữ liệu ra ngoài.
+Clove là phần mềm desktop của **Đại học Thành Đông** dùng để **đo lường và đánh giá chuẩn
+đầu ra học phần (CLO/PLO)** theo **QĐ 450/QĐ-ĐHTĐ ngày 07/8/2024**.
 
-> Trạng thái: đã xong **Tuần 0–2** (core engine, đọc/ghi Excel, xuất báo cáo)
-> và một **giao diện thử nghiệm** một màn hình để chạy trọn quy trình.
-
----
-
-## 1. Chạy thử nhanh (khuyến nghị)
-
-```bash
-npm install
-npm run dev
-```
-
-Trong cửa sổ ứng dụng:
-
-1. Vào màn **Học phần** → **Thêm môn học**, nhập thông tin cơ bản.
-2. Mở chi tiết môn để cấu hình CLO/PLO, kế hoạch đánh giá và câu hỏi (hoặc **Nhập JSON**
-   cấu hình đã xuất trước đó).
-3. Bấm **“Tạo bộ file mẫu”** → chọn một thư mục bất kỳ (ví dụ `D:\clo-test`) để sinh
-   `Template_DiemTho.xlsx` (điểm thô 32 sinh viên + 12 buổi điểm danh).
-4. Chọn file bảng điểm thật (nếu có), bấm **“Chọn thư mục lưu báo cáo”**, rồi
-   **“Tính toán & xuất báo cáo”**.
-5. Mở file kết quả `final_grades_report.xlsx` ngay trong app.
-
-### Chạy demo bằng dòng lệnh (không cần mở app)
-
-```bash
-npm run demo
-```
-
-Kết quả nằm trong `out/demo/`:
-
-| File                        | Nội dung                                                     |
-| :-------------------------- | :----------------------------------------------------------- |
-| `Template_DiemTho.xlsx`     | Điểm thô mẫu (điểm danh, CC, TD, KT3, KT4, CK)               |
-| `final_grades_report.xlsx`  | Bảng điểm CLO/PLO, điểm học vụ, chi tiết, tổng hợp, cảnh báo |
-
-Sinh lại file mẫu đi kèm app:
-
-```bash
-npm run gen:templates
-```
+Ứng dụng chạy **hoàn toàn offline trên máy giảng viên**: không cần mạng, không gửi dữ liệu
+sinh viên ra ngoài. Mọi file Excel đọc vào và báo cáo xuất ra đều nằm trên máy bạn.
 
 ---
 
-## 2. Kiểm thử & kiểm tra chất lượng
+## 1. Tải và cài đặt
 
-```bash
-npm test          # công thức QĐ450, parser, io, e2e
-npm run typecheck # TypeScript toàn bộ main/preload/renderer/core
-npm run lint      # ESLint
-npm run build     # Build production (electron-vite)
-```
+Tải file mới nhất tại trang **Releases** của dự án.
 
----
+| Hệ điều hành | File cần tải | Ghi chú |
+| :--- | :--- | :--- |
+| Windows 10/11 64-bit | **`Clove-<phiên bản>-setup.exe`** | Khuyến nghị — tự cập nhật bản mới |
+| Windows (không cần cài) | `Clove-<phiên bản>-portable.exe` | Chạy trực tiếp, **không** tự cập nhật |
+| macOS Apple Silicon (M1 trở lên) | `Clove-<phiên bản>-arm64.dmg` | |
+| macOS Intel | `Clove-<phiên bản>-x64.dmg` | |
 
-## 3. Dữ liệu mock đang dùng
+Các file `.zip` và `latest.yml` để ứng dụng tự cập nhật — **không cần tải tay**.
 
-Học phần **KTLT101 – Kỹ thuật lập trình**, 3 tín chỉ, 3 CLO:
+### Cài trên Windows
 
-| Nhóm | Đầu điểm   | CLO            |        Trọng số |
-| :--- | :--------- | :------------- | --------------: |
-| CC   | CC         | CLO2           |              5% |
-| CC   | CC         | CLO3           |              5% |
-| CC   | TD         | CLO4           |             10% |
-| GK   | KT3        | CLO3           |             15% |
-| GK   | KT4        | CLO4           |             15% |
-| CK   | CK (3 câu) | CLO2/CLO3/CLO4 | 20% / 15% / 15% |
+1. Bấm đúp `Clove-<phiên bản>-setup.exe`.
+2. Nếu Windows hiện **"Windows protected your PC"**: bấm **More info** → **Run anyway**.
+   Bản cài chưa ký số nên SmartScreen cảnh báo — đây là bình thường.
+3. Chọn thư mục cài (mặc định `%LOCALAPPDATA%\Programs\Clove`) → **Install**.
+4. Mở **Clove** từ Start Menu hoặc biểu tượng ngoài Desktop.
 
-- 32 sinh viên, 12 buổi điểm danh (`X`, `OL`, `M`, `V-CP`, `V`).
-- Ca biên được cố ý đưa vào: Mã SV bắt đầu bằng `0`, 1 SV vắng thi cuối kỳ (`VT`),
-  1 SV còn ô điểm trống, điểm lẻ `0,25`, ô gộp và dấu phẩy thập phân.
-- Điểm chuyên cần **tự tính** từ điểm danh:
-  `CC = (Σ hệ số buổi đã diễn ra / số buổi đã diễn ra) × 10`.
+### Cài trên macOS
 
-> Toàn bộ số liệu là **mock**, không phải điểm thật của sinh viên.
-
----
-
-## 4. Nội dung các sheet xuất ra
-
-`final_grades_report.xlsx`:
-
-| Sheet                 | Nội dung                                                             |
-| :-------------------- | :------------------------------------------------------------------- |
-| `BANG_DIEM_QUA_TRINH` | Phụ lục 3 – bản **Quá trình** (CC + GK), TBC CLO bằng số và bằng chữ |
-| `BANG_DIEM_CUOI_KY`   | Phụ lục 3 – bản **Cuối kỳ** (CK)                                     |
-| `BANG_DIEM_HOC_VU`    | Điểm danh từng buổi, số buổi vắng, CC/GK/CK, điểm học phần           |
-| `CHI_TIET_CLO`        | Truy xuất từng ô (đầu điểm, CLO) → CLO → PLO                         |
-| `TONG_HOP_LO`         | % đạt CLO/PLO, TB/min/max, 2 biểu đồ PNG, ô đề xuất cải tiến         |
-| `CANH_BAO`            | Lỗi dữ liệu, SV vắng thi/thiếu điểm, CLO dưới ngưỡng                 |
-
----
-
-## 5. Dùng dữ liệu thật
-
-Chỉ cần file Excel đúng cấu trúc cột như file mẫu. App dò tiêu đề theo **tên cột**
-(không theo vị trí), chấp nhận lệch dấu/khoảng trắng/hoa thường và sẽ gợi ý nếu tên cột gần giống.
-
-- **Cấu hình học phần**: nhập trực tiếp trong app (màn chi tiết môn) hoặc **Nhập JSON**;
-  app không còn đọc file `Template_Config.xlsx`.
-- **Điểm thô**: sheet `NHAP_LIEU` hoặc `NHAP_LIEU_GV`, có các cột `TT`, `Mã SV`, `Họ`, `Tên`,
-  `Ngày sinh`, `Buổi 1..N`, các cột điểm trùng mã với `CAU_HOI`, `Ghi chú`.
-- Giữ **Mã SV ở dạng văn bản** để không mất số `0` đầu.
-- Ô trống = chưa nhập; `VT` = vắng thi; chấp nhận cả `2,5` và `2.5`.
-
----
-
-## 6. Cấu trúc thư mục
-
-```
-src/
-  core/               # Engine thuần TypeScript, không import Electron/React
-    types/            # Kiểu dữ liệu theo miền (course, student, result, …)
-    io/               # Đọc bảng điểm thô, sinh template điểm thô
-    calculator/       # Bộ tính toán cốt lõi (attendance, clo, plo)
-      attendance/     # Điểm chuyên cần từ ký hiệu điểm danh
-      clo/            # Điểm ô → CLO → nhóm → điểm học phần, thống kê lớp
-      plo/            # Điểm thành phần và thống kê PLO
-    exporter/         # Xuất Excel + biểu đồ PNG
-  main/               # Electron main + IPC xử lý file
-  preload/            # Cầu nối an toàn ra window.api
-  renderer/           # Giao diện React
-  shared/             # DTO dùng chung main ↔ renderer
-resources/templates/  # Template_DiemTho*.xlsx
-scripts/              # demo.ts, gen-templates.ts
-tests/                # Vitest (golden QĐ450, io, e2e)
-docs/                 # Đặc tả & kế hoạch
-```
-
----
-
-## 7. Quyết định nghiệp vụ đang áp dụng
-
-- **#1**: `hp_method = QD450` (điểm học phần = 20% CC + 30% GK + 50% CK).
-- **#7**: CLO chỉ được đo bằng chuyên cần/thái độ → **cảnh báo**, không chặn tính điểm.
-- Ngưỡng đạt mặc định: CLO = 4,0; PLO = 4,0; học phần = 4,0 (đổi trong sheet `QUY_TAC`).
-- Làm tròn half-up từng bước (`rounding_mode = chain`) bằng `decimal.js`.
-
----
-
-## 8. Ghi chú / giới hạn hiện tại
-
-- Giao diện mới là **một màn hình chạy trọn quy trình**, chưa có bảng preview sửa ô trực tiếp
-  và chưa có thanh tab (dự kiến Tuần 3).
-- Biểu đồ trong Excel là **ảnh PNG** (ExcelJS không tạo chart gốc); số liệu nguồn vẫn nằm
-  trong bảng cạnh biểu đồ.
-- Bản cài đặt `.exe` được build tự động trên GitHub Actions, xem mục 9.
-
----
-
-## 9. Phát hành bản mới
-
-Mỗi phiên bản là **một tag `vX.Y.Z`** — tag chính là "hợp đồng" phát hành, không build tay.
-
-1. Làm việc trên `develop`, chạy đủ `npm run typecheck && npm run lint && npm test`.
-2. Cập nhật `CHANGELOG.md`, rồi tăng version:
+1. Mở file `.dmg`, kéo **Clove** vào thư mục **Applications**.
+2. Lần đầu mở, nếu macOS báo *"không xác định được nhà phát triển"*: chuột phải vào Clove
+   → **Open** → **Open**, hoặc vào **System Settings → Privacy & Security → Open Anyway**.
+3. Nếu vẫn bị chặn, chạy trong Terminal:
 
    ```bash
-   npm version 1.0.2 --no-git-tag-version
+   xattr -dr com.apple.quarantine /Applications/Clove.app
    ```
 
-3. Tạo nhánh phát hành **tuyến tính trên `origin/main`** (né lỗi rebase do commit merge trên
-   `develop`), squash nội dung `develop`, tăng version và commit:
+### Bản portable (Windows)
 
-   ```bash
-   git switch -c release/1.0.2 origin/main
-   git merge --squash origin/develop
-   git commit -m "feat: <tóm tắt thay đổi>"
-   npm version 1.0.2 --no-git-tag-version
-   git commit -am "chore(release): v1.0.2"
-   git push -u origin release/1.0.2
-   ```
+Chạy thẳng `Clove-<phiên bản>-portable.exe`, không cần quyền quản trị, không ghi vào Start
+Menu. Bản này **không tự cập nhật** — có bản mới phải tải lại.
 
-4. Mở **PR `release/x.y.z` → `main`** và chọn **Rebase and merge**. Merge xong mới gắn tag
-   trên `main` — chính lần push tag kích hoạt `.github/workflows/release.yml` (test, build,
-   đính kèm `Clove-<version>-setup.exe` có tự cập nhật, `-portable.exe` tải tay, `latest.yml`
-   + `.blockmap` vào GitHub Release):
+> **Nâng cấp từ bản cũ:** cứ cài đè bằng `setup.exe` mới. Dữ liệu môn học, cấu hình và
+> lịch sử chạy **được giữ nguyên**; không cần gỡ bản cũ trước.
 
-   ```bash
-   git switch main && git pull --ff-only
-   git tag v1.0.2 -m "Clove v1.0.2"
-   git push origin v1.0.2
-   ```
+---
 
-5. Chép commit version + CHANGELOG ngược về `develop` (`git cherry-pick`) rồi push thẳng —
-   không merge nhánh release vào `develop`.
-   `main` có ruleset `protect-main` nên **không push thẳng** được.
+## 2. Quy trình đánh giá một học phần
 
-Lưu ý:
+1. **Tạo môn học** — màn **Môn học** → **Thêm môn học**, nhập mã môn, tên môn, số tín chỉ.
+2. **Cấu hình học phần** — trong chi tiết môn:
+   - thông tin chung và **CLO** (mỗi CLO có nội dung, bậc năng lực, PLO tương ứng);
+   - **kế hoạch đánh giá**: đầu điểm, trọng số, câu hỏi và mã đề;
+   - **ma trận PLO**.
 
-- Tự cập nhật chỉ áp dụng cho bản **cài đặt** (`setup.exe`); bản `portable.exe` phải tải lại.
-- Build chưa ký số nên Windows SmartScreen có thể cảnh báo lần chạy đầu.
-- Workflow kiểm tra `version` trong `package.json` phải khớp tên tag, trước khi build.
+   Cấu hình đang sửa được **tự lưu nháp** sau mỗi lần thay đổi, kể cả khi còn lỗi — đóng
+   app rồi mở lại vẫn tiếp tục từ chỗ cũ. Nút **Lưu cấu hình** chỉ bật khi cấu hình **hết
+   lỗi**; lỗi và cảnh báo hiện ngay cạnh trường/bảng tương ứng.
+3. **Chuẩn bị file điểm** — bấm **Tạo bộ file mẫu** để sinh `Template_DiemTho.xlsx` rồi
+   điền điểm thô vào đó, hoặc dùng file Excel có sẵn đúng cấu trúc cột (mục 3).
+4. **Nhập điểm và tính** — chọn file điểm thô, chọn thư mục lưu báo cáo, bấm
+   **Tính toán & xuất báo cáo**. Kết quả mỗi lần chạy được lưu vào **Lịch sử** của môn.
+5. **Xem báo cáo** — mở file kết quả ngay trong app, hoặc xem thống kê CLO/PLO ở màn
+   **Báo cáo**.
+
+---
+
+## 3. File điểm thô cần những cột gì
+
+App **dò tiêu đề theo tên cột**, không theo vị trí; chấp nhận lệch dấu, khoảng trắng và
+chữ hoa/thường, và sẽ gợi ý nếu tên cột gần giống.
+
+- Sheet `NHAP_LIEU` (hoặc `NHAP_LIEU_GV`) với các cột: `TT`, `Mã SV`, `Họ`, `Tên`,
+  `Ngày sinh`, `Buổi 1..N` (điểm danh), các cột điểm trùng mã đầu điểm/câu hỏi trong
+  `CAU_HOI`, `Ghi chú`.
+- Giữ **Mã SV ở dạng văn bản** để không mất số `0` ở đầu.
+- Ô điểm trống được tính **0 điểm** (đúng Quyết định #9) và có cảnh báo riêng.
+- `VT` = **vắng thi cuối kỳ** → 0 điểm cuối kỳ, đánh dấu vắng thi.
+- Chấp nhận cả dấu phẩy và dấu chấm thập phân (`2,5` và `2.5`).
+- Điểm chuyên cần **tự tính** từ điểm danh: `CC = (Σ hệ số buổi đã diễn ra / số buổi đã
+  diễn ra) × 10`.
+
+---
+
+## 4. Báo cáo xuất ra gồm những gì
+
+File `final_grades_report.xlsx`:
+
+| Sheet | Nội dung |
+| :--- | :--- |
+| `BANG_DIEM_QUA_TRINH` | Phụ lục 3 — bản **Quá trình** (CC + GK), TBC CLO bằng số và bằng chữ |
+| `BANG_DIEM_CUOI_KY` | Phụ lục 3 — bản **Cuối kỳ** (CK) |
+| `BANG_DIEM_HOC_VU` | Điểm danh từng buổi, số buổi vắng, CC/GK/CK, điểm học phần |
+| `CHI_TIET_CLO` | Truy xuất từng ô (đầu điểm, CLO) → CLO → PLO |
+| `TONG_HOP_LO` | % đạt CLO/PLO, TB/min/max, 2 biểu đồ, ô đề xuất cải tiến |
+| `CANH_BAO` | Lỗi dữ liệu, sinh viên vắng thi/thiếu điểm, CLO dưới ngưỡng |
+
+Biểu đồ trong Excel là **ảnh PNG**; số liệu nguồn nằm trong bảng ngay cạnh biểu đồ.
+
+---
+
+## 5. Dữ liệu lưu ở đâu
+
+| Loại | Vị trí |
+| :--- | :--- |
+| Danh sách môn, cấu hình, lịch sử chạy | `%APPDATA%\clo-tool` (Windows) · `~/Library/Application Support/clo-tool` (macOS) |
+| Bản nháp cấu hình đang sửa | Lưu trên máy, theo từng môn |
+| File điểm thô & báo cáo | Thư mục bạn chọn — app không tự xoá |
+
+- **Sao lưu:** sao chép thư mục dữ liệu ở trên là đủ để khôi phục toàn bộ môn học.
+- **Gỡ cài đặt:** vào Settings → Apps → Clove. Gỡ cài đặt **không** xoá dữ liệu; muốn xoá
+  sạch thì xoá thêm thư mục dữ liệu.
+
+---
+
+## 6. Tuỳ chỉnh giao diện
+
+Trong **Cài đặt**:
+
+- Chuyển nhanh **Sáng / Tối** bằng nút ở góc phải thanh tiêu đề.
+- Chọn **bảng màu**: Mặc định, Cappuccino, Night sands, Amber obsidian, Magma obsidian.
+  Bảng màu áp cho cả chế độ sáng và tối, thanh tiêu đề đổi màu theo.
+
+---
+
+## 7. Câu hỏi thường gặp
+
+**Windows cảnh báo "Windows protected your PC" khi cài?**
+Bản cài chưa ký số. Bấm **More info** → **Run anyway**.
+
+**Mở app chỉ thấy tiến trình trong Task Manager, không thấy cửa sổ?**
+Lỗi này có ở bản **1.0.7 trở về trước** trên Windows. Cài đè bằng `setup.exe` từ **1.0.8**
+trở đi là hết; dữ liệu vẫn nguyên.
+
+**App có tự cập nhật không?**
+Bản cài `setup.exe` tự tải và cài bản mới khi mở app. Bản `portable` phải tải lại tay.
+
+**Không có mạng thì dùng được không?**
+Được. Mọi tính toán chạy trên máy; mạng chỉ cần cho bước tự cập nhật.
+
+**Có cần cài Microsoft Excel không?**
+Không. App tự đọc/ghi file `.xlsx`.
+
+**Cập nhật phần mềm có mất dữ liệu môn học không?**
+Không. Dữ liệu nằm ngoài thư mục cài đặt và được giữ nguyên khi nâng cấp.
+
+**Điểm học phần tính thế nào?**
+Theo QĐ 450: **20% chuyên cần + 30% giữa kỳ + 50% cuối kỳ**. Ngưỡng đạt mặc định 4,0 cho
+CLO, PLO và học phần; làm tròn half-up theo từng bước.
+
+---
+
+## 8. Phiên bản
+
+Xem lịch sử thay đổi trong [`CHANGELOG.md`](CHANGELOG.md). Bản mới nhất nằm ở mục
+**Releases** của kho mã nguồn.
