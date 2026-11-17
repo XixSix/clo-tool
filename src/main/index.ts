@@ -29,8 +29,19 @@ function createWindow(): BrowserWindow {
   })
   mainWindow = win
 
-  win.on('ready-to-show', () => {
+  let shown = false
+  const showWindow = (): void => {
+    if (shown || win.isDestroyed()) return
+    shown = true
     win.show()
+  }
+
+  win.on('ready-to-show', showWindow)
+
+  // Trên Windows, cửa sổ titleBarOverlay + preload + show:false có thể không bao giờ phát khung hình đầu
+  // => ready-to-show không chạy và app mở mà không hiện cửa sổ. Hiện ngay khi trang load xong.
+  win.webContents.once('did-finish-load', () => {
+    setTimeout(showWindow, 50)
   })
 
   win.on('closed', () => {
