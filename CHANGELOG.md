@@ -6,6 +6,15 @@ Mọi thay đổi đáng chú ý của phần mềm được ghi ở đây. Đ�
 
 ## [Unreleased]
 
+## [1.0.8] - 2026-11-17
+
+### Sửa
+
+- **Ứng dụng mở nhưng không hiện cửa sổ** trên Windows (chỉ thấy tiến trình trong Task
+  Manager). Nguyên nhân: Electron không phát khung hình đầu cho cửa sổ ẩn khi dùng thanh
+  tiêu đề tuỳ biến, nên sự kiện `ready-to-show` không bao giờ chạy. Nay cửa sổ được hiện
+  ngay khi trang tải xong, `ready-to-show` chỉ còn là đường tắt.
+
 ## [1.0.7] - 2026-11-17
 
 ### Thêm
